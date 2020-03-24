@@ -21,7 +21,7 @@ resource "openstack_compute_flavor_v2" "small" {
 	vcpus = 1
 	ram = 512
 	disk = 10
-	swap = 1
+	swap = 1024
 	is_public = true
 }
 
@@ -30,7 +30,7 @@ resource "openstack_compute_flavor_v2" "medium" {
 	vcpus = 1
 	ram = 1024
 	disk = 20
-	swap = 2
+	swap = 2048
 	is_public = true
 }
 
@@ -39,7 +39,7 @@ resource "openstack_compute_flavor_v2" "large" {
 	vcpus = 2
 	ram = 2048
 	disk = 20
-	swap = 2
+	swap = 2048
 	is_public = true
 }
 
@@ -47,7 +47,7 @@ resource "openstack_compute_flavor_v2" "xlarge" {
 	name = "t1.xlarge"
 	vcpus = 2
 	ram = 4096
-	disk = 20
-	swap = 4
+	disk = 40
+	swap = 4096
 	is_public = true
 }
