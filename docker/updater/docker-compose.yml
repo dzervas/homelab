@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  ouroboros:
+    image: pyouroboros/ouroboros
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

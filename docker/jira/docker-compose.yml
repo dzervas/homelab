@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  jira:
+    depends_on:
+      - postgresql
+    image: atlassian/jira-software
+    restart: unless-stopped
+    networks:
+      - default
+      - nginx-proxy
+    volumes:
+      - /data/jira/jira:/var/atlassian/application-data/jira
+      - /data/certs/server.lan.crt:/var/atlassian/application-data/jira/cacerts/server.lan.crt:ro
+    environment:
+      CATALINA_CONNECTOR_PROXYNAME: jira.server.lan
+      CATALINA_CONNECTOR_PROXYPORT: 443
+      CATALINA_CONNECTOR_SCHEME: https
+      CATALINA_CONNECTOR_SECURE: "true"
+      VIRTUAL_HOST: jira.server.lan
+      VIRTUAL_PORT: 8080
+      CERT_NAME: server.lan
+      JVM_SUPPORT_RECOMMENDED_ARGS: -Djavax.net.ssl.trustStore=/var/atlassian/application-data/jira/cacerts
+
+  postgresql:
+    image: postgres:11-alpine
+    restart: unless-stopped
+    volumes:
+      - /data/jira/postgresql:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: jira
+      POSTGRES_PASSWORD: jellyfish
+      POSTGRES_DB: jiradb
+      POSTGRES_ENCODING: UNICODE
+      POSTGRES_COLLATE: C
+      POSTGRES_COLLATE_TYPE: C
+
+networks:
+  nginx-proxy:
+    external:
+      name: proxy

@@ -123,6 +123,23 @@ for ds in cassandra couchbase couchdb db2 mariadb mongodb mysql percona postgres
 done
 ```
 
+## Docker
+
+On the server:
+
+```
+useradd -s /bin/bash -g docker -md /var/docker docker
+mkdir ~docker/.ssh
+cp ~user/.ssh/authorized_keys ~docker/.ssh
+```
+
+On your machine:
+
+```
+export DOCKER_HOST="ssh://docker@server.lan"
+docker network create nginx-proxy
+```
+
 ## Ansible
 
 ```bash
