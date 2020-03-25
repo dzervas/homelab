@@ -5,9 +5,10 @@ services:
     image: homeassistant/home-assistant:stable
     restart: unless-stopped
     networks:
+      - default
       - proxy
     volumes:
-      - /data/hass:/config
+      - /data/hass/hass:/config
     ports:
       - 51827:51827
     expose:
@@ -17,6 +18,14 @@ services:
       VIRTUAL_HOST: hass.server.lan
       VIRTUAL_PORT: 8123
       CERT_NAME: server.lan
+
+  mqtt:
+    image: eclipse-mosquitto
+    ports:
+      - 1883:1883
+    volumes:
+      - /data/hass/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - /data/hass/mqtt:/mosquitto/data
 
 networks:
   proxy:
