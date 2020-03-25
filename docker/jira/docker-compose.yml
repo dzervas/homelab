@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - nginx-proxy
+      - proxy
     volumes:
       - /data/jira/jira:/var/atlassian/application-data/jira
       - /data/certs/server.lan.crt:/var/atlassian/application-data/jira/cacerts/server.lan.crt:ro
@@ -36,6 +36,6 @@ services:
       POSTGRES_COLLATE_TYPE: C
 
 networks:
-  nginx-proxy:
+  proxy:
     external:
       name: proxy

@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  hass:
+    image: homeassistant/home-assistant:stable
+    restart: unless-stopped
+    networks:
+      - proxy
+    volumes:
+      - /data/hass:/config
+    ports:
+      - 51827:51827
+    expose:
+      - 8123
+    environment:
+      TZ: Europe/Athens
+      VIRTUAL_HOST: hass.server.lan
+      VIRTUAL_PORT: 8123
+      CERT_NAME: server.lan
+
+networks:
+  proxy:
+    external:
+      name: proxy

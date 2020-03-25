@@ -140,6 +140,29 @@ export DOCKER_HOST="ssh://docker@server.lan"
 docker network create nginx-proxy
 ```
 
+### Home Assistant HomeKit
+
+An mDNS reflector is needed. On the server:
+
+```
+apt install avahi-daemon
+systemctl enable avahi-daemon
+```
+
+Edit `/etc/avahi/avahi-daemon.conf` and change:
+
+```
+[reflector]
+enable-reflector=yes
+```
+
+If you want to limit the reflecting interfaces also edit:
+
+```
+[server]
+deny-interfaces=eth2
+```
+
 ## Ansible
 
 ```bash
