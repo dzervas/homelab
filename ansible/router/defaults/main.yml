@@ -1,0 +1,16 @@
+---
+
+hostapd_driver: nl80211
+hostapd_80211d: 0
+hostapd_80211h: 0
+hostapd_80211n: 1
+hostapd_80211w: 1
+hostapd_80211ac: 0
+hostapd_80211ax: 0
+
+hostapd_networks:
+  wlan0:
+    "Example":
+      bridge: lan0
+      passphrase: test
+      hidden: 0
