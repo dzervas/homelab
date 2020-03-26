@@ -17,7 +17,7 @@ services:
       TZ: Europe/Athens
       VIRTUAL_HOST: hass.server.lan
       VIRTUAL_PORT: 8123
-      CERT_NAME: server.lan
+      CERT_NAME: default
 
   mqtt:
     image: eclipse-mosquitto

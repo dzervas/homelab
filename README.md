@@ -163,6 +163,36 @@ If you want to limit the reflecting interfaces also edit:
 deny-interfaces=eth2
 ```
 
+### SSL Certificates - without a CA
+
+I didn't want to trust a whole CA - it could sign certificates for the whole
+internet on all of my devices and I'm just doing my hobby. I'm not setting
+up a private CA witha security key 'n shit. Lets create a wildcard self-signed
+certificate which we will trust on the devices and sign client certificates
+with it as well. It's good enough and if someone gains root and compromises
+the certificate key - they already have access to all of the confidential
+data we're gonna transfer...
+
+Create default certificate:
+
+```bash
+openssl req -new -x509 -nodes -newkey rsa:2048 -keyout /data/certs/default.key -out /data/certs/default.crt -subj "/C=GR/ST=Attiki/L=Athens/O=HomeCert/CN=*.server.lan"
+```
+
+Create a client certificate
+
+```bash
+openssl req -new -key /tmp/client/client.key -out /tmp/client/client.req -subj "/C=GR/ST=Attiki/L=Athens/O=HomeCert"
+openssl x509 -req -in /tmp/client/client.req -CA default.crt -CAkey default.key -set_serial 1000 -extensions client -days 365 -outform PEM -out /tmp/client/client.crt
+openssl pkcs12 -export -inkey /tmp/client/client.key -in /tmp/client/client.crt -out /tmp/client/client.p12
+```
+
+Fix Jira certificate issues:
+
+```bash
+docker exec -it jira_jira_1 keytool -import -trustcacerts -keystore /var/atlassian/application-data/jira/cacerts -storepass changeit -alias Proxy -import -file /proxy.crt
+```
+
 ## Ansible
 
 ```bash

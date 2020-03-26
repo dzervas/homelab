@@ -2,6 +2,7 @@ version: '3'
 
 services:
   nginx:
+    #build: .
     image: jwilder/nginx-proxy:alpine
     restart: unless-stopped
     volumes:

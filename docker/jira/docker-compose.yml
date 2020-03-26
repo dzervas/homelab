@@ -11,7 +11,7 @@ services:
       - proxy
     volumes:
       - /data/jira/jira:/var/atlassian/application-data/jira
-      - /data/certs/server.lan.crt:/var/atlassian/application-data/jira/cacerts/server.lan.crt:ro
+      - /data/certs/default.crt:/proxy.crt:ro
     environment:
       CATALINA_CONNECTOR_PROXYNAME: jira.server.lan
       CATALINA_CONNECTOR_PROXYPORT: 443
@@ -19,7 +19,7 @@ services:
       CATALINA_CONNECTOR_SECURE: "true"
       VIRTUAL_HOST: jira.server.lan
       VIRTUAL_PORT: 8080
-      CERT_NAME: server.lan
+      CERT_NAME: default
       JVM_SUPPORT_RECOMMENDED_ARGS: -Djavax.net.ssl.trustStore=/var/atlassian/application-data/jira/cacerts
 
   postgresql:
