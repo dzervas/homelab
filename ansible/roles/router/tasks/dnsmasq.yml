@@ -1,0 +1,14 @@
+---
+
+- name: Install required packages
+  apt:
+    autoclean: yes
+    autoremove: yes
+    state: latest
+    update_cache: yes
+    upgrade: dist
+    name:
+      - dnsmasq-base
+      - dnsmasq
+  notify:
+    - restart dnsmasq

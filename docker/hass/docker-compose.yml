@@ -2,6 +2,8 @@ version: '3'
 
 services:
   hass:
+    depends_on:
+      - mqtt
     image: homeassistant/home-assistant:stable
     restart: unless-stopped
     networks:
@@ -21,6 +23,7 @@ services:
 
   mqtt:
     image: eclipse-mosquitto
+    restart: unless-stopped
     ports:
       - 1883:1883
     volumes:

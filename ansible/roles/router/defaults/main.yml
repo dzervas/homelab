@@ -1,0 +1,27 @@
+---
+
+hostapd_driver: nl80211
+hostapd_mode: g
+hostapd_channel: 11
+hostapd_country_code: US
+hostapd_80211d: false
+hostapd_80211h: false
+hostapd_80211n: true
+hostapd_80211w: true
+hostapd_80211ac: false
+hostapd_80211ax: false
+hostapd_wmm_enabled: false
+hostapd_require_ht: false
+hostapd_require_vht: false
+#hostapd_vht_oper_chwidth: 0 # 0: 20 or 40MHz, 1: 80MHz, 2: 160MHz, 3: 80+80MHz
+#hostapd_vht_oper_centr_freq_seg0_idx: 42
+#hostapd_vht_oper_centr_freq_seg1_idx: 159
+#hostapd_ht_capab: ""
+#hostapd_vht_capab: ""
+
+dns_tld: local
+dns_hostname: router
+dns_local_ttl: 300
+dns_dhcp_ttl: 30
+
+subnets: []

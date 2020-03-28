@@ -1,0 +1,4 @@
+---
+
+- import_playbook: network.yml
+- import_playbook: dnsmasq.yml

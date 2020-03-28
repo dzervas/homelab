@@ -1,0 +1,14 @@
+---
+
+- name: Parse network interfaces options
+  set_fact:
+    network: "{{ subnets }}"
+
+- name: Setup interfaces
+  template:
+    src: templates/subnet
+    dest: "/etc/network/interfaces.d/{{ item.key }}.cfg"
+    state: present
+    backup: yes
+  with_dict: "{{ subnets }}"
+  notify: restart networking

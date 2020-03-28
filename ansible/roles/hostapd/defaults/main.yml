@@ -1,6 +1,7 @@
 ---
 
 hostapd_driver: nl80211
+hostapd_country_code: US
 hostapd_80211d: 0
 hostapd_80211h: 0
 hostapd_80211n: 1
