@@ -1,0 +1,15 @@
+---
+
+- name: Install required packages
+  apt:
+    state: latest
+    name: hostapd
+  notify: restart hostapd
+
+- name: Copy configuration
+  template:
+    src: templates/hostapd.conf
+    dest: /etc/hostapd/hostapd.conf
+    state: present
+    backup: yes
+  notify: restart hostapd

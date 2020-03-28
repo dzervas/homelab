@@ -2,13 +2,16 @@
 
 - name: Install required packages
   apt:
-    autoclean: yes
-    autoremove: yes
     state: latest
-    update_cache: yes
-    upgrade: dist
     name:
       - dnsmasq-base
       - dnsmasq
-  notify:
-    - restart dnsmasq
+  notify: restart dnsmasq
+
+- name: Copy configuration
+  template:
+    src: templates/dnsmasq.conf
+    dest: /etc/dnsmasq.conf
+    state: present
+    backup: yes
+  notify: restart dnsmasq

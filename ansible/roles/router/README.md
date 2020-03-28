@@ -47,6 +47,8 @@ dns_hostname: router # Hostname of the target device
 dns_local_ttl: 300 # TTL for local DNS records (NOT taken by DHCP leases)
 dns_dhcp_ttl: 30 # TTL for DHCP DNS records (hostnames) - keep it low in case some IP changes
 
+wan_iface: eth0 # Interface that has internet access
+
 # Subnet configuration
 # My current setup has in mind different vlan per subnet - you can ommit that
 # Each subnet will have a separate network interface name (custom),
