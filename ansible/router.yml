@@ -1,7 +1,7 @@
 ---
 
 - hosts: router
-  vars_files: ~/.homelab/router_usb.yml
+  vars_files: ~/.homelab/router.yml
   roles:
     - role: router
       become: yes
