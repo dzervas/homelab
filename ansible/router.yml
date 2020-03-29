@@ -1,0 +1,8 @@
+---
+
+- hosts: router
+  vars_files: ~/.homelab/router_usb.yml
+  roles:
+    - role: router
+      become: yes
+      become_method: su

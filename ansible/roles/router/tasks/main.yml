@@ -1,4 +1,6 @@
 ---
 
-- import_playbook: network.yml
-- import_playbook: dnsmasq.yml
+- import_tasks: network.yml
+- import_tasks: ferm.yml
+- import_tasks: dnsmasq.yml
+- import_tasks: hostapd.yml

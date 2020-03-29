@@ -1,6 +1,6 @@
 ---
 
-- name: Install required packages
+- name: Install dnsmasq required packages
   apt:
     state: latest
     name:
@@ -8,10 +8,9 @@
       - dnsmasq
   notify: restart dnsmasq
 
-- name: Copy configuration
+- name: Copy dnsmasq configuration
   template:
     src: templates/dnsmasq.conf
     dest: /etc/dnsmasq.conf
-    state: present
     backup: yes
   notify: restart dnsmasq

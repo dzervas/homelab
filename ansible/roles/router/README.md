@@ -48,6 +48,11 @@ dns_local_ttl: 300 # TTL for local DNS records (NOT taken by DHCP leases)
 dns_dhcp_ttl: 30 # TTL for DHCP DNS records (hostnames) - keep it low in case some IP changes
 
 wan_iface: eth0 # Interface that has internet access
+wan_cidr: 192.168.0.20/24
+wan_gateway: 192.168.0.1
+wan_dns:
+  - 1.1.1.1
+  - 1.0.0.1
 
 # Subnet configuration
 # My current setup has in mind different vlan per subnet - you can ommit that
@@ -102,7 +107,7 @@ subnets:
     allow_internet: true
     wifi_ssid: "Beautiful WiFi"
     wifi_passphrase: GreatPassword
-    wifi_hidden: 0
+    wifi_hidden: false
     wifi_iface: wlan0
     dhcp: true
     dhcp_range_start: 100

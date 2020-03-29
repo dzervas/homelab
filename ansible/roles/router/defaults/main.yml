@@ -3,7 +3,7 @@
 hostapd_driver: nl80211
 hostapd_mode: g
 hostapd_channel: 11
-hostapd_country_code: US
+#hostapd_country_code: US
 hostapd_80211d: false
 hostapd_80211h: false
 hostapd_80211n: true
