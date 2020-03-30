@@ -17,9 +17,9 @@ services:
       - 8123
     environment:
       TZ: Europe/Athens
-      VIRTUAL_HOST: hass.server.lan
+      LETSENCRYPT_HOST: "hass.${DOMAIN}"
+      VIRTUAL_HOST: "hass.${DOMAIN}"
       VIRTUAL_PORT: 8123
-      CERT_NAME: default
 
   mqtt:
     image: eclipse-mosquitto

@@ -17,10 +17,12 @@ services:
       CATALINA_CONNECTOR_PROXYPORT: 443
       CATALINA_CONNECTOR_SCHEME: https
       CATALINA_CONNECTOR_SECURE: "true"
-      VIRTUAL_HOST: jira.server.lan
-      VIRTUAL_PORT: 8080
-      CERT_NAME: default
       JVM_SUPPORT_RECOMMENDED_ARGS: -Djavax.net.ssl.trustStore=/var/atlassian/application-data/jira/cacerts
+      LETSENCRYPT_HOST: "jira.${DOMAIN}"
+      VIRTUAL_HOST: "jira.${DOMAIN}"
+      VIRTUAL_PORT: 8080
+    labels:
+      proxy.name: jira
 
   postgresql:
     image: postgres:11-alpine
