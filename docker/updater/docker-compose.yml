@@ -4,5 +4,12 @@ services:
   ouroboros:
     image: pyouroboros/ouroboros
     restart: unless-stopped
+    environment:
+      CLEANUP: "true"
+      INTERVAL: 300
+      LOG_LEVEL: info
+      SELF_UPDATE: "true"
+      #IGNORE: mongo influxdb postgres mariadb
+      TZ: "${TZ}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

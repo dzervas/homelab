@@ -16,7 +16,7 @@ services:
     expose:
       - 8123
     environment:
-      TZ: Europe/Athens
+      TZ: "${TZ}"
     labels:
       traefik.enable: true
       traefik.http.routers.hass.rule: "Host(`hass.${DOMAIN}`)"

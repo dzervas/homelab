@@ -3,7 +3,7 @@ version: '3'
 services:
   jira:
     depends_on:
-      - postgresql
+      - postgres
     image: atlassian/jira-software
     restart: unless-stopped
     networks:
@@ -11,7 +11,6 @@ services:
       - proxy
     volumes:
       - /data/jira/jira:/var/atlassian/application-data/jira
-      - /data/certs/default.crt:/proxy.crt:ro
     environment:
       CATALINA_CONNECTOR_PROXYNAME: "jira.${DOMAIN}"
       CATALINA_CONNECTOR_PROXYPORT: 443
@@ -23,14 +22,13 @@ services:
       traefik.http.routers.jira.rule: "Host(`jira.${DOMAIN}`)"
       traefik.http.routers.jira.entrypoints: websecure
 
-  postgresql:
+  postgres:
     image: postgres:11-alpine
     restart: unless-stopped
     volumes:
       - /data/jira/postgresql:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: jira
-      POSTGRES_PASSWORD: jellyfish
       POSTGRES_DB: jiradb
       POSTGRES_ENCODING: UNICODE
       POSTGRES_COLLATE: C
