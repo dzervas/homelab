@@ -1,37 +1,65 @@
 version: '3'
 
 services:
-  nginx:
-    image: jwilder/nginx-proxy:alpine
+  traefik:
+    image: traefik
     restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - /data/certs:/etc/nginx/certs:ro
-      - vhost:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
+    networks:
+      - default
+      - proxy
+    command:
+      - "--log.level=DEBUG"
+      - "--api"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls"
+      - "--entrypoints.websecure.http.tls.certresolver=lan"
+      - "--certificatesresolvers.lan.acme.dnschallenge"
+      - "--certificatesresolvers.lan.acme.dnschallenge.provider=acme-dns"
+      - "--certificatesresolvers.lan.acme.dnschallenge.resolvers=1.1.1.1"
+      - "--certificatesresolvers.lan.acme.email=${EMAIL}"
+      - "--certificatesresolvers.lan.acme.storage=/letsencrypt/acme.json"
     ports:
       - 80:80
       - 443:443
-    labels:
-      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: ""
-      com.github.jrcs.letsencrypt_nginx_proxy_companion.docker_gen: ""
-
-  letsencrypt:
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /data/certs:/etc/nginx/certs
-      - vhost:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
+      - /data/certs:/letsencrypt
     environment:
-      DEFAULT_EMAIL: "${EMAIL}"
+      ACME_DNS_API_BASE: http://acmedns
+      ACME_DNS_STORAGE_PATH: /letsencrypt/acme-dns
+    labels:
+      # Expose the Dashboard
+      traefik.enable: true
+      traefik.http.routers.traefik.rule: "Host(`proxy.${DOMAIN}`)"
+      traefik.http.routers.traefik.entrypoints: websecure
+      traefik.http.routers.traefik.service: api@internal
+      # Password protection
+      #traefik.http.routers.traefik.middlewares: traefik-auth
+      #traefik.http.middlewares.traefik-auth.basicauth.users: "admin:$$apr1$$iNdRs1II$$Qdw59WFY6y0Oaf0JaZTip0"
 
-volumes:
-  vhost:
-  html:
+      # To expose anothe container add labels:
+      #traefik.enable: true
+      #traefik.http.routers.<name>.rule: "Host(`<name>.${DOMAIN}`)"
+      #traefik.http.routers.<name>.entrypoints: https
+      #Optional port:
+      #traefik.http.services.whoami.loadbalancer.server.port: <port>
+
+  acmedns:
+    image: joohoi/acme-dns
+    restart: unless-stopped
+    ports:
+      - "53:53"
+      - "53:53/udp"
+    volumes:
+      - /data/proxy/acme-dns.cfg:/etc/acme-dns/config.cfg:ro
+      - /data/proxy/acme-dns/:/var/lib/acme-dns/
 
 networks:
-  default:
+  proxy:
     external:
       name: proxy

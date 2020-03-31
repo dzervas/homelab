@@ -17,9 +17,10 @@ services:
       - 8123
     environment:
       TZ: Europe/Athens
-      LETSENCRYPT_HOST: "hass.${DOMAIN}"
-      VIRTUAL_HOST: "hass.${DOMAIN}"
-      VIRTUAL_PORT: 8123
+    labels:
+      traefik.enable: true
+      traefik.http.routers.hass.rule: "Host(`hass.${DOMAIN}`)"
+      traefik.http.routers.hass.entrypoints: websecure
 
   mqtt:
     image: eclipse-mosquitto
