@@ -59,6 +59,20 @@ services:
       - /data/proxy/acme-dns.cfg:/etc/acme-dns/config.cfg:ro
       - /data/proxy/acme-dns/:/var/lib/acme-dns/
 
+  heimdall:
+    image: linuxserver/heimdall
+    restart: unless-stopped
+    environment:
+      TZ: "${TZ}"
+    volumes:
+      - /data/proxy/heimdall:/config
+    expose:
+      - 80
+    labels:
+      traefik.enable: true
+      traefik.http.routers.heimdall.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.heimdall.entrypoints: websecure
+
 networks:
   proxy:
     external:
