@@ -12,14 +12,15 @@ services:
     volumes:
       - /data/jira/jira:/var/atlassian/application-data/jira
     environment:
-      CATALINA_CONNECTOR_PROXYNAME: "jira.${DOMAIN}"
+      CATALINA_CONNECTOR_PROXYNAME: "jira.${HOMELAB_DOMAIN}"
       CATALINA_CONNECTOR_PROXYPORT: 443
       CATALINA_CONNECTOR_SCHEME: https
       CATALINA_CONNECTOR_SECURE: "true"
-      JVM_SUPPORT_RECOMMENDED_ARGS: -Djavax.net.ssl.trustStore=/var/atlassian/application-data/jira/cacerts
+      JVM_MINIMUM_MEMORY: 512m
+      JVM_MAXIMUM_MEMORY: 2048m
     labels:
       traefik.enable: true
-      traefik.http.routers.jira.rule: "Host(`jira.${DOMAIN}`)"
+      traefik.http.routers.jira.rule: "Host(`jira.${HOMELAB_DOMAIN}`)"
       traefik.http.routers.jira.entrypoints: websecure
 
   postgres:
@@ -27,6 +28,11 @@ services:
     restart: unless-stopped
     volumes:
       - /data/jira/postgresql:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       POSTGRES_USER: jira
       POSTGRES_DB: jiradb

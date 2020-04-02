@@ -10,6 +10,6 @@ services:
       LOG_LEVEL: info
       SELF_UPDATE: "true"
       #IGNORE: mongo influxdb postgres mariadb
-      TZ: "${TZ}"
+      TZ: "${HOMELAB_TZ}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

@@ -10,6 +10,7 @@ services:
     command:
       - "--log.level=DEBUG"
       - "--api"
+      - "--ping=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=proxy"
       - "--entrypoints.web.address=:80"
@@ -21,7 +22,7 @@ services:
       - "--certificatesresolvers.lan.acme.dnschallenge"
       - "--certificatesresolvers.lan.acme.dnschallenge.provider=acme-dns"
       - "--certificatesresolvers.lan.acme.dnschallenge.resolvers=1.1.1.1"
-      - "--certificatesresolvers.lan.acme.email=${EMAIL}"
+      - "--certificatesresolvers.lan.acme.email=${HOMELAB_EMAIL}"
       - "--certificatesresolvers.lan.acme.storage=/letsencrypt/acme.json"
     ports:
       - 80:80
@@ -29,13 +30,18 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /data/certs:/letsencrypt
+    healthcheck:
+      test: ["CMD-SHELL", "traefik healthcheck --ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
     environment:
       ACME_DNS_API_BASE: http://acmedns
       ACME_DNS_STORAGE_PATH: /letsencrypt/acme-dns
     labels:
       # Expose the Dashboard
       traefik.enable: true
-      traefik.http.routers.traefik.rule: "Host(`proxy.${DOMAIN}`)"
+      traefik.http.routers.traefik.rule: "Host(`proxy.${HOMELAB_DOMAIN}`)"
       traefik.http.routers.traefik.entrypoints: websecure
       traefik.http.routers.traefik.service: api@internal
       # Password protection
@@ -44,7 +50,7 @@ services:
 
       # To expose anothe container add labels:
       #traefik.enable: true
-      #traefik.http.routers.<name>.rule: "Host(`<name>.${DOMAIN}`)"
+      #traefik.http.routers.<name>.rule: "Host(`<name>.${HOMELAB_DOMAIN}`)"
       #traefik.http.routers.<name>.entrypoints: https
       #Optional port:
       #traefik.http.services.whoami.loadbalancer.server.port: <port>
@@ -62,15 +68,17 @@ services:
   heimdall:
     image: linuxserver/heimdall
     restart: unless-stopped
+    networks:
+      - proxy
     environment:
-      TZ: "${TZ}"
+      TZ: "${HOMELAB_TZ}"
     volumes:
       - /data/proxy/heimdall:/config
     expose:
       - 80
     labels:
       traefik.enable: true
-      traefik.http.routers.heimdall.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.heimdall.rule: "Host(`${HOMELAB_DOMAIN}`)"
       traefik.http.routers.heimdall.entrypoints: websecure
 
 networks:
