@@ -19,7 +19,7 @@ Create an inventory at `~/.homelab/inventory.ini` like:
 
 And copy the default config `server.yml` to `~/.homelab` directory. Change it according to your needs, it's documented.
 
-```bash
+```shell script
 cd ansible
 ansible-playbook server.yml
 ```
@@ -33,7 +33,7 @@ First of all, all services listen on localhost (for security reasons),
 so let's forward them for them to be accessible
 (fire that in a separate terminal, let it run throughout the setup):
 
-```bash
+```shell script
 ssh -NL 127.0.0.1:4646:127.0.0.1:4646 -L 127.0.0.1:8200:127.0.0.1:8200 -L 127.0.0.1:8500:127.0.0.1:8500 <server_ip>
 ```
 
@@ -53,6 +53,13 @@ Now lets do the initial setup:
 5. Get the nomad master token ___secret___: `ssh <server_ip> nomad acl bootstrap` (Store the SecretID in gopass)
 6. Done!
 
+BTW, secure the configs that include secrets on the server (as root):
+
+```shell script
+chmod 700 /data/{consul,nomad,vault}
+chmod 600 /data/nomad/config/*
+```
+
 ## Services
 
 Now the whole setup is ready! :)
@@ -62,7 +69,7 @@ Lets use our "private cloud" with terraform!
 At this point we still need the SSH port forward - we will expose this services using the Let's Encrypt reverse proxy
 after terraform is run.
 
-```bash
+```shell script
 cd terraform
 CONSUL_TOKEN="$(gopass show -o consul-token)" VAULT_TOKEN="$(gopass show -o vault-master-token)" NOMAD_TOKEN="$(gopass show -o nomad-token)" terraform apply
 ```

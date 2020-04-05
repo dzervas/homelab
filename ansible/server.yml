@@ -18,17 +18,15 @@
         consul_install_upgrade: yes
         consul_bind_address: 127.0.0.1
         #consul_bind_address: 0.0.0.0
-        #consul_advertise_address: 127.0.0.1
-        #consul_advertise_address_wan: 10.13.37.80
+        consul_advertise_address: 127.0.0.1
+        consul_advertise_address_wan: 10.13.37.80
         #consul_advertise_addresses_rpc: "{{ consul_advertise_address }}"
-        #consul_addresses_http: 0.0.0.0
+        consul_addresses_http: 0.0.0.0
         #consul_client_address: 127.0.0.1
         consul_recursors: "{{ homelab_dns }}"
         consul_raw_key: "{{ homelab_encrypt }}"
         consul_connect_enable: yes
         consul_node_role: bootstrap
-        # Check https://learn.hashicorp.com/consul/security-networking/production-acls#create-the-initial-bootstrap-token
-        # Then add SecretID to var file as "homelab_consul_token"
         consul_acl_enable: yes
         consul_acl_default_policy: deny
         consul_acl_token_persistence: yes
@@ -54,7 +52,6 @@
         nomad_datacenter: home
         nomad_docker_enable: yes
         nomad_group_name: server
-        #nomad_bind_address: 0.0.0.0
         nomad_iface: lo
         nomad_bind_address: 127.0.0.1
         nomad_advertise_address: 127.0.0.1
@@ -64,7 +61,7 @@
         nomad_encrypt: "{{ homelab_encrypt }}"
         nomad_acl_enabled: yes
         nomad_vault_enabled: yes
-        nomad_vault_address: 127.0.0.1
+        nomad_vault_address: http://127.0.0.1:8200
         nomad_vault_allow_unauthenticated: no
         nomad_consul_token: "{{ homelab_consul_token }}"
         nomad_vault_token: "{{ homelab_vault_token }}"

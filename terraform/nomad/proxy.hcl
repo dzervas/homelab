@@ -17,17 +17,22 @@ job "proxy" {
 					"traefik.http.routers.traefik.service=api@internal",
 				]
 
-				check {
-					type = "http"
-					interval = "5s"
-					timeout = "2s"
-					path = "/ping"
+//				check {
+//					type = "http"
+//					interval = "5s"
+//					timeout = "2s"
+//					path = "/ping"
+//				}
+
+				connect {
+					sidecar_service {}
 				}
 			}
 
 			env {
 				ACME_DNS_API_BASE = "http://acme-dns"
 				ACME_DNS_STORAGE_PATH = "/letsencrypt/acme-dns"
+				CONSUL_HTTP_TOKEN = "${consul_token}"
 			}
 
 			config {
@@ -36,9 +41,8 @@ job "proxy" {
 					"--log.level=DEBUG",
 					"--api",
 					"--ping",
-					// TODO: Remove fixed address
-//					"--providers.consul.endpoints=http://${consul_address}",
-					"--providers.consul.endpoints=http://server.lan:8500",
+					"--providers.consulcatalog.endpoint.address=http://${consul_address}",
+					"--providers.consulcatalog.exposedbydefault=false",
 					"--entrypoints.web.address=:80",
 					"--entrypoints.web.http.redirections.entrypoint.to=websecure",
 					"--entrypoints.web.http.redirections.entrypoint.scheme=https",
@@ -86,6 +90,7 @@ job "proxy" {
 
 			resources {
 				network {
+					// TODO: Limit access to VPN only
 					port "dns" { static = "53" }
 				}
 			}
