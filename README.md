@@ -1,107 +1,45 @@
 # HomeLab
 
-Deployment of my home infrastructure. Devices:
+A home server provisioned by ansible to run Hashicorp Consul, Nomad & Vault.
+Various services are defined ([terraform/nomad](terraform/nomad)).
 
- - Router (Alix 2 by PCEngines)
- - 2x Managed switches (DGS-1100 by D-Link)
- - A server (my old desktop)
+Local certificates are signed by Let's Encrypt - don't worry, they're not
+exposed to the internet, we sign every subdomain using the DNS-01 challenge.
 
-The router runs Mepis Antix (problem with the i586 architecture by Debian)
-and the server runs Ubuntu 18.04 LTS.
+Info on how that works below.
 
-## Ansible
-
-The router & the server are provisioned using ansible.
-The configuration is long (for the router at least), take your time
+## Setup
 
 Create an inventory at `~/.homelab/inventory.ini` like:
-(of course setup the router before the server)
 
 ```ini
-[router]
-192.168.0.1
-
 [server]
 192.168.0.10
 ```
 
-And copy the default config `variables.yml` to `~/.homelab` directory.
+And copy the default config `server.yml` to `~/.homelab` directory.
 It's documented.
 
 ```bash
 cd ansible
-ansible-playbook main.yml
+ansible-playbook server.yml
 ```
 
-## Docker
+If you want to prompt for privilege escalation password (su/sudo) use
+the flag `-K`.
 
-All of the services are hosted on the server and deployed exclusively with
-docker-compose. Here is my setup
+Now consul is ready - nomad & vault need some work.
 
-On the server:
-
-```
-useradd -s /bin/bash -g docker -md /var/docker docker
-mkdir ~docker/.ssh
-cp ~user/.ssh/authorized_keys ~docker/.ssh
-```
-
-On your machine:
-
-```
-export DOCKER_HOST="ssh://docker@server.lan"
-docker network create nginx-proxy
-```
-
-### Home Assistant HomeKit
-
-An mDNS reflector is needed. On the server:
-
-```
-apt install avahi-daemon
-systemctl enable avahi-daemon
-```
-
-Edit `/etc/avahi/avahi-daemon.conf` and change:
-
-```
-[reflector]
-enable-reflector=yes
-```
-
-If you want to limit the reflecting interfaces also edit:
-
-```
-[server]
-deny-interfaces=eth2
-```
-
-### SSL Certificates - without a CA
-
-I didn't want to trust a whole CA - it could sign certificates for the whole
-internet on all of my devices and I'm just doing my hobby. I'm not setting
-up a private CA witha security key 'n shit. Lets create a wildcard self-signed
-certificate which we will trust on the devices and sign client certificates
-with it as well. It's good enough and if someone gains root and compromises
-the certificate key - they already have access to all of the confidential
-data we're gonna transfer...
-
-Create default certificate:
+First of all, all services listen on localhost (for security reasons),
+so let's forward them for them to be accessible
+(fire that in a separate terminal, let it run throughout the setup):
 
 ```bash
-openssl req -new -x509 -nodes -newkey rsa:2048 -keyout /data/certs/default.key -out /data/certs/default.crt -subj "/C=GR/ST=Attiki/L=Athens/O=HomeCert/CN=*.server.lan"
+ssh -NL 127.0.0.1:4646:127.0.0.1:4646 -L 127.0.0.1:8200:127.0.0.1:8200 -L 127.0.0.1:8500:127.0.0.1:8500 <server_ip>
 ```
 
-Create a client certificate
+Now lets do the initial setup:
 
-```bash
-openssl req -new -key /tmp/client/client.key -out /tmp/client/client.req -subj "/C=GR/ST=Attiki/L=Athens/O=HomeCert"
-openssl x509 -req -in /tmp/client/client.req -CA default.crt -CAkey default.key -set_serial 1000 -extensions client -days 365 -outform PEM -out /tmp/client/client.crt
-openssl pkcs12 -export -inkey /tmp/client/client.key -in /tmp/client/client.crt -out /tmp/client/client.p12
-```
-
-Fix Jira certificate issues:
-
-```bash
-docker exec -it jira_jira_1 keytool -import -trustcacerts -keystore /var/atlassian/application-data/jira/cacerts -storepass changeit -alias Proxy -import -file /proxy.crt
-```
+1. Access [vault](http://127.0.0.1:8200) and set it up.
+2. Get the consul master token ___secret___: `ssh <server_ip> consul acl bootstrap` (Store it somewhere safe OFC)
+3. In `~/.homelab/server.yml` set `homelab_consul_token` to the above and `homelab_encrypt` to `ssh <server_ip> grep encrypt /data/consul/config/config.json` (the string matched)
