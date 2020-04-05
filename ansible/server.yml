@@ -67,6 +67,7 @@
         nomad_vault_address: 127.0.0.1
         nomad_vault_allow_unauthenticated: no
         nomad_consul_token: "{{ homelab_consul_token }}"
+        nomad_vault_token: "{{ homelab_vault_token }}"
         nomad_host_volumes:
           - name: data
             path: /data/nomad/containers

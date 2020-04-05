@@ -17,8 +17,7 @@ Create an inventory at `~/.homelab/inventory.ini` like:
 192.168.0.10
 ```
 
-And copy the default config `server.yml` to `~/.homelab` directory.
-It's documented.
+And copy the default config `server.yml` to `~/.homelab` directory. Change it according to your needs, it's documented.
 
 ```bash
 cd ansible
@@ -38,8 +37,34 @@ so let's forward them for them to be accessible
 ssh -NL 127.0.0.1:4646:127.0.0.1:4646 -L 127.0.0.1:8200:127.0.0.1:8200 -L 127.0.0.1:8500:127.0.0.1:8500 <server_ip>
 ```
 
+I advise using [gopass](https://github.com/gopasspw/gopass) to store the secrets - I'll provide some good-usage
+examples as well
+
 Now lets do the initial setup:
 
-1. Access [vault](http://127.0.0.1:8200) and set it up.
-2. Get the consul master token ___secret___: `ssh <server_ip> consul acl bootstrap` (Store it somewhere safe OFC)
-3. In `~/.homelab/server.yml` set `homelab_consul_token` to the above and `homelab_encrypt` to `ssh <server_ip> grep encrypt /data/consul/config/config.json` (the string matched)
+1. Access [vault](http://127.0.0.1:8200) and set it up - choose PGP encryption and store the provided keys in gopass (`echo -n "<key>" | base64 -d | gpg -d | gopass insert -f vault-<key-name>-token`)
+   - NOTE: The "Key <num>" is used on every vault restart to unseal it and "Master Key" is used to log in 
+2. Get the consul master token ___secret___: `ssh <server_ip> consul acl bootstrap` (Store the SecretID in gopass)
+3. In `~/.homelab/server.yml` set:
+   - `homelab_consul_token` to consul master token
+   - `homelab_vault_token` to vault master token (not the "Key X" that is used to unseal the vault)
+   - `homelab_encrypt` to `ssh <server_ip> grep encrypt /data/consul/config/config.json` (the string matched)
+4. Rerun the `server.yml` playbook
+5. Get the nomad master token ___secret___: `ssh <server_ip> nomad acl bootstrap` (Store the SecretID in gopass)
+6. Done!
+
+## Services
+
+Now the whole setup is ready! :)
+
+Lets use our "private cloud" with terraform!
+
+At this point we still need the SSH port forward - we will expose this services using the Let's Encrypt reverse proxy
+after terraform is run.
+
+```bash
+cd terraform
+CONSUL_TOKEN="$(gopass show -o consul-token)" VAULT_TOKEN="$(gopass show -o vault-master-token)" NOMAD_TOKEN="$(gopass show -o nomad-token)" terraform apply
+```
+
+NOW you're good to go!
