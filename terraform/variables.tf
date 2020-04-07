@@ -17,3 +17,8 @@ variable "pgp_key" {
   description = "PGP key to encrypt secrets with - can be keybase:<username>"
   type = string
 }
+
+variable "consul_address" {
+  description = "Consul HTTP API address (ex. 127.0.0.1:8500)"
+  type = string
+}

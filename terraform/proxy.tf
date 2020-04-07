@@ -1,39 +1,35 @@
-data "consul_service" "consul" {
-  name = "consul"
-}
-
-resource "consul_acl_policy" "proxy" {
-  name  = "proxy"
+// Allow Consul Catalog Access
+resource "consul_acl_policy" "allow_catalog" {
+  name  = "allow_catalog"
   rules = "node_prefix \"\" { policy = \"read\" } service_prefix \"\" { policy = \"read\" } "
+  description = "Allow Catalog read access"
 }
 
-resource "consul_acl_token" "proxy" {
-  description = "Proxy Discovery Token - Managed by Terraform"
-  policies = ["${consul_acl_policy.proxy.name}"]
+// Generate the token
+// TODO: Store in vault
+resource "consul_acl_token" "proxy_catalog_tf" {
+  description = "Proxy Catalog Discovery Token - Managed by Terraform"
+  policies = ["${consul_acl_policy.allow_catalog.name}"]
   local = true
 }
 
-data "consul_acl_token_secret_id" "proxy" {
-  accessor_id = consul_acl_token.proxy.accessor_id
+data "consul_acl_token_secret_id" "proxy_catalog_tf" {
+  accessor_id = consul_acl_token.proxy_catalog_tf.accessor_id
 }
 
-data "template_file" "nomad_proxy_hcl" {
-  count = length(data.consul_service.consul.service)
-  template = file("${path.module}/nomad/proxy.hcl")
-  vars = {
-    domain = var.domain
-    email = var.email
-    tz = var.tz
-
-    // data.consul_service.consul.service.*.port gives 8300, not 8500...
-    // TODO: Make this work
-//    consul_address = "${element(data.consul_service.consul.service.*.tagged_addresses, count.index).0}:8500"
-    consul_address = "10.13.37.80:8500"
-    consul_token = data.consul_acl_token_secret_id.proxy.secret_id
-  }
+resource "consul_intention" "proxy" {
+  source_name = "proxy-traefik"
+  destination_name = "proxy-acme-dns-api"
+  action = "allow"
 }
 
 resource "nomad_job" "proxy" {
-  count = length(data.consul_service.consul.service)
-  jobspec = element(data.template_file.nomad_proxy_hcl.*.rendered, count.index)
+  jobspec = templatefile("${path.module}/nomad/proxy.nomad", {
+    tz = var.tz
+    email = var.email
+    domain = var.domain
+    // TODO: Remove hardcoded address
+    consul_address = var.consul_address
+    consul_token = data.consul_acl_token_secret_id.proxy_catalog_tf.secret_id
+  })
 }
