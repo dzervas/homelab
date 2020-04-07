@@ -17,12 +17,7 @@
         consul_node_name: "{{ homelab_hostname }}"
         consul_install_upgrade: yes
         consul_bind_address: 127.0.0.1
-        #consul_bind_address: 0.0.0.0
-        consul_advertise_address: 127.0.0.1
-        consul_advertise_address_wan: 10.13.37.80
-        #consul_advertise_addresses_rpc: "{{ consul_advertise_address }}"
-        consul_addresses_http: 0.0.0.0
-        #consul_client_address: 127.0.0.1
+        consul_client_address: 127.0.0.1
         consul_recursors: "{{ homelab_dns }}"
         consul_raw_key: "{{ homelab_encrypt }}"
         consul_connect_enabled: yes

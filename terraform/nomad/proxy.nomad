@@ -28,6 +28,7 @@ job "proxy" {
 
       connect {
         sidecar_service {
+          tags = []
           proxy {
             upstreams {
               destination_name = "proxy-acme-dns-api"
@@ -76,8 +77,8 @@ job "proxy" {
       mode = "bridge"
 
       port "dns" {
-        static = 53
-        to = 53
+        static = 8053
+        to = 8053
       }
       port "http" {
         to = 80
