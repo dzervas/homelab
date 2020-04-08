@@ -1,0 +1,24 @@
+---
+
+- hosts: server
+  vars_files: ~/.homelab/server.yml
+  #become: yes
+  tasks:
+    - name: Deploy docker-compose services
+      docker_compose:
+        project_src: "docker/{{ item }}"
+        remove_orphans: yes
+        build: yes
+      delegate_to: localhost
+      with_items:
+        - proxy
+        - hass
+        - jira
+        - updater
+      environment:
+        DOCKER_HOST: "ssh://docker@{{ inventory_hostname }}"
+        HOMELAB_DOMAIN: "{{ homelab_domain }}"
+        HOMELAB_EMAIL: "{{ homelab_email }}"
+        HOMELAB_ORG: "HomeLab"
+        HOMELAB_TZ: "{{ homelab_tz }}"
+        HOMELAB_WG_IP: "{{ homelab_wg_ip }}"

@@ -59,8 +59,8 @@ services:
     image: joohoi/acme-dns
     restart: unless-stopped
     ports:
-      - "53:53"
-      - "53:53/udp"
+      - "${HOMELAB_WG_IP}:53:53"
+      - "${HOMELAB_WG_IP}:53:53/udp"
     volumes:
       - /data/proxy/acme-dns.cfg:/etc/acme-dns/config.cfg:ro
       - /data/proxy/acme-dns/:/var/lib/acme-dns/
