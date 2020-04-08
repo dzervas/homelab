@@ -12,6 +12,7 @@
       delegate_to: localhost
       with_items:
         - proxy
+        - auth
         - hass
         - jira
         - updater

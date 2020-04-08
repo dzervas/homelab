@@ -1,0 +1,64 @@
+version: "3"
+
+services:
+  openldap:
+    image: osixia/openldap
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      LDAP_LOG_LEVEL: "256"
+      LDAP_ORGANISATION: "${HOMELAB_ORG}"
+      LDAP_DOMAIN: "auth.${HOMELAB_DOMAIN}"
+      LDAP_BASE_DN: "" # Set by LDAP_DOMAIN
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+      LDAP_READONLY_USER: "false"
+      LDAP_READONLY_USER_USERNAME: "readonly"
+      LDAP_READONLY_USER_PASSWORD: "readonly"
+#      LDAP_RFC2307BIS_SCHEMA: "false"
+#      LDAP_BACKEND: "mdb"
+#      LDAP_TLS: "false"
+#      LDAP_TLS_CRT_FILENAME: "ldap.crt"
+#      LDAP_TLS_KEY_FILENAME: "ldap.key"
+#      LDAP_TLS_DH_PARAM_FILENAME: "dhparam.pem"
+#      LDAP_TLS_CA_CRT_FILENAME: "ca.crt"
+#      LDAP_TLS_ENFORCE: "false"
+#      LDAP_TLS_CIPHER_SUITE: "SECURE256:-VERS-SSL3.0"
+#      LDAP_TLS_PROTOCOL_MIN: "3.1"
+#      LDAP_TLS_VERIFY_CLIENT: "demand"
+#      KEEP_EXISTING_CONFIG: "true"
+#      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+#      LDAP_SSL_HELPER_PREFIX: "ldap"
+    volumes:
+      - /data/auth/ldap/ldap:/var/lib/ldap
+      - /data/auth/ldap/slapd:/etc/ldap/slapd.d
+    labels:
+      traefik.enable: true
+      traefik.tcp.routers.ldaps.rule: "HostSNI(`auth.${HOMELAB_DOMAIN}`)"
+      traefik.tcp.routers.ldaps.tls: true
+      traefik.tcp.routers.ldaps.tls.certresolver: lan
+      traefik.tcp.routers.ldaps.entrypoints: ldaps
+      traefik.tcp.services.ldaps.loadbalancer.server.port: 389
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    command: "--loglevel debug"
+    environment:
+      PHPLDAPADMIN_LDAP_CLIENT_TLS: "true"
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - 8080:80
+    depends_on:
+      - openldap
+    labels:
+      traefik.enable: true
+      traefik.http.routers.ldap_panel.rule: "Host(`auth.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.ldap_panel.entrypoints: websecure
+
+networks:
+  proxy:
+    external:
+      name: proxy

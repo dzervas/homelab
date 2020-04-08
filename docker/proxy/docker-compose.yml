@@ -19,6 +19,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.websecure.http.tls"
       - "--entrypoints.websecure.http.tls.certresolver=lan"
+      - "--entrypoints.ldaps.address=:636"
       - "--certificatesresolvers.lan.acme.dnschallenge"
       - "--certificatesresolvers.lan.acme.dnschallenge.provider=acme-dns"
       - "--certificatesresolvers.lan.acme.dnschallenge.resolvers=1.1.1.1"
@@ -27,6 +28,7 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 636:636
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /data/certs:/letsencrypt
@@ -48,10 +50,10 @@ services:
       #traefik.http.routers.traefik.middlewares: traefik-auth
       #traefik.http.middlewares.traefik-auth.basicauth.users: "admin:$$apr1$$iNdRs1II$$Qdw59WFY6y0Oaf0JaZTip0"
 
-      # To expose anothe container add labels:
+      # To expose another container add labels:
       #traefik.enable: true
       #traefik.http.routers.<name>.rule: "Host(`<name>.${HOMELAB_DOMAIN}`)"
-      #traefik.http.routers.<name>.entrypoints: https
+      #traefik.http.routers.<name>.entrypoints: websecure
       #Optional port:
       #traefik.http.services.whoami.loadbalancer.server.port: <port>
 
