@@ -28,17 +28,20 @@ services:
 #      LDAP_TLS_CIPHER_SUITE: "SECURE256:-VERS-SSL3.0"
 #      LDAP_TLS_PROTOCOL_MIN: "3.1"
 #      LDAP_TLS_VERIFY_CLIENT: "demand"
-#      KEEP_EXISTING_CONFIG: "true"
+      KEEP_EXISTING_CONFIG: "false"
 #      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
 #      LDAP_SSL_HELPER_PREFIX: "ldap"
+      LDAP_TLS_VERIFY_CLIENT: never
     volumes:
       - /data/auth/ldap/ldap:/var/lib/ldap
       - /data/auth/ldap/slapd:/etc/ldap/slapd.d
     labels:
       traefik.enable: true
-      traefik.tcp.routers.ldaps.rule: "HostSNI(`auth.${HOMELAB_DOMAIN}`)"
+      traefik.tcp.routers.ldaps.rule: "HostSNI(`*`)"
       traefik.tcp.routers.ldaps.tls: true
-      traefik.tcp.routers.ldaps.tls.certresolver: lan
+#      traefik.tcp.routers.ldaps.tls.certresolver: lan
+      traefik.tcp.routers.ldaps.tls.domains[0].main: "auth.${HOMELAB_DOMAIN}"
+      traefik.tcp.routers.ldaps.tls.domains[0].sans: "auth.${HOMELAB_DOMAIN}"
       traefik.tcp.routers.ldaps.entrypoints: ldaps
       traefik.tcp.services.ldaps.loadbalancer.server.port: 389
 
@@ -46,7 +49,7 @@ services:
     image: osixia/phpldapadmin:latest
     command: "--loglevel debug"
     environment:
-      PHPLDAPADMIN_LDAP_CLIENT_TLS: "true"
+      PHPLDAPADMIN_LDAP_CLIENT_TLS: "false"
       PHPLDAPADMIN_LDAP_HOSTS: openldap
       PHPLDAPADMIN_HTTPS: "false"
     ports:
