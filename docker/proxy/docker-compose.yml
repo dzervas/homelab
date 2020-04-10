@@ -46,16 +46,16 @@ services:
       traefik.http.routers.traefik.rule: "Host(`proxy.${HOMELAB_DOMAIN}`)"
       traefik.http.routers.traefik.entrypoints: websecure
       traefik.http.routers.traefik.service: api@internal
-      # Password protection
-      #traefik.http.routers.traefik.middlewares: traefik-auth
-      #traefik.http.middlewares.traefik-auth.basicauth.users: "admin:$$apr1$$iNdRs1II$$Qdw59WFY6y0Oaf0JaZTip0"
+      traefik.http.routers.traefik.middlewares: authelia@docker
 
       # To expose another container add labels:
       #traefik.enable: true
       #traefik.http.routers.<name>.rule: "Host(`<name>.${HOMELAB_DOMAIN}`)"
       #traefik.http.routers.<name>.entrypoints: websecure
-      #Optional port:
-      #traefik.http.services.whoami.loadbalancer.server.port: <port>
+      # Require authentication
+      #traefik.http.routers.<name>.middlewares: authelia@docker
+      # Service port (optional):
+      #traefik.http.services.<name>.loadbalancer.server.port: <port>
 
   acmedns:
     image: joohoi/acme-dns
@@ -82,6 +82,7 @@ services:
       traefik.enable: true
       traefik.http.routers.heimdall.rule: "Host(`${HOMELAB_DOMAIN}`)"
       traefik.http.routers.heimdall.entrypoints: websecure
+      traefik.http.routers.heimdall.middlewares: authelia@docker
 
 networks:
   proxy:

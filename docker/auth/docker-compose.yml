@@ -1,65 +1,33 @@
 version: "3"
 
 services:
-  openldap:
-    image: osixia/openldap
+  authelia:
+    image: authelia/authelia
     restart: unless-stopped
+    hostname: authelia
+    volumes:
+      - /data/auth/authelia:/var/lib/authelia
+      - /data/auth/authelia.yml:/etc/authelia/configuration.yml:ro
+      - /data/auth/users_database.yml:/etc/authelia/users_database.yml
     networks:
       - default
       - proxy
-    environment:
-      LDAP_LOG_LEVEL: "256"
-      LDAP_ORGANISATION: "${HOMELAB_ORG}"
-      LDAP_DOMAIN: "auth.${HOMELAB_DOMAIN}"
-      LDAP_BASE_DN: "" # Set by LDAP_DOMAIN
-      LDAP_ADMIN_PASSWORD: "admin"
-      LDAP_CONFIG_PASSWORD: "config"
-      LDAP_READONLY_USER: "false"
-      LDAP_READONLY_USER_USERNAME: "readonly"
-      LDAP_READONLY_USER_PASSWORD: "readonly"
-#      LDAP_RFC2307BIS_SCHEMA: "false"
-#      LDAP_BACKEND: "mdb"
-#      LDAP_TLS: "false"
-#      LDAP_TLS_CRT_FILENAME: "ldap.crt"
-#      LDAP_TLS_KEY_FILENAME: "ldap.key"
-#      LDAP_TLS_DH_PARAM_FILENAME: "dhparam.pem"
-#      LDAP_TLS_CA_CRT_FILENAME: "ca.crt"
-#      LDAP_TLS_ENFORCE: "false"
-#      LDAP_TLS_CIPHER_SUITE: "SECURE256:-VERS-SSL3.0"
-#      LDAP_TLS_PROTOCOL_MIN: "3.1"
-#      LDAP_TLS_VERIFY_CLIENT: "demand"
-      KEEP_EXISTING_CONFIG: "false"
-#      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
-#      LDAP_SSL_HELPER_PREFIX: "ldap"
-      LDAP_TLS_VERIFY_CLIENT: never
-    volumes:
-      - /data/auth/ldap/ldap:/var/lib/ldap
-      - /data/auth/ldap/slapd:/etc/ldap/slapd.d
     labels:
       traefik.enable: true
-      traefik.tcp.routers.ldaps.rule: "HostSNI(`*`)"
-      traefik.tcp.routers.ldaps.tls: true
-#      traefik.tcp.routers.ldaps.tls.certresolver: lan
-      traefik.tcp.routers.ldaps.tls.domains[0].main: "auth.${HOMELAB_DOMAIN}"
-      traefik.tcp.routers.ldaps.tls.domains[0].sans: "auth.${HOMELAB_DOMAIN}"
-      traefik.tcp.routers.ldaps.entrypoints: ldaps
-      traefik.tcp.services.ldaps.loadbalancer.server.port: 389
+      traefik.http.routers.authelia.rule: "Host(`auth.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.authelia.entrypoints: websecure
+      traefik.http.middlewares.authelia.forwardauth.address: "http://authelia:9091/api/verify?rd=https://auth.${HOMELAB_DOMAIN}"
+      traefik.http.middlewares.authelia.forwardauth.trustForwardHeader: true
+    environment:
+      TZ: "${HOMELAB_TZ}"
 
-  phpldapadmin:
-    image: osixia/phpldapadmin:latest
-    command: "--loglevel debug"
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - /data/auth/redis:/data
     environment:
-      PHPLDAPADMIN_LDAP_CLIENT_TLS: "false"
-      PHPLDAPADMIN_LDAP_HOSTS: openldap
-      PHPLDAPADMIN_HTTPS: "false"
-    ports:
-      - 8080:80
-    depends_on:
-      - openldap
-    labels:
-      traefik.enable: true
-      traefik.http.routers.ldap_panel.rule: "Host(`auth.${HOMELAB_DOMAIN}`)"
-      traefik.http.routers.ldap_panel.entrypoints: websecure
+      TZ: "${HOMELAB_TZ}"
 
 networks:
   proxy:
