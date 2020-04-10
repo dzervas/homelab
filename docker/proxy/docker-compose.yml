@@ -19,7 +19,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.websecure.http.tls"
       - "--entrypoints.websecure.http.tls.certresolver=lan"
-      - "--entrypoints.ldaps.address=:636"
+      - "--entrypoints.vector.address=:9000"
       - "--certificatesresolvers.lan.acme.dnschallenge"
       - "--certificatesresolvers.lan.acme.dnschallenge.provider=acme-dns"
       - "--certificatesresolvers.lan.acme.dnschallenge.resolvers=1.1.1.1"
@@ -28,7 +28,7 @@ services:
     ports:
       - 80:80
       - 443:443
-      - 636:636
+      - 9000:9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /data/certs:/letsencrypt
