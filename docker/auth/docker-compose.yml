@@ -18,6 +18,7 @@ services:
       traefik.http.routers.authelia.entrypoints: websecure
       traefik.http.middlewares.authelia.forwardauth.address: "http://authelia:9091/api/verify?rd=https://auth.${HOMELAB_DOMAIN}"
       traefik.http.middlewares.authelia.forwardauth.trustForwardHeader: true
+      traefik.http.middlewares.authelia.forwardauth.authResponseHeaders: "Remote-User, Remote-Groups"
     environment:
       TZ: "${HOMELAB_TZ}"
 
