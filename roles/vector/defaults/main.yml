@@ -1,6 +1,11 @@
+vector_nightly: no
+add_vector_docker_group: no
+add_vector_journal_group: no
 sources:
-  journald.toml:
+  journald:
+    type: journald
 
 sinks:
-  vector.toml:
+  vector:
+    type: vector
     address: "vector.example.com:9000"

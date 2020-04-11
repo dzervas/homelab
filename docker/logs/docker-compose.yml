@@ -28,22 +28,26 @@ services:
       memlock:
         soft: -1
         hard: -1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
 
   vector:
-    image: timberio/vector:latest-alpine
+    image: timberio/vector:nightly-alpine
     restart: unless-stopped
     networks:
       - default
       - proxy
     volumes:
       - /data/logs/vector.toml:/etc/vector/vector.toml:ro
+    expose:
+      - 80
     labels:
       traefik.enable: true
-      traefik.tcp.routers.vector.rule: "HostSNI(`vector.${HOMELAB_DOMAIN}`)"
-      traefik.tcp.routers.vector.tls: true
-      traefik.tcp.routers.vector.certresolver: lan
-      traefik.tcp.routers.vector.entrypoints: vector
-      traefik.tcp.services.vector.loadbalancer.server.port: 9000
+      traefik.http.routers.vector.rule: "Host(`vector.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.vector.entrypoints: websecure
 
 networks:
   proxy:

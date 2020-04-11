@@ -15,6 +15,7 @@
         - hass
         - jira
         - updater
+        - logs
       environment:
         DOCKER_HOST: "ssh://docker@{{ inventory_hostname }}"
         HOMELAB_DOMAIN: "{{ homelab_domain }}"

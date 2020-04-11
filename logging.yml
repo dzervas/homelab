@@ -12,13 +12,19 @@
           journald:
             type: journald
             current_boot_only: true
-#          docker:
-#            type: docker
-        sinks:
-          vector:
-            type: vector
-            address: "vector.{{ homelab_domain }}:9000"
+          docker:
+            type: docker
+        transforms:
+          json:
+            type: json_parser
             inputs: "{{ sources.keys() | list }}"
+            drop_invalid: false
+        sinks:
+          http:
+            type: http
+            uri: "https://vector.{{ homelab_domain }}"
+            inputs: ["json"]
+            encoding.codec: json
 
 - hosts: router
   vars_files: ~/.homelab/server.yml
@@ -34,10 +40,11 @@
               - /var/log/messages
               - /var/log/daemon.log
         sinks:
-          vector:
-            type: vector
-            address: "vector.{{ homelab_domain }}:9000"
+          http:
+            type: http
+            uri: "https://vector.{{ homelab_domain }}"
             inputs: "{{ sources.keys() | list }}"
+            encoding.codec: json
 
 - hosts: proxy
   vars_files: ~/.homelab/server.yml
@@ -51,7 +58,8 @@
             type: journald
             current_boot_only: true
         sinks:
-          vector:
-            type: vector
-            address: "vector.{{ homelab_domain }}:9000"
+          http:
+            type: http
+            uri: "https://vector.{{ homelab_domain }}"
             inputs: "{{ sources.keys() | list }}"
+            encoding.codec: json
