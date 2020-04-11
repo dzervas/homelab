@@ -2,7 +2,6 @@
 
 - hosts: server
   vars_files: ~/.homelab/server.yml
-  #become: yes
   tasks:
     - name: Deploy docker-compose services
       docker_compose:

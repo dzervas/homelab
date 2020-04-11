@@ -1,0 +1,6 @@
+sources:
+  journald.toml:
+
+sinks:
+  vector.toml:
+    address: "vector.example.com:9000"
