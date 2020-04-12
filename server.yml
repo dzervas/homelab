@@ -2,6 +2,38 @@
 
 - hosts: server
   vars_files: ~/.homelab/server.yml
+  roles:
+    - role: vector
+      become: yes
+      vars:
+        add_vector_docker_group: yes
+        add_vector_journal_group: yes
+        sources:
+          journald:
+            type: journald
+            current_boot_only: true
+          docker:
+            type: docker
+        transforms:
+          docker_clean:
+            type: remove_fields
+            inputs: ["docker"]
+            fields:
+              - label
+              - image
+              - container_id
+          docker_clean_json:
+            type: json_parser
+            inputs: ["docker_clean"]
+            drop_invalid: false
+            field: message
+            target_field: message_json
+        sinks:
+          http:
+            type: http
+            uri: "https://vector.{{ homelab_domain }}"
+            inputs: ["docker_clean_json", "journald"]
+            encoding.codec: ndjson
   tasks:
     - name: Deploy docker-compose services
       docker_compose:

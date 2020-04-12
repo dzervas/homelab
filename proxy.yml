@@ -1,20 +1,16 @@
 ---
 
-- hosts: router
-  vars_files: ~/.homelab/router.yml
+- hosts: proxy
+  vars_files: ~/.homelab/server.yml
   become: yes
-  become_method: su
   roles:
-    - role: router
     - role: vector
       vars:
+        add_vector_journal_group: yes
         sources:
-          file:
-            type: file
-            ignore_older: 86400
-            files:
-              - /var/log/messages
-              - /var/log/daemon.log
+          journal:
+            type: journald
+            current_boot_only: true
         sinks:
           http:
             type: http

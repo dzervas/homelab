@@ -23,7 +23,7 @@ services:
       - /data/logs/elasticsearch:/usr/share/elasticsearch/data
     environment:
       discovery.type: single-node
-      ES_JAVA_OPTS: "-Xms512m -Xmx1024m"
+      ES_JAVA_OPTS: "-Xms1024m -Xmx4096m"
     ulimits:
       memlock:
         soft: -1
