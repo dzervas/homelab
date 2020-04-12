@@ -1,6 +1,4 @@
 ---
 
 roles:
-  - name: brianshumate.consul
-  - name: brianshumate.nomad
-  - name: brianshumate.vault
+  - name: elastic.beats

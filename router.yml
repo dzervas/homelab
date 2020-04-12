@@ -8,6 +8,7 @@
     - role: router
     - role: vector
       vars:
+        vector_nightly: yes
         sources:
           file:
             type: file

@@ -6,6 +6,7 @@
   roles:
     - role: vector
       vars:
+        vector_nightly: yes
         add_vector_journal_group: yes
         sources:
           journal:

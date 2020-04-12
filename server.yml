@@ -6,6 +6,7 @@
     - role: vector
       become: yes
       vars:
+        vector_nightly: yes
         add_vector_docker_group: yes
         add_vector_journal_group: yes
         sources:

@@ -74,4 +74,12 @@ cd terraform
 CONSUL_TOKEN="$(gopass show -o consul-token)" VAULT_TOKEN="$(gopass show -o vault-master-token)" NOMAD_TOKEN="$(gopass show -o nomad-token)" terraform apply
 ```
 
+### NVidia Drivers for hashcat
+
+```shell script
+apt install ubuntu-drivers-common
+ubuntu-drivers devices
+apt install nvidia-driver-<recommended above> ocl-icd-libopencl1 nvidia-cuda-toolkit
+```
+
 NOW you're good to go!
