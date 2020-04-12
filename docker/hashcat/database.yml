@@ -1,0 +1,10 @@
+production:
+  adapter: mysql2
+  host: "${MYSQL_HOST}"
+  port: ${MYSQL_PORT}
+  user: "${MYSQL_USER}"
+  password: "${MYSQL_PASSWORD}"
+  database: "${MYSQL_DATABASE}"
+  encoding: "utf8"
+  max_connections: 10
+  pool_timeout: 600

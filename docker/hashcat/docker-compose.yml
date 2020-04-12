@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  view:
+    build: .
+#    restart: unless-stopped
+    depends_on:
+      - mysql
+    networks:
+      - default
+      - proxy
+    environment:
+#      MYSQL_USER: hashview
+#      MYSQL_PASSWORD: hashview
+#      MYSQL_DATABASE: hashview
+      MYSQL_PASSWORD: "ThisIsAVeryNiceAndLongPasswordThatYouShouldProbablyChangePlease!!!"
+      TZ: "${HOMELAB_TZ}"
+    expose:
+      - 4567
+    labels:
+      traefik.enable: true
+      traefik.http.routers.hashcat.rule: "Host(`hashcat.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.hashcat.entrypoints: websecure
+      traefik.http.routers.hashcat.middlewares: authelia@docker
+
+  mysql:
+    image: mysql:5
+    environment:
+#      MYSQL_USER: hashview
+#      MYSQL_PASSWORD: hashview
+      MYSQL_DATABASE: hashview
+      MYSQL_ROOT_PASSWORD: "ThisIsAVeryNiceAndLongPasswordThatYouShouldProbablyChangePlease!!!"
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    volumes:
+      - /data/hashcat/mysql:/var/lib/mysql
+
+networks:
+  proxy:
+    external:
+      name: proxy
