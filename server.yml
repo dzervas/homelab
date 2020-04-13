@@ -46,7 +46,6 @@
         - proxy
         - auth
         - hass
-        - hashcat
         - jira
         - updater
         - logs
