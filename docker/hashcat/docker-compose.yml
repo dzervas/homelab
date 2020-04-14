@@ -17,9 +17,9 @@ services:
 #      MYSQL_ROOT_PASSWORD: "ThisIsAVeryNiceAndLongPasswordThatYouShouldProbablyChangePlease!!!"
       TZ: "${HOMELAB_TZ}"
     volumes:
+      # Execute "chown -R www-data:www-data /var/www/html/inc/utils/locks/ /var/www/html/files" inside the container
       - /data/hashcat/hashtopolis/files:/var/www/html/files
       - /data/hashcat/hashtopolis/import:/var/www/html/import
-      # Execute "chown -R www-data:www-data /var/www/html/inc/utils/locks/" inside the container
       - /data/hashcat/hashtopolis/inc:/var/www/html/inc
       - /data/hashcat/hashtopolis/locks:/var/www/html/locks
     labels:
