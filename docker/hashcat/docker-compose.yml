@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  hashtopolis:
+    image: kpeiruza/hashtopolis
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    networks:
+      - default
+      - proxy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: hashcat
+      MYSQL_PASSWORD: "ThisIsAVeryNiceAndLongPasswordThatYouShouldProbablyChangePlease!!!"
+      MYSQL_DB: hashcat
+#      MYSQL_ROOT_PASSWORD: "ThisIsAVeryNiceAndLongPasswordThatYouShouldProbablyChangePlease!!!"
+      TZ: "${HOMELAB_TZ}"
+    volumes:
+      - /data/hashcat/hashtopolis/files:/var/www/html/files
+      - /data/hashcat/hashtopolis/import:/var/www/html/import
+      # Execute "chown -R www-data:www-data /var/www/html/inc/utils/locks/" inside the container
+      - /data/hashcat/hashtopolis/inc:/var/www/html/inc
+      - /data/hashcat/hashtopolis/locks:/var/www/html/locks
+    labels:
+      traefik.enable: true
+      traefik.http.routers.hashcat.rule: "Host(`hashcat.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.hashcat.entrypoints: websecure
+#      traefik.http.routers.hashcat.middlewares: authelia@docker
+
+  mysql:
+    image: mysql:5
+    environment:
+      MYSQL_USER: hashcat
+      MYSQL_PASSWORD: "ThisIsAVeryNiceAndLongPasswordThatYouShouldProbablyChangePlease!!!"
+      MYSQL_DATABASE: hashcat
+#      MYSQL_ROOT_PASSWORD: "ThisIsAVeryNiceAndLongPasswordThatYouShouldProbablyChangePlease!!!"
+      MYSQL_RANDOM_ROOT_PASSWORD: 1
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    volumes:
+      - /data/hashcat/mysql:/var/lib/mysql
+
+networks:
+  proxy:
+    external:
+      name: proxy
