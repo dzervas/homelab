@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  jupyter:
+    image: jupyter/base-notebook
+    restart: unless-stopped
+    networks:
+      - proxy
+    volumes:
+      # chown -R 1000:100 /data/python
+      - /data/python/work:/home/jovyan/work
+      - /data/python/config:/home/jovyan/.jupyter
+      - /data/python/data:/home/jovyan/.local/share/jupyter
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.python.rule: "Host(`python.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.python.entrypoints: websecure
+      traefik.http.routers.python.middlewares: authelia@docker
+
+networks:
+  proxy:
+    external:
+      name: proxy

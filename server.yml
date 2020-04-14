@@ -49,6 +49,8 @@
         - hass
         - jira
         - hashcat
+        - cron
+        - python
         - updater
       environment:
         DOCKER_HOST: "ssh://docker@{{ inventory_hostname }}"
