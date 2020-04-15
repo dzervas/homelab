@@ -59,3 +59,4 @@
         HOMELAB_ORG: "HomeLab"
         HOMELAB_TZ: "{{ homelab_tz }}"
         HOMELAB_WG_IP: "{{ homelab_wg_ip }}"
+        CF_DNS_API_TOKEN: "{{ cf_dns_api_token }}"

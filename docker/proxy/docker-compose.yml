@@ -22,7 +22,7 @@ services:
       - "--entrypoints.websecure.http.tls"
       - "--entrypoints.websecure.http.tls.certresolver=lan"
       - "--certificatesresolvers.lan.acme.dnschallenge"
-      - "--certificatesresolvers.lan.acme.dnschallenge.provider=acme-dns"
+      - "--certificatesresolvers.lan.acme.dnschallenge.provider=cloudflare"
       - "--certificatesresolvers.lan.acme.dnschallenge.resolvers=1.1.1.1"
       - "--certificatesresolvers.lan.acme.email=${HOMELAB_EMAIL}"
       - "--certificatesresolvers.lan.acme.storage=/letsencrypt/acme.json"
@@ -38,8 +38,8 @@ services:
       timeout: 10s
       retries: 6
     environment:
-      ACME_DNS_API_BASE: http://acmedns
-      ACME_DNS_STORAGE_PATH: /letsencrypt/acme-dns
+      # Requires:
+       CF_DNS_API_TOKEN: "${CF_DNS_API_TOKEN}"
     labels:
       # Expose the Dashboard
       traefik.enable: true
@@ -56,16 +56,6 @@ services:
       #traefik.http.routers.<name>.middlewares: authelia@docker
       # Service port (optional):
       #traefik.http.services.<name>.loadbalancer.server.port: <port>
-
-  acmedns:
-    image: joohoi/acme-dns
-    restart: unless-stopped
-    ports:
-      - "${HOMELAB_WG_IP}:53:53"
-      - "${HOMELAB_WG_IP}:53:53/udp"
-    volumes:
-      - /data/proxy/acme-dns.cfg:/etc/acme-dns/config.cfg:ro
-      - /data/proxy/acme-dns/:/var/lib/acme-dns/
 
   heimdall:
     image: linuxserver/heimdall

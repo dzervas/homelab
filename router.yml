@@ -3,22 +3,21 @@
 - hosts: router
   vars_files: ~/.homelab/router.yml
   become: yes
-  become_method: su
   roles:
     - role: router
-    - role: vector
-      vars:
-        vector_nightly: yes
-        sources:
-          file:
-            type: file
-            ignore_older: 86400
-            files:
-              - /var/log/messages
-              - /var/log/daemon.log
-        sinks:
-          http:
-            type: http
-            uri: "https://vector.{{ homelab_domain }}"
-            inputs: "{{ sources.keys() | list }}"
-            encoding.codec: ndjson
+#    - role: vector
+#      vars:
+#        vector_nightly: yes
+#        sources:
+#          file:
+#            type: file
+#            ignore_older: 86400
+#            files:
+#              - /var/log/messages
+#              - /var/log/daemon.log
+#        sinks:
+#          http:
+#            type: http
+#            uri: "https://vector.{{ homelab_domain }}"
+#            inputs: "{{ sources.keys() | list }}"
+#            encoding.codec: ndjson
