@@ -1,14 +1,25 @@
 # HomeLab
 
-A home server provisioned by ansible to run Hashicorp Consul, Nomad & Vault.
-Various services are defined ([terraform/nomad](terraform/nomad)).
+A home server provisioned by ansible to run docker-compose.
 
 Local certificates are signed by Let's Encrypt - don't worry, they're not
-exposed to the internet, we sign every subdomain using the DNS-01 challenge.
+exposed to the internet, we sign every subdomain using the DNS-01 challenge
+with CloudFlare.
 
-Info on how that works below.
+In order to have access to HTTPS resources, the local network DNS should be
+redirecting all the subdomains of your domain to the server.
+
+For example if your domain is `home.lab.net`, `*.home.lab.net` AND
+`home.lab.net` should resolve to your server's IP. This is required as
+there is no way to get signed certificates by Let's Encrypt for non-internet
+TLDs. You have to buy a regular domain (you can even find a domain ~3$/year)
+and use it to access your services.
 
 ## Setup
+
+Create a CloudFlare account, add your domain or subdomain and follow
+CloudFlare's guide. It's very easy. Create a DNS API key that has
+`Zone/Zone/Read` and `Zone/DNS/Edit` permissions and access to all zones.
 
 Create an inventory at `~/.homelab/inventory.ini` like:
 
@@ -17,76 +28,34 @@ Create an inventory at `~/.homelab/inventory.ini` like:
 192.168.0.10
 ```
 
-And copy the default config `server.yml` to `~/.homelab` directory. Change it according to your needs, it's documented.
+Copy the default config `server.yml` to `~/.homelab` directory.
+Change it according to your needs, it's documented.
 
 ```shell script
-cd ansible
 ansible-playbook server.yml
 ```
 
 If you want to prompt for privilege escalation password (su/sudo) use
 the flag `-K`.
 
-Now consul is ready - nomad & vault need some work.
+All the services should be up and accessible!
 
-First of all, all services listen on localhost (for security reasons),
-so let's forward them for them to be accessible
-(fire that in a separate terminal, let it run throughout the setup):
+You can start by `auth.<domain>` to check that authentication works correctly
+(required in many places).
 
-```shell script
-ssh -NL 127.0.0.1:4646:127.0.0.1:4646 -L 127.0.0.1:8200:127.0.0.1:8200 -L 127.0.0.1:8500:127.0.0.1:8500 <server_ip>
-```
+## NVidia Drivers for hashcat
 
-I advise using [gopass](https://github.com/gopasspw/gopass) to store the secrets - I'll provide some good-usage
-examples as well
-
-Now lets do the initial setup:
-
-1. Access [vault](http://127.0.0.1:8200) and set it up - choose PGP encryption and store the provided keys in gopass (`echo -n "<key>" | base64 -d | gpg -d | gopass insert -f vault-<key-name>-token`)
-   - NOTE: The "Key <num>" is used on every vault restart to unseal it and "Master Key" is used to log in 
-2. Get the consul master token ___secret___: `ssh <server_ip> consul acl bootstrap` (Store the SecretID in gopass)
-3. In `~/.homelab/server.yml` set:
-   - `homelab_consul_token` to consul master token
-   - `homelab_vault_token` to vault master token (not the "Key X" that is used to unseal the vault)
-   - `homelab_encrypt` to `ssh <server_ip> grep encrypt /data/consul/config/config.json` (the string matched)
-4. Rerun the `server.yml` playbook
-5. Get the nomad master token ___secret___: `ssh <server_ip> nomad acl bootstrap` (Store the SecretID in gopass)
-6. Done!
-
-BTW, secure the configs that include secrets on the server (as root):
-
-```shell script
-chmod 700 /data/{consul,nomad,vault}
-chmod 600 /data/nomad/config/*
-```
-
-## Services
-
-Now the whole setup is ready! :)
-
-Lets use our "private cloud" with terraform!
-
-At this point we still need the SSH port forward - we will expose this services using the Let's Encrypt reverse proxy
-after terraform is run.
-
-```shell script
-cd terraform
-CONSUL_TOKEN="$(gopass show -o consul-token)" VAULT_TOKEN="$(gopass show -o vault-master-token)" NOMAD_TOKEN="$(gopass show -o nomad-token)" terraform apply
-```
-
-### NVidia Drivers for hashcat
+Hashtopolis is set up and some configuration for its client is required.
+SSH to the server and do the following:
 
 ```shell script
 apt install ubuntu-drivers-common
 ubuntu-drivers devices
 apt install nvidia-driver-<recommended above> ocl-icd-libopencl1 nvidia-cuda-toolkit
-
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-
-sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
-sudo systemctl restart docker
+rmmod nouveau
+echo blacklist nouveau > /etc/modprobe.d/blacklist-nouveau.conf
+modprobe nvidia
+systemctl restart hashtopolis-client
 ```
 
 NOW you're good to go!
