@@ -1,7 +1,7 @@
 ---
 
 - hosts: server
-  vars_files: ~/.homelab/server.yml
+  vars_files: vault.yml
   roles:
     - role: vector
       become: yes
@@ -56,7 +56,5 @@
         DOCKER_HOST: "ssh://docker@{{ inventory_hostname }}"
         HOMELAB_DOMAIN: "{{ homelab_domain }}"
         HOMELAB_EMAIL: "{{ homelab_email }}"
-        HOMELAB_ORG: "HomeLab"
         HOMELAB_TZ: "{{ homelab_tz }}"
-        HOMELAB_WG_IP: "{{ homelab_wg_ip }}"
         CF_DNS_API_TOKEN: "{{ cf_dns_api_token }}"

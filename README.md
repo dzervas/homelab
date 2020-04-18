@@ -28,8 +28,8 @@ Create an inventory at `~/.homelab/inventory.ini` like:
 192.168.0.10
 ```
 
-Copy the default config `server.yml` to `~/.homelab` directory.
-Change it according to your needs, it's documented.
+Copy the default config `vault.example.yml` to `vault.yml` and change it
+according to your needs, it's documented.
 
 ```shell script
 ansible-playbook server.yml
@@ -55,7 +55,34 @@ apt install nvidia-driver-<recommended above> ocl-icd-libopencl1 nvidia-cuda-too
 rmmod nouveau
 echo blacklist nouveau > /etc/modprobe.d/blacklist-nouveau.conf
 modprobe nvidia
-systemctl restart hashtopolis-client
 ```
 
+Open a tmux session or something and run the hashtopolis client, as described
+in the web UI.
+
 NOW you're good to go!
+
+## Using gopass with ansible-vault
+
+Create the following files in the root directory (they are git ignored):
+
+`ansible.cfg`
+```ini
+[defaults]
+vault_identity_list = ansible@vault.sh
+```
+
+`vault.sh`
+```shell script
+#!/bin/sh
+# Of course any other command that spits the password will work
+gopass show "my/vault/password/path"
+```
+
+Now to copy the default `vault.example.yml`:
+
+```shell script
+ansible-vault encrypt --output vault.yml vault.example.yml
+```
+
+Edit it with `ansible-vault edit vault.yml`

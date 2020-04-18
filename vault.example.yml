@@ -1,0 +1,5 @@
+homelab_domain: dzervas.gr # Main domain to use as <service>.<domain>
+homelab_email: dzervas@dzervas.gr # Your E-Mail (mainly for letsencrypt)
+homelab_tz: Europe/Athens # Timezone to use for the services
+vector_nightly: yes # Use vector nightly - required for the current setup
+cf_dns_api_token: myCloudFlareToken # Cloudflare DNS token - check README.md
