@@ -12,7 +12,7 @@ services:
       #- "--log.level=DEBUG"
       - "--log.format=json"
       - "--api"
-      - "--ping=true"
+      - "--ping"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=proxy"
       - "--entrypoints.web.address=:80"
