@@ -9,7 +9,7 @@ services:
       INTERVAL: 300
       LOG_LEVEL: info
       SELF_UPDATE: "true"
-      #IGNORE: mongo influxdb postgres mariadb
+      IGNORE: 3dprinter_octoprint_1
       TZ: "${HOMELAB_TZ}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

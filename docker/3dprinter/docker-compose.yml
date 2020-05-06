@@ -2,58 +2,28 @@ version: '3.7'
 
 services:
   octoprint:
-    image: nunofgs/octoprint
+    #image: nunofgs/octoprint
+    build: .
     restart: unless-stopped
     networks:
       - proxy
     devices:
       - /dev/ttyUSB.Ender-3
-      - /dev/video0
+      #- /dev/video0
+      #- /tmp/printer
     volumes:
       # chown 1000:1000 -R /data/3dprinter/octoprint/
       - /data/3dprinter/octoprint:/data
+      #- /data/3dprinter/octoprint:/home/octoprint/.octoprint
+      #- /data/3dprinter/printer.cfg:/printer.cfg
     environment:
       MJPEG_STREAMER_INPUT: "-r 800x600 -f 25"
+      TZ: "${HOMELAB_TZ}"
     labels:
       traefik.enable: true
       traefik.http.routers.3dprinter.rule: "Host(`3dprinter.${HOMELAB_DOMAIN}`)"
       traefik.http.routers.3dprinter.entrypoints: websecure
       traefik.http.routers.3dprinter.middlewares: authelia@docker
-  #octoprint:
-    #image: octoprint/octoprint
-    #restart: unless-stopped
-    #networks:
-      #- proxy
-    #devices:
-      #- /dev/ttyUSB.Ender-3
-    #volumes:
-      ## chown 1000:1000 -R /data/3dprinter/octoprint/
-      #- /data/3dprinter/octoprint:/home/octoprint
-    #environment:
-      #PIP_USER: 1
-      #PYTHONUSERBASE: /home/octoprint/.pip_user
-    #labels:
-      #traefik.enable: true
-      #traefik.http.routers.3dprinter.rule: "Host(`3dprinter.${HOMELAB_DOMAIN}`)"
-      #traefik.http.routers.3dprinter.entrypoints: websecure
-      #traefik.http.routers.3dprinter.middlewares: authelia@docker
-
-  #mjpg-streamer:
-    #image: kvaps/mjpg-streamer
-    #restart: unless-stopped
-    #networks:
-      #- proxy
-    #devices:
-      #- /dev/video0
-    #command: -i "/usr/lib64/input_uvc.so -d /dev/video0 -r 800x600 -f 25" -o "/usr/lib64/output_http.so -p 8080 -w /usr/share/mjpeg-streamer/www/"
-    #expose:
-      #- 8080
-    #labels:
-      #traefik.enable: true
-      #traefik.http.routers.3dprinter_webcam.rule: "Host(`3dprinter.${HOMELAB_DOMAIN}`) && PathPrefix(`/webcam/`)"
-      #traefik.http.routers.3dprinter_webcam.entrypoints: websecure
-      #traefik.http.routers.3dprinter_webcam.middlewares: authelia@docker, strip_webcam
-      #traefik.http.middlewares.strip_webcam.stripprefix.prefixes: /webcam
 
 networks:
   proxy:
