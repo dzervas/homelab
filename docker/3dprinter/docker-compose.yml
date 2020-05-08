@@ -8,16 +8,12 @@ services:
     networks:
       - proxy
     devices:
-      - /dev/ttyUSB.Ender-3
-      #- /dev/video0
-      #- /tmp/printer
+      - /dev/ttyUSB0
+      - /dev/video0
     volumes:
-      # chown 1000:1000 -R /data/3dprinter/octoprint/
       - /data/3dprinter/octoprint:/data
-      #- /data/3dprinter/octoprint:/home/octoprint/.octoprint
-      #- /data/3dprinter/printer.cfg:/printer.cfg
     environment:
-      MJPEG_STREAMER_INPUT: "-r 800x600 -f 25"
+      MJPEG_STREAMER_INPUT: "-n -r 800x600 -f 25"
       TZ: "${HOMELAB_TZ}"
     labels:
       traefik.enable: true
