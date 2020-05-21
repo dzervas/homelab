@@ -1,0 +1,30 @@
+---
+version: "3"
+
+services:
+  syncthing:
+    image: linuxserver/syncthing
+    restart: unless-stopped
+    networks:
+      - proxy
+    environment:
+      - TZ=${HOMELAB_TZ}
+    volumes:
+      - /data/sync/syncthing/config:/config
+      - /data/sync/syncthing/data1:/data1
+    ports:
+      - 22000:22000
+      - 21027:21027/udp
+    expose:
+      # Change listening address in config.xml
+      - 8384
+    labels:
+      traefik.enable: true
+      traefik.http.routers.sync.rule: "Host(`sync.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.sync.entrypoints: websecure
+      traefik.http.routers.sync.middlewares: authelia@docker
+
+networks:
+  proxy:
+    external:
+      name: proxy
