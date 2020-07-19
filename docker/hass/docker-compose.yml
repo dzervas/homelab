@@ -2,8 +2,6 @@ version: '3'
 
 services:
   hass:
-    depends_on:
-      - mqtt
     image: homeassistant/home-assistant:stable
     restart: unless-stopped
     networks:
@@ -12,6 +10,7 @@ services:
     volumes:
       - /data/hass/hass:/config
     ports:
+      # HomeKit
       - 51827:51827
     expose:
       - 8123
@@ -21,15 +20,6 @@ services:
       traefik.enable: true
       traefik.http.routers.hass.rule: "Host(`hass.${HOMELAB_DOMAIN}`)"
       traefik.http.routers.hass.entrypoints: websecure
-
-  mqtt:
-    image: eclipse-mosquitto
-    restart: unless-stopped
-    ports:
-      - 1883:1883
-    volumes:
-      - /data/hass/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - /data/hass/mqtt:/mosquitto/data
 
 networks:
   proxy:
