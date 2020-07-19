@@ -9,8 +9,8 @@ services:
       - proxy
     command:
       # Due to authelia, the following exposes sensitive logs!!
-      #- "--log.level=DEBUG"
-      - "--log.format=json"
+      # - "--log.level=DEBUG"
+      # - "--log.format=json"
       - "--api"
       - "--ping"
       - "--providers.docker.exposedbydefault=false"

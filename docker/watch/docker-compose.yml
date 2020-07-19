@@ -1,0 +1,219 @@
+---
+
+version: "3.2"
+
+services:
+  # plex:
+    # image: linuxserver/plex
+    # restart: unless-stopped
+    # networks:
+      # - default
+      # - proxy
+    # environment:
+      # PUID: 1000
+      # PGID: 1000
+      # TZ: "${TZ}"
+      # UMASK_SET: "022"
+      # VERSION: docker
+      # PLEX_CLAIM: "${PLEX_CLAIM}"
+    # volumes:
+      # - /data/watch/plex:/config
+      # - /data-tmp/watch/shows:/shows
+      # - /data-tmp/watch/movies:/movies
+      # - /data-tmp/watch/downloads:/downloads
+      # - /data-tmp/watch/transcode:/transcode
+      # - /etc/localtime:/etc/localtime:ro
+    # expose:
+      # - 32400
+    # ports:
+      # - 32400:32400
+    # labels:
+      # traefik.enable: true
+      # traefik.http.routers.plex.rule: "Host(`watch.${HOMELAB_DOMAIN}`)"
+      # traefik.http.routers.plex.entrypoints: websecure
+      # traefik.http.services.plex.loadbalancer.server.port: 32400
+
+  emby:
+    image: linuxserver/emby
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "${TZ}"
+      UMASK_SET: "022"
+    volumes:
+      - /data/watch/emby:/config
+      - /data-tmp/watch/shows:/data/tvshows
+      - /data-tmp/watch/movies:/data/movies
+      - /data-tmp/watch/downloads:/data/downloads
+      - /data-tmp/watch/transcode:/data/transcode
+    expose:
+      - 8096
+    ports:
+      - 8096:8096
+    labels:
+      traefik.enable: true
+      traefik.http.routers.emby.rule: "Host(`watch.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.emby.entrypoints: websecure
+
+  # jellyfin:
+    # image: linuxserver/jellyfin
+    # restart: unless-stopped
+    # networks:
+      # - default
+      # - proxy
+    # environment:
+      # PUID: 1000
+      # PGID: 1000
+      # TZ: "${TZ}"
+      # UMASK_SET: "022"
+    # volumes:
+      # - /data/watch/jellyfin:/config
+      # - /data-tmp/watch/shows:/data/tvshows
+      # - /data-tmp/watch/movies:/data/movies
+      # - /data-tmp/watch/downloads:/data/downloads
+    # # ports:
+      # # - 1900:1900/udp
+    # expose:
+      # - 8096
+    # labels:
+      # traefik.enable: true
+      # traefik.http.routers.jellyfin.rule: "Host(`watch.${HOMELAB_DOMAIN}`)"
+      # traefik.http.routers.jellyfin.entrypoints: websecure
+      # traefik.http.services.jellyfin.loadbalancer.server.port: 8096
+      # traefik.http.routers.jellyfin.middlewares: authelia@docker
+    # devices:
+      # - /dev/dri:/dev/dri #optional
+      # - /dev/vcsm:/dev/vcsm #optional
+      # - /dev/vchiq:/dev/vchiq #optional
+      # - /dev/video10:/dev/video10 #optional
+      # - /dev/video11:/dev/video11 #optional
+      # - /dev/video12:/dev/video12 #optional
+
+  jackett:
+    image: linuxserver/jackett
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "${TZ}"
+      # AUTO_UPDATE: "true"  # Ouroboros takes care of it
+      # RUN_OPTS: run options here # optional
+    volumes:
+      - /data/watch/jackett:/config
+      - /data-tmp/watch/downloads:/downloads
+    expose:
+      - 9117
+    labels:
+      traefik.enable: true
+      traefik.http.routers.jackett.rule: "Host(`search.watch.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.jackett.entrypoints: websecure
+      traefik.http.routers.jackett.middlewares: authelia@docker
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "${TZ}"
+      UMASK_SET: "022"
+      WEBUI_PORT: 8080
+    volumes:
+      - /data/watch/qbittorrent:/config
+      - /data-tmp/watch/downloads:/downloads
+    expose:
+      - 8080
+    # ports:
+      # - 6881:6881
+      # - 6881:6881/udp
+      # - 8080:8080
+    labels:
+      traefik.enable: true
+      traefik.http.routers.qbittorrent.rule: "Host(`torrents.watch.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.qbittorrent.entrypoints: websecure
+      traefik.http.routers.qbittorrent.middlewares: authelia@docker
+      traefik.http.services.qbittorrent.loadbalancer.server.port: 8080
+
+  sonarr:
+    image: linuxserver/sonarr
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "${TZ}"
+    expose:
+      - 8989
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/watch/sonarr:/config
+      - /data-tmp/watch/downloads:/downloads
+      - /data-tmp/watch/shows:/shows
+    labels:
+      traefik.enable: true
+      traefik.http.routers.sonarr.rule: "Host(`shows.watch.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.sonarr.entrypoints: websecure
+      traefik.http.routers.sonarr.middlewares: authelia@docker
+
+  radarr:
+    image: linuxserver/radarr
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "${TZ}"
+    expose:
+      - 7878
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/watch/radarr:/config
+      - /data-tmp/watch/downloads:/downloads
+      - /data-tmp/watch/movies:/movies
+    labels:
+      traefik.enable: true
+      traefik.http.routers.radarr.rule: "Host(`movies.watch.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.radarr.entrypoints: websecure
+      traefik.http.routers.radarr.middlewares: authelia@docker
+
+  bazarr:
+    image: linuxserver/bazarr
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "${TZ}"
+      UMASK_SET: "022"
+    expose:
+      - 6767
+    volumes:
+      - /data/watch/bazarr:/config
+      - /data-tmp/watch/shows:/shows
+      - /data-tmp/watch/movies:/movies
+    labels:
+      traefik.enable: true
+      traefik.http.routers.bazarr.rule: "Host(`subs.watch.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.bazarr.entrypoints: websecure
+      traefik.http.routers.bazarr.middlewares: authelia@docker
+
+networks:
+  proxy:
+    external:
+      name: proxy
