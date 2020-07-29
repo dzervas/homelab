@@ -3,36 +3,6 @@
 version: "3.2"
 
 services:
-  # plex:
-    # image: linuxserver/plex
-    # restart: unless-stopped
-    # networks:
-      # - default
-      # - proxy
-    # environment:
-      # PUID: 1000
-      # PGID: 1000
-      # TZ: "${TZ}"
-      # UMASK_SET: "022"
-      # VERSION: docker
-      # PLEX_CLAIM: "${PLEX_CLAIM}"
-    # volumes:
-      # - /data/watch/plex:/config
-      # - /data-tmp/watch/shows:/shows
-      # - /data-tmp/watch/movies:/movies
-      # - /data-tmp/watch/downloads:/downloads
-      # - /data-tmp/watch/transcode:/transcode
-      # - /etc/localtime:/etc/localtime:ro
-    # expose:
-      # - 32400
-    # ports:
-      # - 32400:32400
-    # labels:
-      # traefik.enable: true
-      # traefik.http.routers.plex.rule: "Host(`watch.${HOMELAB_DOMAIN}`)"
-      # traefik.http.routers.plex.entrypoints: websecure
-      # traefik.http.services.plex.loadbalancer.server.port: 32400
-
   emby:
     image: linuxserver/emby
     restart: unless-stopped
@@ -59,39 +29,25 @@ services:
       traefik.http.routers.emby.rule: "Host(`watch.${HOMELAB_DOMAIN}`)"
       traefik.http.routers.emby.entrypoints: websecure
 
-  # jellyfin:
-    # image: linuxserver/jellyfin
-    # restart: unless-stopped
-    # networks:
-      # - default
-      # - proxy
-    # environment:
-      # PUID: 1000
-      # PGID: 1000
-      # TZ: "${TZ}"
-      # UMASK_SET: "022"
-    # volumes:
-      # - /data/watch/jellyfin:/config
-      # - /data-tmp/watch/shows:/data/tvshows
-      # - /data-tmp/watch/movies:/data/movies
-      # - /data-tmp/watch/downloads:/data/downloads
-    # # ports:
-      # # - 1900:1900/udp
-    # expose:
-      # - 8096
-    # labels:
-      # traefik.enable: true
-      # traefik.http.routers.jellyfin.rule: "Host(`watch.${HOMELAB_DOMAIN}`)"
-      # traefik.http.routers.jellyfin.entrypoints: websecure
-      # traefik.http.services.jellyfin.loadbalancer.server.port: 8096
-      # traefik.http.routers.jellyfin.middlewares: authelia@docker
-    # devices:
-      # - /dev/dri:/dev/dri #optional
-      # - /dev/vcsm:/dev/vcsm #optional
-      # - /dev/vchiq:/dev/vchiq #optional
-      # - /dev/video10:/dev/video10 #optional
-      # - /dev/video11:/dev/video11 #optional
-      # - /dev/video12:/dev/video12 #optional
+  ombi:
+    image: linuxserver/ombi
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "${TZ}"
+      BASE_URL: /ombi #optional
+    volumes:
+      - /data/watch/ombi:/config
+    expose:
+      - 3579
+    labels:
+      traefik.enable: true
+      traefik.http.routers.ombi.rule: "Host(`watch.${HOMELAB_DOMAIN}`) && PathPrefix(`/ombi`)"
+      traefik.http.routers.ombi.entrypoints: websecure
 
   jackett:
     image: linuxserver/jackett
