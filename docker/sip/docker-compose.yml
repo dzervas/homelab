@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  routr:
+    image: fonoster/routr
+    restart: unless-stopped
+    networks:
+      - proxy
+    volumes:
+      - /data/sip/routr:/opt/routr/config
+    ports:
+      - 5060:5060
+      - 5060:5060/udp
+    expose:
+      - 4567
+    environment:
+      DATA_SOURCE_PROVIDER: files_data_provider
+      EXTERN_ADDR: "${HOMELAB_IP}"
+      LOCALNETS: "${HOMELAB_NET}"
+      REST_SERVICE_UNSECURED: "true"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.sip.rule: "Host(`sip.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.sip.entrypoints: websecure
+      traefik.http.routers.sip.middlewares: authelia@docker
+      traefik.http.services.sip.loadbalancer.server.port: 4567
+
+networks:
+  proxy:
+    external:
+      name: proxy
