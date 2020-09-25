@@ -4,7 +4,7 @@ version: "3.2"
 
 services:
   emby:
-    image: linuxserver/emby
+    image: linuxserver/emby:latest
     restart: unless-stopped
     networks:
       - default
@@ -30,7 +30,7 @@ services:
       traefik.http.routers.emby.entrypoints: websecure
 
   ombi:
-    image: linuxserver/ombi
+    image: linuxserver/ombi:latest
     restart: unless-stopped
     networks:
       - default
@@ -50,7 +50,7 @@ services:
       traefik.http.routers.ombi.entrypoints: websecure
 
   jackett:
-    image: linuxserver/jackett
+    image: linuxserver/jackett:latest
     restart: unless-stopped
     networks:
       - default
@@ -73,7 +73,7 @@ services:
       traefik.http.routers.jackett.middlewares: authelia@docker
 
   qbittorrent:
-    image: linuxserver/qbittorrent
+    image: linuxserver/qbittorrent:latest
     restart: unless-stopped
     networks:
       - default
@@ -101,7 +101,7 @@ services:
       traefik.http.services.qbittorrent.loadbalancer.server.port: 8080
 
   sonarr:
-    image: linuxserver/sonarr
+    image: linuxserver/sonarr:latest
     restart: unless-stopped
     networks:
       - default
@@ -124,7 +124,7 @@ services:
       traefik.http.routers.sonarr.middlewares: authelia@docker
 
   radarr:
-    image: linuxserver/radarr
+    image: linuxserver/radarr:latest
     restart: unless-stopped
     networks:
       - default
@@ -147,7 +147,7 @@ services:
       traefik.http.routers.radarr.middlewares: authelia@docker
 
   bazarr:
-    image: linuxserver/bazarr
+    image: linuxserver/bazarr:latest
     restart: unless-stopped
     networks:
       - default

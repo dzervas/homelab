@@ -3,7 +3,7 @@ version: "3"
 
 services:
   syncthing:
-    image: linuxserver/syncthing
+    image: linuxserver/syncthing:latest
     restart: unless-stopped
     networks:
       - proxy

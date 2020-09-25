@@ -2,7 +2,7 @@ version: '3'
 
 services:
   traefik:
-    image: traefik
+    image: traefik:latest
     restart: unless-stopped
     networks:
       - default
@@ -58,7 +58,7 @@ services:
       #traefik.http.services.<name>.loadbalancer.server.port: <port>
 
   heimdall:
-    image: linuxserver/heimdall
+    image: linuxserver/heimdall:latest
     restart: unless-stopped
     networks:
       - proxy

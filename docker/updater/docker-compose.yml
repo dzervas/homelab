@@ -2,7 +2,7 @@ version: '3'
 
 services:
   ouroboros:
-    image: pyouroboros/ouroboros
+    image: pyouroboros/ouroboros:latest
     restart: unless-stopped
     environment:
       CLEANUP: "true"

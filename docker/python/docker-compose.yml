@@ -2,7 +2,7 @@ version: '3'
 
 services:
   jupyter:
-    image: jupyter/base-notebook
+    image: jupyter/base-notebook:latest
     restart: unless-stopped
     networks:
       - proxy
