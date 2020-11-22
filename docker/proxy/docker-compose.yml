@@ -15,6 +15,8 @@ services:
       - "--ping"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=proxy"
+      - "--providers.file=true"
+      - "--providers.file.filename=/config/traefik.yaml"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
@@ -31,6 +33,7 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /data/proxy/traefik:/config:ro
       - /data/certs:/letsencrypt
     healthcheck:
       test: ["CMD-SHELL", "traefik healthcheck --ping"]
