@@ -51,6 +51,11 @@ services:
       traefik.http.routers.traefik.service: api@internal
       traefik.http.routers.traefik.middlewares: authelia@docker
 
+      traefik.http.routers.hass.rule: "Host(`hass.${HOMELAB_DOMAIN}`)"
+      traefik.http.routers.hass.entrypoints: websecure
+      traefik.http.routers.hass.service: hass@file
+      traefik.http.routers.hass.middlewares: authelia@docker
+
       # To expose another container add labels:
       #traefik.enable: true
       #traefik.http.routers.<name>.rule: "Host(`<name>.${HOMELAB_DOMAIN}`)"
