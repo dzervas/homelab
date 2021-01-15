@@ -1,0 +1,5 @@
+helm repo add traefik https://helm.traefik.io/traefik
+helm repo add elastic https://helm.elastic.co
+helm repo update
+helm install traefik traefik/traefik -n traefik --create-namespace --values=helm-traefik-values.yaml
+helm install elastic-operator elastic/eck-operator -n elastic --create-namespace --values=helm-elastic-values.yaml
