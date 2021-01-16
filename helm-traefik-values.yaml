@@ -6,6 +6,8 @@ additionalArguments:
   # - --entrypoints.web.http.redirections.entrypoint.to=websecure
   # - --entrypoints.web.http.redirections.entrypoint.scheme=https
   # - --entrypoints.websecure.address=:443
+  - --providers.kubernetescrd
+  # - --providers.kubernetesingress
   - --entrypoints.websecure.http.tls
   - --entrypoints.websecure.http.tls.certresolver=letsencrypt
   - --certificatesresolvers.letsencrypt.acme.email=dzervas+laz@dzervas.gr
