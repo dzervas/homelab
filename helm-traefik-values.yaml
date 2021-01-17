@@ -1,22 +1,28 @@
 additionalArguments:
-  - --api
-  - --ping
+  - --log.level=DEBUG
+  # - --api.dashboard
+  # - --ping
   # - --providers.file.filename=/data/traefik-config.yaml
   # - --entrypoints.web.address=:80
   # - --entrypoints.web.http.redirections.entrypoint.to=websecure
   # - --entrypoints.web.http.redirections.entrypoint.scheme=https
   # - --entrypoints.websecure.address=:443
-  - --providers.kubernetescrd
+  # - --providers.kubernetescrd
+  # - --providers.kubernetescrd.endpoint=http://k8s.server.lan:9080
   # - --providers.kubernetesingress
-  - --entrypoints.websecure.http.tls
-  - --entrypoints.websecure.http.tls.certresolver=letsencrypt
-  - --certificatesresolvers.letsencrypt.acme.email=dzervas+laz@dzervas.gr
-  - --certificatesresolvers.letsencrypt.acme.storage=/certs/acme.json
-  - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+  # - --providers.kubernetesingress.endpoint=http://k8s.server.lan:9080
+  # - --entrypoints.websecure.http.tls
+  # - --entrypoints.websecure.http.tls.certresolver=letsencrypt
+  # - --certificatesresolvers.letsencrypt.acme.email=dzervas+laz@dzervas.gr
+  # - --certificatesresolvers.letsencrypt.acme.storage=/certs/acme.json
+  # - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
 ports:
+  traefik:
+    expose: true
+    exposedPort: 9000
   web:
     exposedPort: 9080
-    redirectTo: websecure
+    # redirectTo: websecure
   websecure:
     exposedPort: 9443
 ingressRoute:

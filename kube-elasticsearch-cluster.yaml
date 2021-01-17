@@ -14,10 +14,9 @@ spec:
       - data
       - ingest
       node.store.allow_mmap: false
+      reindex.remote.whitelist: laz.dzervas.gr:443
+      xpack.monitoring.collection.enabled: true
     podTemplate:
-      # metadata:
-        # labels:
-          # foo: bar
       spec:
         containers:
         - name: elasticsearch
@@ -40,6 +39,9 @@ spec:
         storageClassName: standard
 
   http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
     service:
       spec:
         type: ClusterIP
@@ -63,19 +65,32 @@ spec:
 
 ---
 
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: elastic-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /elastic
+
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
 metadata:
   name: elasticsearch-ingress
+  # namespace: elastic
 spec:
-  rules:
-  - host: laz.dzervas.gr
-    http:
-      paths:
-      - path: /elastic
-        backend:
-          serviceName: elasticsearch-es-http
-          servicePort: 9200
+  routes:
+  - kind: Rule
+    match: PathPrefix(`/elastic`)
+    services:
+    - kind: Service
+      name: elasticsearch-es-http
+      port: 9200
+    middlewares:
+    - name: elastic-prefix
 
 ---
 
@@ -92,28 +107,50 @@ spec:
     spec:
       containers:
       - name: kibana
+        env:
+        - name: SERVER_BASEPATH
+          value: /kibana
+        # - name: SERVER_REWRITEBASEPATH
+        #   value: "true"
         resources:
           limits:
             memory: 1Gi
             cpu: 0.3
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   secureSettings:
   - secretName: kibana-secret-settings
 
 ---
 
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: kibana-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /kibana
+
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
 metadata:
   name: kibana-ingress
+  # namespace: elastic
 spec:
-  rules:
-  - host: laz.dzervas.gr
-    http:
-      paths:
-      - path: /kibana
-        backend:
-          serviceName: kibana-kb-http
-          servicePort: 5601
+  routes:
+  - kind: Rule
+    match: PathPrefix(`/kibana`)
+    services:
+    - kind: Service
+      name: kibana-kb-http
+      port: 5601
+    middlewares:
+    - name: kibana-prefix
 
 ---
 
