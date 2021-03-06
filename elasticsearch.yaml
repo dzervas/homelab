@@ -1,10 +1,17 @@
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: elasticsearch
+
+---
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: elasticsearch
+  namespace: elasticsearch
 spec:
-  version: 7.9.0
+  version: 7.11.1
   nodeSets:
   - name: laz
     count: 1
@@ -16,17 +23,6 @@ spec:
       node.store.allow_mmap: false
       reindex.remote.whitelist: laz.dzervas.gr:443
       xpack.monitoring.collection.enabled: true
-    podTemplate:
-      spec:
-        containers:
-        - name: elasticsearch
-          resources:
-            limits:
-              memory: 1700Mi
-              cpu: 0.9
-          env:
-          - name: ES_JAVA_OPTS
-            value: "-Xms1g -Xmx1g"
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
@@ -42,9 +38,6 @@ spec:
     tls:
       selfSignedCertificate:
         disabled: true
-    service:
-      spec:
-        type: ClusterIP
 
 ---
 
@@ -52,6 +45,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: elasticsearch-data
+  namespace: elasticsearch
   labels:
     type: local
 spec:
@@ -69,6 +63,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: elastic-prefix
+  namespace: elasticsearch
 spec:
   stripPrefix:
     prefixes:
@@ -80,7 +75,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: elasticsearch-ingress
-  # namespace: elastic
+  namespace: elasticsearch
 spec:
   routes:
   - kind: Rule
@@ -98,8 +93,9 @@ apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
 metadata:
   name: kibana
+  namespace: elasticsearch
 spec:
-  version: 7.9.0
+  version: 7.11.1
   count: 1
   elasticsearchRef:
     name: elasticsearch
@@ -129,6 +125,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: kibana-prefix
+  namespace: elasticsearch
 spec:
   stripPrefix:
     prefixes:
@@ -140,7 +137,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: kibana-ingress
-  # namespace: elastic
+  namespace: elasticsearch
 spec:
   routes:
   - kind: Rule
@@ -158,6 +155,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: kibana-kibana-secret-config
+  namespace: elasticsearch
 type: Opaque
 data:
   xpack.security.encryptionKey: 3l3hTUNg1hxrhMN8RDy3nM5MgIAP4u5OKAslEMsygJc=

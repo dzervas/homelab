@@ -1,8 +1,0 @@
-installCRDs: false
-managedNamespaces:
-  - elastic
-createClisterScopedResources: false
-webhook:
-  enabled: false
-config:
-  validateStorageClass: false

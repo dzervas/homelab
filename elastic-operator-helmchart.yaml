@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: elastic-system
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: elastic-operator-helmchart
+  namespace: kube-system
+spec:
+  chart: eck-operator
+  repo: https://helm.elastic.co
+  targetNamespace: elastic-system
