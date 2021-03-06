@@ -1,0 +1,57 @@
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress
+
+---
+
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: traefik-ingress-helmchart
+  namespace: kube-system
+spec:
+  chart: traefik
+  repo: https://helm.traefik.io/traefik
+  targetNamespace: ingress
+  valuesContent: |-
+    additionalArguments:
+      - --log.level=DEBUG
+      # - --api.dashboard
+      # - --ping
+      # - --providers.file.filename=/data/traefik-config.yaml
+      # - --entrypoints.web.address=:80
+      # - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      # - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # - --entrypoints.websecure.address=:443
+      # - --providers.kubernetescrd
+      # - --providers.kubernetescrd.endpoint=http://k8s.server.lan:9080
+      # - --providers.kubernetesingress
+      # - --providers.kubernetesingress.endpoint=http://k8s.server.lan:9080
+      # - --entrypoints.websecure.http.tls
+      # - --entrypoints.websecure.http.tls.certresolver=letsencrypt
+      # - --certificatesresolvers.letsencrypt.acme.email=dzervas+laz@dzervas.gr
+      # - --certificatesresolvers.letsencrypt.acme.storage=/certs/acme.json
+      # - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    ports:
+      traefik:
+        expose: true
+        exposedPort: 9000
+      web:
+        exposedPort: 9080
+        # redirectTo: websecure
+      websecure:
+        exposedPort: 9443
+    ingressRoute:
+      dashboard:
+        enabled: true
+    persistence:
+      enabled: true
+      path: /certs
+      size: 128Mi
+    # volumes:
+      # - mountPath: /data
+        # name: traefik-config
+        # type: configMap
