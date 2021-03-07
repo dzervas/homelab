@@ -148,16 +148,3 @@ spec:
       port: 5601
     middlewares:
     - name: kibana-prefix
-
----
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: kibana-kibana-secret-config
-  namespace: elasticsearch
-type: Opaque
-data:
-  xpack.security.encryptionKey: 3l3hTUNg1hxrhMN8RDy3nM5MgIAP4u5OKAslEMsygJc=
-
----
