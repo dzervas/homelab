@@ -21,7 +21,7 @@ systemctl restart k3s
 To get elastic user password:
 
 ```bash
-kubectl get -n elasticsearch secret elasticsearch-es-elastic-user -o go-template={{.data.elastic | base64decode}}
+kubectl get -n elasticsearch secret elasticsearch-es-elastic-user -o go-template='{{.data.elastic | base64decode}}'
 ```
 
 To transfer elasticsearch indices:
@@ -45,4 +45,10 @@ POST _reindex
     "inline": "ctx._index = 'my_index-' + (ctx._index.substring('my_index-'.length(), ctx._index.length()))"
   }
 }
+```
+
+To get traefik dashboard:
+
+```bash
+kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name) 9000:9000
 ```
