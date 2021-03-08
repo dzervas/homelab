@@ -52,3 +52,9 @@ To get traefik dashboard:
 ```bash
 kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name) 9000:9000
 ```
+
+Stop elasticsearch
+```bash
+kubectl scale --replicas=0 statefulset.apps/elasticsearch-es-laz
+kubectl scale --replicas=0 deployment.apps/kibana-kb
+```

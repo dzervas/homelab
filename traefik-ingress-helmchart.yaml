@@ -17,20 +17,24 @@ spec:
   valuesContent: |-
     logs:
       general:
-        level: DEBUG
+        level: INFO
     additionalArguments:
       - --certificatesresolvers.letsencrypt.acme.email=dzervas+laz@dzervas.gr
       - --certificatesresolvers.letsencrypt.acme.storage=/certs/acme.json
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
     ports:
+      traefik:
+        exposed: true
       web:
-        exposedPort: 9080
+        exposedPort: 80
         redirectTo: websecure
       websecure:
-        exposedPort: 9443
+        exposedPort: 443
         tls:
           enabled: true
-          certResolver: acme
+          certResolver: letsencrypt
+          domains:
+            - main: laz.dzervas.gr
     persistence:
       enabled: true
       name: certs
