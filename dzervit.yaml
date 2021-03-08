@@ -1,0 +1,124 @@
+# Create namespaces
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dzervit
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dzervit-stg
+
+# Create service accounts
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dzervit-sa
+  namespace: dzervit
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dzervit-stg-sa
+  namespace: dzervit-stg
+
+# Create roles
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pods-lister
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: dzervit
+  name: dzervit-admin
+rules:
+- apiGroups: ["traefik.containo.us"]
+  resources: ["IngressRoute"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["Deployment", "Service"]
+  verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: dzervit-stg
+  name: dzervit-stg-admin
+rules:
+- apiGroups: ["traefik.containo.us"]
+  resources: ["IngressRoute"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["deployments", "services", "pods"]
+  verbs: ["*"]
+
+# Bind the roles to the service accounts
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dzervit-role
+  namespace: dzervit
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dzervit-admin
+subjects:
+- kind: ServiceAccount
+  name: dzervit-sa
+  namespace: dzervit
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dzervit-role-pods
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pods-lister
+subjects:
+- kind: ServiceAccount
+  name: dzervit-sa
+  namespace: dzervit
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dzervit-stg-role
+  namespace: dzervit-stg
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dzervit-stg-admin
+subjects:
+- kind: ServiceAccount
+  name: dzervit-stg-sa
+  namespace: dzervit-stg
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dzervit-stg-role-pods
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pods-lister
+subjects:
+- kind: ServiceAccount
+  name: dzervit-stg-sa
+  namespace: dzervit-stg
