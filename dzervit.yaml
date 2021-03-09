@@ -43,11 +43,8 @@ metadata:
   namespace: dzervit
   name: dzervit-admin
 rules:
-- apiGroups: ["traefik.containo.us"]
-  resources: ["IngressRoute"]
-  verbs: ["*"]
-- apiGroups: [""]
-  resources: ["Deployment", "Service"]
+- apiGroups: ["*"]
+  resources: ["*"]
   verbs: ["*"]
 
 ---
@@ -57,11 +54,8 @@ metadata:
   namespace: dzervit-stg
   name: dzervit-stg-admin
 rules:
-- apiGroups: ["traefik.containo.us"]
-  resources: ["IngressRoute"]
-  verbs: ["*"]
-- apiGroups: [""]
-  resources: ["deployments", "services", "pods"]
+- apiGroups: ["*"]
+  resources: ["*"]
   verbs: ["*"]
 
 # Bind the roles to the service accounts
