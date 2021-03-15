@@ -24,6 +24,11 @@ spec:
       - --certificatesresolvers.letsencrypt.acme.tlschallenge
       - --certificatesresolvers.letsencrypt.acme.httpchallenge
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.cloudflare.acme.dnschallenge
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1
+      - --certificatesresolvers.cloudflare.acme.email=dzervas+laz@dzervas.gr
+      - --certificatesresolvers.cloudflare.acme.storage=/certs/acme-cloudflare.json
     ports:
       traefik:
         exposed: true
@@ -39,3 +44,9 @@ spec:
       enabled: true
       name: certs
       path: /certs
+    env:
+      - name: CLOUDFLARE_DNS_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: traefik-cloudflare-api-token
+            key: CLOUDFLARE_DNS_API_TOKEN
