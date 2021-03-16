@@ -59,33 +59,34 @@ spec:
 
 ---
 
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: elastic-prefix
-  namespace: elasticsearch
-spec:
-  stripPrefix:
-    prefixes:
-      - /elastic
-
----
-
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    use-http01-solver: "true"
   name: elasticsearch-ingress
   namespace: elasticsearch
 spec:
-  routes:
-  - kind: Rule
-    match: PathPrefix(`/elastic`)
-    services:
-    - kind: Service
-      name: elasticsearch-es-http
-      port: 9200
-    middlewares:
-    - name: elastic-prefix
+  rules:
+    - host: "laz.dzervas.gr"
+      http:
+        paths:
+          - path: /elastic(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: elasticsearch-es-http
+                port:
+                  number: 9200
+  tls:
+    - hosts:
+        - laz.dzervas.gr
+      secretName: laz-dzervas-gr-cert
 
 ---
 
@@ -121,30 +122,31 @@ spec:
 
 ---
 
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: kibana-prefix
-  namespace: elasticsearch
-spec:
-  stripPrefix:
-    prefixes:
-      - /kibana
-
----
-
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    use-http01-solver: "true"
   name: kibana-ingress
   namespace: elasticsearch
 spec:
-  routes:
-  - kind: Rule
-    match: PathPrefix(`/kibana`)
-    services:
-    - kind: Service
-      name: kibana-kb-http
-      port: 5601
-    middlewares:
-    - name: kibana-prefix
+  rules:
+    - host: "laz.dzervas.gr"
+      http:
+        paths:
+          - path: /kibana(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana-kb-http
+                port:
+                  number: 5601
+  tls:
+    - hosts:
+        - laz.dzervas.gr
+      secretName: laz-dzervas-gr-cert
