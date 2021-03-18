@@ -3,15 +3,15 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: elasticsearch
-
 ---
+
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: elasticsearch
   namespace: elasticsearch
 spec:
-  version: 7.11.1
+  version: 7.11.2
   nodeSets:
   - name: laz
     count: 1
@@ -21,8 +21,18 @@ spec:
       - data
       - ingest
       node.store.allow_mmap: false
-      reindex.remote.whitelist: laz.dzervas.gr:443
+      # https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-metricbeat.html
       xpack.monitoring.collection.enabled: true
+      xpack.monitoring.elasticsearch.collection.enabled: false
+    podTemplate:
+      spec:
+        containers:
+          - name: elasticsearch
+            resources:
+              requests:
+                memory: 512Mi
+              limits:
+                memory: 2Gi
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
@@ -38,7 +48,6 @@ spec:
     tls:
       selfSignedCertificate:
         disabled: true
-
 ---
 
 apiVersion: v1
@@ -56,7 +65,6 @@ spec:
   - ReadWriteOnce
   hostPath:
     path: /cluster/elasticsearch-data
-
 ---
 
 apiVersion: networking.k8s.io/v1
@@ -87,7 +95,6 @@ spec:
     - hosts:
         - laz.dzervas.gr
       secretName: laz-dzervas-gr-cert
-
 ---
 
 apiVersion: kibana.k8s.elastic.co/v1
@@ -96,10 +103,17 @@ metadata:
   name: kibana
   namespace: elasticsearch
 spec:
-  version: 7.11.1
+  version: 7.11.2
   count: 1
   elasticsearchRef:
     name: elasticsearch
+  config:
+    # https://www.elastic.co/guide/en/kibana/current/monitoring-metricbeat.html
+    xpack.monitoring.kibana.collection.enabled: false
+    xpack.monitoring.collection.enabled: true
+    # enable the UI to reflect container level CPU usage, only displays info if CPU limits are set on the monitored ES cluster
+    # https://www.elastic.co/guide/en/kibana/current/monitoring-settings-kb.html
+    xpack.monitoring.ui.container.elasticsearch.enabled: true
   podTemplate:
     spec:
       containers:
@@ -112,14 +126,13 @@ spec:
         resources:
           limits:
             memory: 1Gi
-            cpu: 0.3
+            cpu: 1
   http:
     tls:
       selfSignedCertificate:
         disabled: true
   secureSettings:
   - secretName: kibana-secret-settings
-
 ---
 
 apiVersion: networking.k8s.io/v1
@@ -150,3 +163,283 @@ spec:
     - hosts:
         - laz.dzervas.gr
       secretName: laz-dzervas-gr-cert
+---
+
+# https://raw.githubusercontent.com/elastic/cloud-on-k8s/1.4/config/recipes/beats/metricbeat_hosts.yaml
+apiVersion: beat.k8s.elastic.co/v1beta1
+kind: Beat
+metadata:
+  name: metricbeat-cluster
+spec:
+  type: metricbeat
+  version: 7.11.2
+  elasticsearchRef:
+    name: elasticsearch
+  kibanaRef:
+    name: kibana
+  config:
+    metricbeat:
+      autodiscover:
+        providers:
+        - hints:
+            default_config: {}
+            enabled: "true"
+          host: ${NODE_NAME}
+          type: kubernetes
+      modules:
+      - module: system
+        period: 10s
+        metricsets:
+        - cpu
+        - load
+        - memory
+        - network
+        - process
+        - process_summary
+        process:
+          include_top_n:
+            by_cpu: 5
+            by_memory: 5
+        processes:
+        - .*
+      - module: system
+        period: 1m
+        metricsets:
+        - filesystem
+        - fsstat
+        processors:
+        - drop_event:
+            when:
+              regexp:
+                system:
+                  filesystem:
+                    mount_point: ^/(sys|cgroup|proc|dev|etc|host|lib)($|/)
+      - module: kubernetes
+        period: 10s
+        host: ${NODE_NAME}
+        hosts:
+        - https://${NODE_NAME}:10250
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        ssl:
+          verification_mode: none
+        metricsets:
+        - node
+        - system
+        - pod
+        - container
+        - volume
+    processors:
+    - add_cloud_metadata: {}
+    - add_host_metadata: {}
+    logging.json: true
+  daemonSet:
+    podTemplate:
+      spec:
+        serviceAccountName: metricbeat
+        automountServiceAccountToken: true # some older Beat versions are depending on this settings presence in k8s context
+        containers:
+        - args:
+          - -e
+          - -c
+          - /etc/beat.yml
+          - -system.hostfs=/hostfs
+          name: metricbeat
+          volumeMounts:
+          - mountPath: /hostfs/sys/fs/cgroup
+            name: cgroup
+          # - mountPath: /var/run/docker.sock
+            # name: dockersock
+          - mountPath: /hostfs/proc
+            name: proc
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: true # Allows to provide richer host metadata
+        securityContext:
+          runAsUser: 0
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - hostPath:
+            path: /sys/fs/cgroup
+          name: cgroup
+        - hostPath:
+            path: /var/run/docker.sock
+          name: dockersock
+        - hostPath:
+            path: /proc
+          name: proc
+---
+
+# permissions needed for metricbeat
+# source: https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-kubernetes.html
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metricbeat
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - events
+  - pods
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - "extensions"
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  - deployments
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes/stats
+  verbs:
+  - get
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metricbeat
+  namespace: elasticsearch
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metricbeat
+subjects:
+- kind: ServiceAccount
+  name: metricbeat
+  namespace: elasticsearch
+roleRef:
+  kind: ClusterRole
+  name: metricbeat
+  apiGroup: rbac.authorization.k8s.io
+---
+
+# https://raw.githubusercontent.com/elastic/cloud-on-k8s/1.4/config/recipes/beats/filebeat_autodiscover.yaml
+apiVersion: beat.k8s.elastic.co/v1beta1
+kind: Beat
+metadata:
+  name: filebeat-cluster
+spec:
+  type: filebeat
+  version: 7.11.2
+  elasticsearchRef:
+    name: elasticsearch
+  kibanaRef:
+    name: kibana
+  config:
+    filebeat:
+      autodiscover:
+        providers:
+        - type: kubernetes
+          node: ${NODE_NAME}
+          hints:
+            enabled: true
+            default_config:
+              type: container
+              paths:
+              - /var/log/containers/*${data.kubernetes.container.id}.log
+    processors:
+    - add_cloud_metadata: {}
+    - add_host_metadata: {}
+  daemonSet:
+    podTemplate:
+      spec:
+        serviceAccountName: filebeat
+        automountServiceAccountToken: true
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: true # Allows to provide richer host metadata
+        containers:
+        - name: filebeat
+          securityContext:
+            runAsUser: 0
+            # If using Red Hat OpenShift uncomment this:
+            #privileged: true
+          volumeMounts:
+          - name: varlogcontainers
+            mountPath: /var/log/containers
+          - name: varlogpods
+            mountPath: /var/log/pods
+          - name: varlibdockercontainers
+            mountPath: /var/lib/docker/containers
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+        volumes:
+        - name: varlogcontainers
+          hostPath:
+            path: /var/log/containers
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: filebeat
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources:
+  - namespaces
+  - pods
+  - nodes
+  - nodes/stats
+  verbs:
+  - get
+  - watch
+  - list
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: filebeat
+  namespace: elasticsearch
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: filebeat
+subjects:
+- kind: ServiceAccount
+  name: filebeat
+  namespace: elasticsearch
+roleRef:
+  kind: ClusterRole
+  name: filebeat
+  apiGroup: rbac.authorization.k8s.io
