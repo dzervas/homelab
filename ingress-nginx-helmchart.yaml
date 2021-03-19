@@ -10,6 +10,8 @@ kind: HelmChart
 metadata:
   name: ingress-nginx-helmchart
   namespace: kube-system
+  labels:
+    logme: "true"
 spec:
   chart: ingress-nginx
   repo: https://kubernetes.github.io/ingress-nginx
@@ -17,7 +19,3 @@ spec:
   valuesContent: |-
     controller:
       replicaCount: 2
-      # service:
-        # ports:
-          # http: 9080
-          # https: 9443

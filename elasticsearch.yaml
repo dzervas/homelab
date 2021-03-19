@@ -10,6 +10,8 @@ kind: Elasticsearch
 metadata:
   name: elasticsearch
   namespace: elasticsearch
+  labels:
+    logme: "true"
 spec:
   version: 7.11.2
   nodeSets:
@@ -102,6 +104,8 @@ kind: Kibana
 metadata:
   name: kibana
   namespace: elasticsearch
+  labels:
+    logme: "true"
 spec:
   version: 7.11.2
   count: 1
@@ -360,12 +364,22 @@ spec:
         providers:
         - type: kubernetes
           node: ${NODE_NAME}
-          hints:
-            enabled: true
-            default_config:
-              type: container
-              paths:
-              - /var/log/containers/*${data.kubernetes.container.id}.log
+          hints.default_config.enabled: "false"
+          templates:
+            - condition.equals.kubernetes.namespace: ingress
+              config:
+              - module: nginx
+                ingress_controller:
+                  enabled: true
+                  input:
+                    type: container
+                    paths:
+                    - /var/log/containers/*${data.kubernetes.container.id}.log
+            - condition.equals.kubernetes.labels.logme: "true"
+              config:
+              - type: container
+                paths:
+                - /var/log/containers/*${data.kubernetes.container.id}.log
     processors:
     - add_cloud_metadata: {}
     - add_host_metadata: {}
