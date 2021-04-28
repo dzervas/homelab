@@ -1,15 +1,12 @@
 version: '3'
 
 services:
-  ouroboros:
-    image: pyouroboros/ouroboros:latest
+  watchtower:
+    image: containrrr/watchtower:latest
     restart: unless-stopped
     environment:
-      CLEANUP: "true"
-      INTERVAL: 300
-      LOG_LEVEL: info
-      SELF_UPDATE: "true"
-      IGNORE: 3dprinter_octoprint_1
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_TIMEOUT: "30s"
       TZ: "${HOMELAB_TZ}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
