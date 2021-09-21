@@ -13,9 +13,9 @@ metadata:
   labels:
     logme: "true"
 spec:
-  version: 7.11.2
+  version: 7.14.2
   nodeSets:
-  - name: laz
+  - name: laz-local-path
     count: 1
     config:
       node.roles:
@@ -44,7 +44,7 @@ spec:
         resources:
           requests:
               storage: 512Mi
-        storageClassName: standard
+        storageClassName: local-path
 
   http:
     tls:
@@ -60,7 +60,7 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: standard
+  storageClassName: local-path
   capacity:
     storage: 2Gi
   accessModes:
@@ -108,7 +108,7 @@ metadata:
   labels:
     logme: "true"
 spec:
-  version: 7.11.2
+  version: 7.14.2
   count: 1
   elasticsearchRef:
     name: elasticsearch
@@ -119,15 +119,12 @@ spec:
     # enable the UI to reflect container level CPU usage, only displays info if CPU limits are set on the monitored ES cluster
     # https://www.elastic.co/guide/en/kibana/current/monitoring-settings-kb.html
     xpack.monitoring.ui.container.elasticsearch.enabled: true
+    server.publicBaseUrl: https://laz.dzervas.gr/kibana
+    server.basePath: /kibana
   podTemplate:
     spec:
       containers:
       - name: kibana
-        env:
-        - name: SERVER_BASEPATH
-          value: /kibana
-        # - name: SERVER_REWRITEBASEPATH
-        #   value: "true"
         resources:
           limits:
             memory: 1Gi
@@ -177,7 +174,7 @@ metadata:
   name: metricbeat-cluster
 spec:
   type: metricbeat
-  version: 7.11.2
+  version: 7.14.2
   elasticsearchRef:
     name: elasticsearch
   kibanaRef:
@@ -354,7 +351,7 @@ metadata:
   name: filebeat-cluster
 spec:
   type: filebeat
-  version: 7.11.2
+  version: 7.14.2
   elasticsearchRef:
     name: elasticsearch
   kibanaRef:
