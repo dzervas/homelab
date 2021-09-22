@@ -16,6 +16,19 @@ spec:
   targetNamespace: cert-manager
   valuesContent: |-
     installCRDs: true
+    prometheus:
+      enabled: true
+      servicemonitor:
+        enabled: true
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+  namespace: cert-manager
+spec:
+  selfSigned: {}
 
 ---
 apiVersion: cert-manager.io/v1
@@ -45,3 +58,59 @@ spec:
         dnsNames:
         - dzerv.it
         - "*.dzerv.it"
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: client-ca
+  namespace: cert-manager
+spec:
+  secretName: client-ca-certificate
+  dnsNames:
+    - laz.dzervas.gr
+    - "*.laz.dzervas.gr"
+  subject:
+    organizations:
+      - homelab
+  duration: 87658h # 10 years
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  isCA: true
+
+  issuerRef:
+    name: selfsigned
+    kind: ClusterIssuer
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: client-ca
+spec:
+  ca:
+    secretName: client-ca-certificate
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: client-desktop
+spec:
+  secretName: client-desktop-certificate
+  dnsNames:
+    - laz.dzervas.gr
+    - "*.laz.dzervas.gr"
+  isCA: false
+  duration: 87658h # 10 years
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  usages:
+    - server auth
+    - client auth
+
+  issuerRef:
+    name: client-ca
+    kind: Issuer

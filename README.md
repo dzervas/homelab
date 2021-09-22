@@ -58,3 +58,11 @@ Stop elasticsearch
 kubectl scale --replicas=0 statefulset.apps/elasticsearch-es-laz
 kubectl scale --replicas=0 deployment.apps/kibana-kb
 ```
+
+To get a client certificate from cert-manager:
+
+```bash
+kubectl get -n cert-manager secret client-desktop-certificate -o go-template='{{index .data "tls.crt" | base64decode}}' > desktop.pem
+kubectl get -n cert-manager secret client-desktop-certificate -o go-template='{{index .data "tls.key" | base64decode}}' >> desktop.pem
+openssl pkcs12 -export -out desktop.p12 -in desktop.pem
+```
