@@ -1,0 +1,107 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: prometheus-helmchart
+  namespace: kube-system
+spec:
+  chart: kube-prometheus-stack
+  repo: https://prometheus-community.github.io/helm-charts
+  targetNamespace: monitoring
+  valuesContent: |-
+    alertmanager:
+      externalUrl: https://laz.dzervas.gr/alerts
+      routePrefix: /alerts
+      # alertmanagerSpec:
+        # logFormat: json
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        labels:
+          use-http01-solver: "true"
+        hosts:
+          - monitor.laz.dzervas.gr
+        pathType: Prefix
+        paths:
+          - /alerts(/|$)(.*)
+        path: /alerts
+        tls:
+          - hosts:
+              - monitor.laz.dzervas.gr
+            secretName: monitor-laz-dzervas-gr-cert
+
+    grafana:
+      grafana.ini:
+        server:
+          domain: monitor.laz.dzervas.gr
+          root_url: https://monitor.laz.dzervas.gr/graphs
+          serve_from_sub_path: true
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        labels:
+          use-http01-solver: "true"
+        hosts:
+          - monitor.laz.dzervas.gr
+        pathType: Prefix
+        paths:
+          - /graphs(/|$)(.*)
+        path: /graphs
+        tls:
+          - hosts:
+              - monitor.laz.dzervas.gr
+            secretName: monitor-laz-dzervas-gr-cert
+
+    kubeControllerManager:
+      enabled: false
+    kubeEtcd:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeProxy:
+      enabled: false
+
+    prometheus:
+      prometheusSpec:
+        routePrefix: /prometheus
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        labels:
+          use-http01-solver: "true"
+        hosts:
+          - monitor.laz.dzervas.gr
+        pathType: Prefix
+        paths:
+          - /prometheus(/|$)(.*)
+        path: /prometheus
+        tls:
+          - hosts:
+              - monitor.laz.dzervas.gr
+            secretName: monitor-laz-dzervas-gr-cert
+
+    prometheusOperator:
+      tls:
+        enabled: false
+      # admissionWebhooks:
+        # certManager:
+          # enabled: true
+          # issuerRef:
+            # name: letsencrypt
+            # kind: ClusterIssuer
