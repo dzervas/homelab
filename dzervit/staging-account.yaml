@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dzervit-stg
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dzervit-stg-sa
+  namespace: dzervit-stg
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: dzervit-stg
+  name: dzervit-stg-admin
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dzervit-stg-role
+  namespace: dzervit-stg
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dzervit-stg-admin
+subjects:
+- kind: ServiceAccount
+  name: dzervit-stg-sa
+  namespace: dzervit-stg
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dzervit-stg-role-pods
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pods-lister
+subjects:
+- kind: ServiceAccount
+  name: dzervit-stg-sa
+  namespace: dzervit-stg

@@ -1,0 +1,22 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: client-desktop
+spec:
+  secretName: client-desktop-certificate
+  dnsNames:
+    - laz.dzervas.gr
+    - "*.laz.dzervas.gr"
+  isCA: false
+  duration: 87658h # 10 years
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  usages:
+    - server auth
+    - client auth
+
+  issuerRef:
+    name: client-ca
+    kind: Issuer
