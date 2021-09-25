@@ -18,7 +18,9 @@ spec:
     alertmanager:
       externalUrl: https://laz.dzervas.gr/alerts
       routePrefix: /alerts
-      # alertmanagerSpec:
+      alertmanagerSpec:
+        configSecret: alertmanager-receiver-config
+        useExistingSecret: true
         # logFormat: json
       ingress:
         enabled: true
@@ -44,6 +46,9 @@ spec:
             secretName: monitor-laz-dzervas-gr-cert
 
     grafana:
+      defaultDashboardsTimezone: Europe/Athens
+      persistence:
+        enabled: true
       grafana.ini:
         server:
           domain: monitor.laz.dzervas.gr
