@@ -49,6 +49,7 @@ spec:
       defaultDashboardsTimezone: Europe/Athens
       persistence:
         enabled: true
+        existingClaim: grafana-prometheus-data
       grafana.ini:
         server:
           domain: monitor.laz.dzervas.gr
@@ -88,6 +89,7 @@ spec:
     prometheus:
       prometheusSpec:
         routePrefix: /prometheus
+        serviceMonitorSelectorNilUsesHelmValues: false
       ingress:
         enabled: true
         ingressClassName: nginx
