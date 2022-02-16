@@ -77,6 +77,9 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/client-body-buffer-size: 4M
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+    nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
   labels:
     use-http01-solver: "true"
   name: elasticsearch-ingress
