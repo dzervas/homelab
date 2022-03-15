@@ -1,0 +1,34 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mail
+
+# ---
+# apiVersion: helm.cattle.io/v1
+# kind: HelmChart
+# metadata:
+  # name: maddy
+  # namespace: kube-system
+# spec:
+  # chart: ./maddy/contrib/kubernetes/chart/
+  # targetNamespace: mail
+  # valuesContent: |-
+    # persistence.enabled: true
+    # service.type=ClusterIP
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: maddy-certificate
+  namespace: mail
+  labels:
+    use-http01-solver: "true"
+spec:
+  secretName: maddy
+  dnsNames:
+    - blogaki.io
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer

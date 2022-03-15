@@ -1,0 +1,55 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: blogaki-stg
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: blogaki-stg-sa
+  namespace: blogaki-stg
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: blogaki-stg
+  name: blogaki-stg-admin
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: blogaki-stg-role
+  namespace: blogaki-stg
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: blogaki-stg-admin
+subjects:
+- kind: ServiceAccount
+  name: blogaki-stg-sa
+  namespace: blogaki-stg
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: blogaki-stg-role-pods
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pods-lister
+subjects:
+- kind: ServiceAccount
+  name: blogaki-stg-sa
+  namespace: blogaki-stg

@@ -66,3 +66,28 @@ kubectl get -n cert-manager secret client-desktop-certificate -o go-template='{{
 kubectl get -n cert-manager secret client-desktop-certificate -o go-template='{{index .data "tls.key" | base64decode}}' >> desktop.pem
 openssl pkcs12 -export -out desktop.p12 -in desktop.pem
 ```
+
+To manage maddy (mails):
+
+```bash
+kubectl exec -it svc/maddy -- sh
+$ maddyctl creds list
+```
+
+Maddy to be deployed needs a change in files/maddy.conf to change hostname and primary domain
+To send emails you need records:
+
+```
+; Use SPF to say that the servers in "MX" above are allowed to send email
+; for this domain, and nobody else.
+example.org.     TXT   "v=spf1 mx ~all"
+; It is recommended to server SPF record for both domain and MX hostname
+mx1.example.org. TXT   "v=spf1 mx ~all"
+
+; Opt-in into DMARC with permissive policy and request reports about broken
+; messages.
+_dmarc.example.org.   TXT    "v=DMARC1; p=quarantine; ruf=mailto:postmaster@example.org"
+
+; Found in /data/dkim_keys/examle.com_default.dns
+default._domainkey.example.org.    TXT   "v=DKIM1; k=ed25519; p=nAcUUozPlhc4VPhp7hZl+owES7j7OlEv0laaDEDBAqg="
+```
