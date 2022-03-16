@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: descheduler
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: ingress-nginx-helmchart
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: descheduler
+  repo: https://kubernetes-sigs.github.io/descheduler/
+  version: 0.23.1
+  targetNamespace: descheduler
+  valuesContent: |-
+    controller:
+      replicaCount: 2
