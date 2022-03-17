@@ -1,0 +1,48 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: mongodb
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: mongodb
+  repo: https://charts.bitnami.com/bitnami
+  version: 11.1.0
+  targetNamespace: blogaki-stg
+  valuesContent: |-
+    architecture: replicaset
+    clusterDomain: staging.blogaki.io
+    disableJavascript: true
+    pdb:
+      create: true
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+    auth:
+      databases:
+        - blogaki
+      usernames:
+        - blogaki
+      existingSecret: mongodb-secrets
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: memcached
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: memcached
+  repo: https://charts.bitnami.com/bitnami
+  version: 6.0.5
+  targetNamespace: blogaki-stg
+  valuesContent: |-
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
