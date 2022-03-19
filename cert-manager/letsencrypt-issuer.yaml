@@ -5,7 +5,7 @@ metadata:
   name: letsencrypt
 spec:
   acme:
-    email: dzervas+laz@dzervas.gr
+    email: dzervas+grk8s@dzervas.gr
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: cert-manager-cluster-issuer-account-key
@@ -18,7 +18,7 @@ spec:
           "use-http01-solver": "true"
     - dns01:
         cloudflare:
-          email: dzervas+laz@dzervas.gr
+          email: dzervas+grk8s@dzervas.gr
           apiTokenSecretRef:
             name: cert-manager-cloudflare-api-token
             key: api-token

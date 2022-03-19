@@ -16,8 +16,8 @@ metadata:
 spec:
   secretName: client-ca-certificate
   dnsNames:
-    - laz.dzervas.gr
-    - "*.laz.dzervas.gr"
+    - k8s.dzervas.gr
+    - "*.k8s.dzervas.gr"
   subject:
     organizations:
       - homelab

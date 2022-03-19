@@ -16,7 +16,7 @@ spec:
   targetNamespace: monitoring
   valuesContent: |-
     alertmanager:
-      externalUrl: https://laz.dzervas.gr/alerts
+      externalUrl: https://k8s.dzervas.gr/alerts
       routePrefix: /alerts
       alertmanagerSpec:
         configSecret: alertmanager-receiver-config
@@ -35,15 +35,15 @@ spec:
         labels:
           use-http01-solver: "true"
         hosts:
-          - monitor.laz.dzervas.gr
+          - monitor.k8s.dzervas.gr
         pathType: Prefix
         paths:
           - /alerts(/|$)(.*)
         path: /alerts
         tls:
           - hosts:
-              - monitor.laz.dzervas.gr
-            secretName: monitor-laz-dzervas-gr-cert
+              - monitor.k8s.dzervas.gr
+            secretName: monitor-k8s-dzervas-gr-cert
 
     grafana:
       defaultDashboardsTimezone: Europe/Athens
@@ -52,8 +52,8 @@ spec:
         existingClaim: grafana-prometheus-data
       grafana.ini:
         server:
-          domain: monitor.laz.dzervas.gr
-          root_url: https://monitor.laz.dzervas.gr/graphs
+          domain: monitor.k8s.dzervas.gr
+          root_url: https://monitor.k8s.dzervas.gr/graphs
           serve_from_sub_path: true
       ingress:
         enabled: true
@@ -67,15 +67,15 @@ spec:
         labels:
           use-http01-solver: "true"
         hosts:
-          - monitor.laz.dzervas.gr
+          - monitor.k8s.dzervas.gr
         pathType: Prefix
         paths:
           - /graphs(/|$)(.*)
         path: /graphs
         tls:
           - hosts:
-              - monitor.laz.dzervas.gr
-            secretName: monitor-laz-dzervas-gr-cert
+              - monitor.k8s.dzervas.gr
+            secretName: monitor-k8s-dzervas-gr-cert
 
     kubeControllerManager:
       enabled: false
@@ -102,15 +102,15 @@ spec:
         labels:
           use-http01-solver: "true"
         hosts:
-          - monitor.laz.dzervas.gr
+          - monitor.k8s.dzervas.gr
         pathType: Prefix
         paths:
           - /prometheus(/|$)(.*)
         path: /prometheus
         tls:
           - hosts:
-              - monitor.laz.dzervas.gr
-            secretName: monitor-laz-dzervas-gr-cert
+              - monitor.k8s.dzervas.gr
+            secretName: monitor-k8s-dzervas-gr-cert
 
     prometheusOperator:
       tls:

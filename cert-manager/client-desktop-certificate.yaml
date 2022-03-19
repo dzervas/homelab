@@ -7,8 +7,8 @@ metadata:
 spec:
   secretName: client-desktop-certificate
   dnsNames:
-    - laz.dzervas.gr
-    - "*.laz.dzervas.gr"
+    - k8s.dzervas.gr
+    - "*.k8s.dzervas.gr"
   isCA: false
   duration: 87658h # 10 years
   privateKey:
