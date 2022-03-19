@@ -23,8 +23,6 @@ kind: Certificate
 metadata:
   name: maddy-certificate
   namespace: mail
-  labels:
-    use-http01-solver: "true"
 spec:
   secretName: maddy
   dnsNames:

@@ -32,8 +32,6 @@ spec:
           nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
           nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
           nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
-        labels:
-          use-http01-solver: "true"
         hosts:
           - monitor.k8s.dzervas.gr
         pathType: Prefix
@@ -64,8 +62,6 @@ spec:
           nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
           nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
           nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
-        labels:
-          use-http01-solver: "true"
         hosts:
           - monitor.k8s.dzervas.gr
         pathType: Prefix
@@ -99,8 +95,6 @@ spec:
           nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
           nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
           nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
-        labels:
-          use-http01-solver: "true"
         hosts:
           - monitor.k8s.dzervas.gr
         pathType: Prefix

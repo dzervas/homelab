@@ -5,20 +5,14 @@ metadata:
   name: letsencrypt
 spec:
   acme:
-    email: dzervas+grk8s@dzervas.gr
+    email: dzervas+laz@dzervas.gr
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: cert-manager-cluster-issuer-account-key
     solvers:
-    - http01:
-        ingress:
-          class: nginx
-      selector:
-        matchLabels:
-          "use-http01-solver": "true"
     - dns01:
         cloudflare:
-          email: dzervas+grk8s@dzervas.gr
+          email: dzervas+laz@dzervas.gr
           apiTokenSecretRef:
             name: cert-manager-cloudflare-api-token
             key: api-token
@@ -26,3 +20,6 @@ spec:
         dnsNames:
         - dzerv.it
         - "*.dzerv.it"
+    - http01:
+        ingress:
+          class: nginx
