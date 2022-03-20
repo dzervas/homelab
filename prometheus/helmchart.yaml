@@ -14,35 +14,8 @@ spec:
   chart: kube-prometheus-stack
   repo: https://prometheus-community.github.io/helm-charts
   targetNamespace: monitoring
+  version: 34.1.1
   valuesContent: |-
-    alertmanager:
-      externalUrl: https://k8s.dzervas.gr/alerts
-      routePrefix: /alerts
-      alertmanagerSpec:
-        configSecret: alertmanager-receiver-config
-        useExistingSecret: true
-        # logFormat: json
-      ingress:
-        enabled: true
-        ingressClassName: nginx
-        annotations:
-          cert-manager.io/cluster-issuer: letsencrypt
-          nginx.ingress.kubernetes.io/rewrite-target: /$2
-          nginx.ingress.kubernetes.io/ssl-redirect: "true"
-          nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
-          nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
-          nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
-        hosts:
-          - monitor.k8s.dzervas.gr
-        pathType: Prefix
-        paths:
-          - /alerts(/|$)(.*)
-        path: /alerts
-        tls:
-          - hosts:
-              - monitor.k8s.dzervas.gr
-            secretName: monitor-k8s-dzervas-gr-cert
-
     grafana:
       defaultDashboardsTimezone: Europe/Athens
       persistence:
@@ -73,13 +46,7 @@ spec:
               - monitor.k8s.dzervas.gr
             secretName: monitor-k8s-dzervas-gr-cert
 
-    kubeControllerManager:
-      enabled: false
-    kubeEtcd:
-      enabled: false
-    kubeScheduler:
-      enabled: false
-    kubeProxy:
+    alertmanager:
       enabled: false
 
     prometheus:
