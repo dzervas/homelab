@@ -9,18 +9,30 @@ metadata:
 spec:
   chart: mongodb
   repo: https://charts.bitnami.com/bitnami
-  version: 11.1.0
+  version: 11.1.1
   targetNamespace: blogaki-stg
   valuesContent: |-
-    architecture: replicaset
+    # TODO: Make replicaset work
+    # architecture: replicaset
+    # rbac:
+      # create: true
+    # serviceAccount:
+      # create: true
+    # pdb:
+      # create: true
+    # metrics:
+      # enabled: true
+      # serviceMonitor:
+        # enabled: true
     clusterDomain: staging.blogaki.io
     disableJavascript: true
-    pdb:
-      create: true
-    metrics:
-      enabled: true
-      serviceMonitor:
-        enabled: true
+    # image:
+      # debug: true
+    peristence:
+      storageClass: longhorn
+      size: 20Gi
+    service:
+      nameOverride: mongodb
     auth:
       databases:
         - blogaki
@@ -42,7 +54,7 @@ spec:
   version: 6.0.5
   targetNamespace: blogaki-stg
   valuesContent: |-
-    metrics:
-      enabled: true
-      serviceMonitor:
-        enabled: true
+    # metrics:
+      # enabled: true
+      # serviceMonitor:
+        # enabled: true
