@@ -11,6 +11,7 @@ spec:
     - staging.blogaki.io
     - staging.dzerv.it
     - "*.k8s.dzervas.gr"
+    - "*.staging.blogaki.io"
   isCA: false
   duration: 87658h # 10 years
   privateKey:

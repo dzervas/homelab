@@ -2,10 +2,10 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: client-desktop
+  name: client-work
   namespace: cert-manager
 spec:
-  secretName: client-desktop-certificate
+  secretName: client-work-certificate
   dnsNames:
     - k8s.dzervas.gr
     - staging.blogaki.io

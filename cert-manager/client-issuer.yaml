@@ -17,9 +17,10 @@ spec:
   secretName: client-ca-certificate
   dnsNames:
     - k8s.dzervas.gr
-    - "*.k8s.dzervas.gr"
     - staging.blogaki.io
     - staging.dzerv.it
+    - "*.k8s.dzervas.gr"
+    - "*.staging.blogaki.io"
   subject:
     organizations:
       - k8s.dzervas.gr
