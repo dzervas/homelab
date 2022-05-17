@@ -12,7 +12,7 @@ spec:
     solvers:
     - dns01:
         cloudflare:
-          email: dzervas+laz@dzervas.gr
+          email: dzervas@dzervas.gr
           apiTokenSecretRef:
             name: cert-manager-cloudflare-api-token
             key: api-token
