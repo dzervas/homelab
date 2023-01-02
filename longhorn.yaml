@@ -15,7 +15,7 @@ metadata:
 spec:
   chart: longhorn
   repo: https://charts.longhorn.io
-  version: 1.3.2
+  version: 1.4.0
   targetNamespace: longhorn-system
   valuesContent: |-
     persistence:
