@@ -15,5 +15,5 @@ metadata:
 spec:
   chart: descheduler
   repo: https://kubernetes-sigs.github.io/descheduler/
-  version: 0.23.1
+  version: 0.26.0
   targetNamespace: descheduler

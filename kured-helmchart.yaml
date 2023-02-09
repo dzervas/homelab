@@ -14,6 +14,6 @@ metadata:
     logme: "true"
 spec:
   chart: kured
-  repo: https://weaveworks.github.io/kured
-  version: 2.12.0
+  repo: https://kubereboot.github.io/charts
+  version: 4.4.1
   targetNamespace: kured

@@ -13,6 +13,7 @@ metadata:
 spec:
   chart: cert-manager
   repo: https://charts.jetstack.io
+  version: v1.11.0
   targetNamespace: cert-manager
   valuesContent: |-
     installCRDs: true
