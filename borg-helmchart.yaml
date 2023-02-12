@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: borgserver
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: borgserver-helmchart
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: borgserver
+  repo: https://dzervas.github.io/docker-borgserver/
+  version: 1.2.3-17
+  targetNamespace: borgserver
+  valuesContent: |-
+    # persistence:
+      # storageClass: longhorn
+    # replicaCount: 2
+    clients:
+      - name: dzervas-desktop
+        restrictToPaths:
+          - /backup/dzervas-desktop
+        appendOnly: true
+        type: ssh-ed25519
+        key: AAAAC3NzaC1lZDI1NTE5AAAAICS1ajO167YXmPzlWZT6+ydcO359SW1BljPK/GgBijHZ
