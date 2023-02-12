@@ -15,16 +15,18 @@ metadata:
 spec:
   chart: borgserver
   repo: https://dzervas.github.io/docker-borgserver/
-  version: 1.2.3-17
+  version: 1.2.3-27
   targetNamespace: borgserver
   valuesContent: |-
-    # persistence:
-      # storageClass: longhorn
+    borg:
+      useKeysSecret: true
+    persistence:
+      size: 200Gi
+      storageClass: longhorn
     # replicaCount: 2
     clients:
       - name: dzervas-desktop
         restrictToPaths:
           - /backup/dzervas-desktop
-        appendOnly: true
         type: ssh-ed25519
         key: AAAAC3NzaC1lZDI1NTE5AAAAICS1ajO167YXmPzlWZT6+ydcO359SW1BljPK/GgBijHZ
