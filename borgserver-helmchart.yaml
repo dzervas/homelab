@@ -30,3 +30,8 @@ spec:
           - /backup/dzervas-desktop
         type: ssh-ed25519
         key: AAAAC3NzaC1lZDI1NTE5AAAAICS1ajO167YXmPzlWZT6+ydcO359SW1BljPK/GgBijHZ
+      - name: dzervas-hass
+        restrictToPaths:
+          - /backup/dzervas-hass
+        type: ssh-ed25519
+        key: AAAAC3NzaC1lZDI1NTE5AAAAIMLWVHQrJocAcyOhl8K8zOIqt1yPx0edICvEgBMyqpiT
