@@ -1,0 +1,14 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: grafana-agent-helmchart
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: grafana-agent
+  repo: https://grafana.github.io/helm-charts
+  version: 0.5.0
+  targetNamespace: grafana
+  # valuesContent: |-

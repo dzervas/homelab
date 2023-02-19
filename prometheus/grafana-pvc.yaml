@@ -3,9 +3,9 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: grafana-prometheus-data
-  namespace: monitoring
+  namespace: grafana
 spec:
-  storageClassName: local-path
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   capacity:
@@ -18,14 +18,14 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-prometheus-data
-  namespace: monitoring
+  namespace: grafana
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
-  storageClassName: local-path
+  storageClassName: longhorn
   volumeMode: Filesystem
   volumeName: grafana-prometheus-data
 status:
