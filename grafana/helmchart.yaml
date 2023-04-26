@@ -15,7 +15,7 @@ metadata:
 spec:
   chart: grafana
   repo: https://grafana.github.io/helm-charts
-  version: 6.50.7
+  version: 6.55.0
   targetNamespace: grafana
   valuesContent: |-
     rbac:
@@ -46,3 +46,14 @@ spec:
         - hosts:
             - grafana.k8s.dzervas.gr
           secretName: grafana-k8s-dzervas-gr-cert
+
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Mimir
+            type: prometheus
+            url: http://grafana-mimir-helmchart-nginx/prometheus
+          - name: Loki
+            type: loki
+            url: http://grafana-loki-helmchart:3100

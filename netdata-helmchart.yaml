@@ -1,0 +1,42 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: netdata
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: netdata-helmchart
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: netdata
+  repo: https://netdata.github.io/helmchart
+  version: 3.7.51
+  targetNamespace: netdata
+  valuesContent: |-
+    parent.alarms.storageclass: longhorn
+    parent.database.storageclass: longhorn
+    k8sState.persistence.storageclass: longhorn
+    ingress:
+      enabled: true
+      spec:
+        # ingressClassName: nginx
+        tls:
+          - hosts:
+              - netdata.k8s.dzervas.gr
+            secretName: netdata-k8s-dzervas-gr-cert
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+        nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
+        nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+        # Overwrite default annotations
+        # kubernetes.io/ingress.class: "-"
+        # kubernetes.io/tls-acme: "-"
+      hosts:
+        - netdata.k8s.dzervas.gr
