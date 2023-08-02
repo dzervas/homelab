@@ -22,9 +22,13 @@ metadata:
 spec:
   chart: longhorn
   repo: https://charts.longhorn.io
-  version: 1.4.0
+  version: 1.4.3
   targetNamespace: longhorn-system
   valuesContent: |-
+    longhornManager:
+      nodeSelector:
+        big_volume: "true"
+
     persistence:
       defaultClass: false
       defaultDataLocality: best-effort

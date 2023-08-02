@@ -15,7 +15,7 @@ metadata:
 spec:
   chart: borgserver
   repo: https://dzervas.github.io/docker-borgserver/
-  version: 1.2.3-27
+  version: 1.2.4-4
   targetNamespace: borgserver
   valuesContent: |-
     borg:
@@ -24,6 +24,8 @@ spec:
       size: 200Gi
       storageClass: longhorn
     # replicaCount: 2
+    nodeSelector:
+      big_volume: "true"
     clients:
       - name: dzervas-desktop
         restrictToPaths:

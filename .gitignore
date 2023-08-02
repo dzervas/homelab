@@ -1,2 +1,6 @@
 *-secret.yaml
 alertmanager.yaml
+*.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform*
