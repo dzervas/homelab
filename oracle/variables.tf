@@ -8,7 +8,7 @@ variable "compartment_ocid" {}
 variable "instance_count" {
   description = "The number of instances to deploy"
   type        = number
-  default     = 4
+  default     = 1
 }
 
 variable "k3s_token" {
