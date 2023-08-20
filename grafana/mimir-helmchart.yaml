@@ -1,0 +1,46 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: grafana-mimir-helmchart
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: mimir-distributed
+  repo: https://grafana.github.io/helm-charts
+  version: 4.3.1
+  targetNamespace: grafana
+  valuesContent: |-
+    minio:
+      enabled: false
+    alertmanager:
+      persistentVolume:
+        storageClass: longhorn
+    ingester:
+      persistentVolume:
+        storageClass: longhorn
+    store_gateway:
+      persistentVolume:
+        storageClass: longhorn
+    compactor:
+      persistentVolume:
+        storageClass: longhorn
+    nginx:
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+          nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
+          nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+        hosts:
+          - host: mimir.grafana.k8s.dzervas.gr
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - mimir.grafana.k8s.dzervas.gr
+            secretName: mimir-grafana-k8s-dzervas-gr-cert

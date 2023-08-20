@@ -1,0 +1,83 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: loki-helmchart
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: loki
+  repo: https://grafana.github.io/helm-charts
+  version: 5.14.1
+  targetNamespace: grafana
+  valuesContent: |-
+    loki:
+      auth_enabled: true
+      storage:
+        type: s3
+        bucketNames:
+          chunks: loki-chunks
+          ruler: loki-ruler
+          admin: loki-admin
+        s3:
+          endpoint: s3.s3gw-system.svc.cluster.local
+          insecure: true
+    singleBinary:
+      replicas: 2
+      persistence:
+        size: 50Gi
+        storageClassName: longhorn
+    read:
+      replicas: 0
+    write:
+      replicas: 0
+    gateway:
+      enabled: false
+    tableManager:
+      enabled: true
+
+    monitoring:
+      serviceMonitor:
+        enabled: false
+      selfMonitoring:
+        enabled: false
+    test:
+      enabled: false
+
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+        nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
+        nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+      hosts:
+        - loki.grafana.k8s.dzervas.gr
+      tls:
+        - hosts:
+            - loki.grafana.k8s.dzervas.gr
+          secretName: loki-grafana-k8s-dzervas-gr-cert
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-s3-access
+  namespace: s3gw-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: gateway
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: grafana
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/component: single-binary
+  policyTypes:
+  - Ingress
