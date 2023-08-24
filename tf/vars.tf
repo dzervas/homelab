@@ -21,19 +21,6 @@ variable "instance_count" {
   default     = 1
 }
 
-variable "k3s_token" {
-  description = "The token used to join the cluster"
-  type        = string
-}
-variable "k3s_version" {
-  description = "The k3s version to install"
-  type        = string
-}
-variable "k3s_cluster" {
-  description = "The k3s cluster endpoint"
-  type        = string
-}
-
 variable "region" {
   description = "The region to deploy to"
   type        = string

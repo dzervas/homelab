@@ -1,0 +1,57 @@
+---
+- name: Gather Terraform outputs
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Gather Terraform outputs
+      terraform:
+        project_path: ../tf
+        state: planned
+        workspace: homelab-k8s
+        plan_file: /dev/null
+        targets:
+          - output.zerotier_identities
+      register: terraform_state
+      when: skip_zerotier is not defined or skip_zerotier == false
+
+    - name: Set ZeroTier identity as fact
+      set_fact:
+        zerotier_identities: "{{ terraform_state.outputs.zerotier_identities.value }}"
+      when: skip_zerotier is not defined or skip_zerotier == false
+
+- hosts: all
+  gather_facts: yes
+  vars:
+    wireguard_subnet: "10.11.12.0/24"
+    zerotier_subnet: "10.9.8.0/24"
+  tasks:
+    - name: Calculate VPN addresses
+      set_fact:
+        wireguard_ip: "{{ wireguard_subnet | ansible.utils.ipaddr(host_index) | ansible.utils.ipaddr('address') }}"
+        zerotier_ip: "{{ zerotier_subnet | ansible.utils.ipaddr(host_index) | ansible.utils.ipaddr('address') }}"
+        address: "{{ lookup('dig', inventory_hostname, '@1.1.1.1') }}"
+
+    - name: Set ZeroTier identity
+      set_fact:
+        zerotier_identity: "{{ hostvars['localhost'].zerotier_identities[inventory_hostname] }}"
+      when: (skip_zerotier is not defined or skip_zerotier == false) and inventory_hostname in hostvars['localhost'].zerotier_identities
+
+    - name: Node VPN IPs
+      debug:
+        msg: "{{ inventory_hostname }} External: {{ hostvars[inventory_hostname].address }} WG: {{ hostvars[inventory_hostname].wireguard_ip }} ZT: {{ hostvars[inventory_hostname].zerotier_ip }}"
+
+    - name: Set additional_ips and k3s_ip
+      set_fact:
+        k3s_ip: "{{ hostvars[inventory_hostname].wireguard_ip }}"
+        additional_ips: "{{ ansible_all_ipv4_addresses + [hostvars[inventory_hostname].wireguard_ip, hostvars[inventory_hostname].zerotier_ip] | unique | difference([hostvars[inventory_hostname].address]) }}"
+
+- hosts: all
+  become: true
+  vars:
+    k3s_version: "{{ lookup('env', 'TF_VAR_k3s_version') }}"
+    zerotier_network_id: "{{ lookup('env', 'TF_VAR_zerotier_network_id') }}"
+  roles:
+    - system
+    - zerotier
+    - wireguard
+    - k3s

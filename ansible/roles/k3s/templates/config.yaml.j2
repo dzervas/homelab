@@ -1,0 +1,32 @@
+# Managed by Ansible
+{% if inventory_hostname in groups.master %}
+cluster-init: true
+{% else %}
+server: "https://{{ hostvars[groups.master[0]].address }}:6443"
+{% endif %}
+
+secrets-encryption: true
+disable:
+  - traefik
+  - metrics-server
+
+# IP settings
+node-ip: {{ hostvars[inventory_hostname].k3s_ip }}
+node-external-ip: {{ hostvars[inventory_hostname].address }}
+advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
+flannel-iface: wg0
+
+# DNS settings
+node-name: {{ inventory_hostname }}
+tls-san:
+  - 127.0.0.1
+  - localhost
+  - {{ inventory_hostname }}
+  - {{ inventory_hostname_short }}
+  - {{ hostvars[inventory_hostname].k3s_ip }}
+  - {{ hostvars[inventory_hostname].address }}
+{% for ip in (hostvars[inventory_hostname].additional_ips | difference([hostvars[inventory_hostname].k3s_ip])) %}
+  - {{ ip }}
+{% endfor %}
+
+# TODO: etcd backups to oracle

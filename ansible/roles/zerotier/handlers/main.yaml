@@ -1,0 +1,4 @@
+- name: Restart ZeroTier service
+  service:
+    name: zerotier-one
+    state: restarted

@@ -14,4 +14,12 @@ resource "zerotier_member" "k3s" {
   description             = "Managed by Terraform"
   ip_assignments          = [ for r in data.zerotier_network.k3s.route : cidrhost(r.target, 200 + count.index) ]
   allow_ethernet_bridging = true
+  hidden                  = false
+}
+
+output "zerotier_identities" {
+  value = {
+    for i, v in zerotier_identity.k3s : oci_core_instance.k3s[i].display_name => { public = v.public_key, private = v.private_key }
+  }
+  sensitive = true
 }

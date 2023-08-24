@@ -1,0 +1,9 @@
+- name: Add ZeroTier PGP key
+  apt_key:
+    url: https://download.zerotier.com/contact@zerotier.com.gpg
+    id: 74A5E9C458E1A431F1DA57A71657198823E52A61
+
+- name: Add ZeroTier repository
+  apt_repository:
+    repo: deb http://download.zerotier.com/debian/{{ ansible_facts.distribution_release }} {{ ansible_facts.distribution_release }} main
+    state: present

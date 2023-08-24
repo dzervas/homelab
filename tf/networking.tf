@@ -102,7 +102,7 @@ resource "oci_core_security_list" "k3s" {
   # k3s flannel wireguard-native
   ingress_security_rules {
     source   = "0.0.0.0/0"
-    protocol = "17" # TCP
+    protocol = "17" # UDP
     udp_options {
       min = 51820
       max = 51821

@@ -1,0 +1,75 @@
+---
+- import_tasks: add_repo.yaml
+
+- name: Install ZeroTier
+  apt:
+    name: zerotier-one
+    state: present
+
+- name: Update ZeroTier configuration
+  copy:
+    src: local.conf
+    dest: /var/lib/zerotier-one/local.conf
+    owner: zerotier-one
+    group: zerotier-one
+    mode: '0644'
+  notify: Restart ZeroTier service
+
+- name: Update ZeroTier identity secret
+  copy:
+    content: "{{ hostvars[inventory_hostname].zerotier_identity.private }}"
+    dest: /var/lib/zerotier-one/identity.secret
+    owner: zerotier-one
+    group: zerotier-one
+    mode: '0600'
+  when: '"zerotier_identity" in hostvars[inventory_hostname]'
+  notify: Restart ZeroTier service
+
+- name: Update ZeroTier identity public
+  copy:
+    content: "{{ hostvars[inventory_hostname].zerotier_identity.public }}"
+    dest: /var/lib/zerotier-one/identity.public
+    owner: zerotier-one
+    group: zerotier-one
+    mode: '0644'
+  when: '"zerotier_identity" in hostvars[inventory_hostname]'
+  notify: Restart ZeroTier service
+
+- name: Allow ZeroTier traffic
+  iptables:
+    chain: INPUT
+    protocol: "{{ item }}"
+    destination_port: 9993
+    jump: ACCEPT
+    state: present
+  with_items:
+    - tcp
+    - udp
+
+- name: Open all ports on ZeroTier interface
+  iptables:
+    chain: INPUT
+    in_interface: zt*
+    jump: ACCEPT
+    state: present
+
+- name: Start ZeroTier service
+  service:
+    name: zerotier-one
+    state: started
+    enabled: true
+
+- name: Join ZeroTier network
+  command: zerotier-cli join {{ zerotier_network_id }}
+  args:
+    creates: /var/lib/zerotier-one/networks.d/{{ zerotier_network_id }}.conf
+
+- meta: flush_handlers
+
+- name: Wait for other hosts to be reachable
+  wait_for:
+    host: "{{ hostvars[item].zerotier_ip }}"
+    port: 22
+    delay: 1
+    timeout: 60
+  loop: "{{ groups.all | difference([inventory_hostname]) }}"
