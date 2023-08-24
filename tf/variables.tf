@@ -4,6 +4,16 @@ variable "ssh_public_key" {}
 variable "tenancy_ocid" {}
 variable "user_ocid" {}
 variable "compartment_ocid" {}
+variable "oci_fingerprint" {}
+variable "oci_private_key" {}
+
+// CloudFlare
+variable "cloudflare_email" {}
+variable "cloudflare_api_token" {}
+
+// ZeroTier
+variable "zerotier_central_token" {}
+variable "zerotier_network_id" {}
 
 variable "instance_count" {
   description = "The number of instances to deploy"
@@ -40,10 +50,4 @@ variable "arm_image_ocid" {
   description = "The ARM image OCID to use"
   type        = string
   default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaacmd5kkjmy2dxcpaulal2eohsd4xmjkxbjw3pr3gg2kmzomehx4ha"
-}
-
-variable "instance_fqdn_suffix" {
-  description = "The instance FQDN suffix"
-  type        = string
-  default     = "k8s.dzervas.gr"
 }

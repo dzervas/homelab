@@ -21,7 +21,7 @@ spec:
           ruler: loki-ruler
           admin: loki-admin
         s3:
-          endpoint: s3.s3gw-system.svc.cluster.local
+          endpoint: http://minio-helmchart.minio.svc.cluster.local:443
           insecure: true
     singleBinary:
       replicas: 2

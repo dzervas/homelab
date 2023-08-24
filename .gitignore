@@ -4,3 +4,4 @@ alertmanager.yaml
 *.tfstate
 *.tfstate.backup
 .terraform*
+.envrc
