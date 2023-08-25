@@ -8,7 +8,7 @@ metadata:
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: grafana-helmchart
+  name: grafana
   namespace: kube-system
   labels:
     logme: "true"
@@ -31,8 +31,8 @@ spec:
           org_name: Main Org.
           org_role: Admin
       server:
-        domain: grafana.k8s.dzervas.gr
-        root_url: https://grafana.k8s.dzervas.gr/
+        domain: grafana.dzerv.art
+        root_url: https://grafana.dzerv.art/
 
     ingress:
       enabled: true
@@ -44,10 +44,10 @@ spec:
         nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
         nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
       hosts:
-        - grafana.k8s.dzervas.gr
+        - grafana.dzerv.art
       tls:
         - hosts:
-            - grafana.k8s.dzervas.gr
+            - grafana.dzerv.art
           secretName: grafana-k8s-dzervas-gr-cert
     datasources:
       datasources.yaml:
@@ -55,7 +55,7 @@ spec:
         datasources:
           - name: Mimir
             type: prometheus
-            url: http://mimir-helmchart-nginx/prometheus
+            url: http://mimir-nginx/prometheus
           - name: Loki
             type: loki
-            url: http://loki-helmchart:3100
+            url: http://loki:3100

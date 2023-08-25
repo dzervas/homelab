@@ -1,7 +1,7 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: grafana-mimir-helmchart
+  name: grafana-mimir
   namespace: kube-system
   labels:
     logme: "true"
@@ -36,11 +36,11 @@ spec:
           nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
           nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
         hosts:
-          - host: mimir.grafana.k8s.dzervas.gr
+          - host: mimir.grafana.dzerv.art
             paths:
               - path: /
                 pathType: Prefix
         tls:
           - hosts:
-              - mimir.grafana.k8s.dzervas.gr
+              - mimir.grafana.dzerv.art
             secretName: mimir-grafana-k8s-dzervas-gr-cert

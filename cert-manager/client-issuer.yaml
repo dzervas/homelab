@@ -16,14 +16,14 @@ metadata:
 spec:
   secretName: client-ca-certificate
   dnsNames:
-    - k8s.dzervas.gr
+    - dzerv.art
     - staging.blogaki.io
     - staging.dzerv.it
-    - "*.k8s.dzervas.gr"
+    - "*.dzerv.art"
     - "*.staging.blogaki.io"
   subject:
     organizations:
-      - k8s.dzervas.gr
+      - dzerv.art
   duration: 87658h # 10 years
   privateKey:
     algorithm: ECDSA

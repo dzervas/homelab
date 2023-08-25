@@ -8,7 +8,7 @@ metadata:
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: descheduler-helmchart
+  name: descheduler
   namespace: kube-system
   labels:
     logme: "true"

@@ -52,6 +52,6 @@
     zerotier_network_id: "{{ lookup('env', 'TF_VAR_zerotier_network_id') }}"
   roles:
     - system
-    - zerotier
+    # - zerotier
     - wireguard
     - k3s

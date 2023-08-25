@@ -7,10 +7,10 @@ metadata:
 spec:
   secretName: client-mobile-certificate
   dnsNames:
-    - k8s.dzervas.gr
+    - dzerv.art
     - staging.blogaki.io
     - staging.dzerv.it
-    - "*.k8s.dzervas.gr"
+    - "*.dzerv.art"
     - "*.staging.blogaki.io"
   isCA: false
   duration: 87658h # 10 years

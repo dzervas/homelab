@@ -5,7 +5,7 @@ metadata:
   name: letsencrypt
 spec:
   acme:
-    email: dzervas+laz@dzervas.gr
+    email: dzervas+homelab@dzervas.gr
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: cert-manager-cluster-issuer-account-key

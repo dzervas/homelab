@@ -26,13 +26,13 @@ spec:
   targetNamespace: longhorn-system
   valuesContent: |-
     persistence:
-      defaultClass: false
+      defaultClass: true
       defaultDataLocality: best-effort
       defaultClassReplicaCount: 2
     ingress:
       enabled: true
       ingressClassName: nginx
-      host: storage.k8s.dzervas.gr
+      host: storage.dzerv.art
       tls: true
       tlsSecret: storage-k8s-dzervas-gr-cert
       annotations:

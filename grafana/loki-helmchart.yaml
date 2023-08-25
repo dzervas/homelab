@@ -2,7 +2,7 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: loki-helmchart
+  name: loki
   namespace: kube-system
   labels:
     logme: "true"
@@ -21,7 +21,7 @@ spec:
           ruler: loki-ruler
           admin: loki-admin
         s3:
-          endpoint: http://minio-helmchart.minio.svc.cluster.local:443
+          endpoint: http://minio.minio.svc.cluster.local:443
           insecure: true
     singleBinary:
       replicas: 2
@@ -55,10 +55,10 @@ spec:
         nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
         nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
       hosts:
-        - loki.grafana.k8s.dzervas.gr
+        - loki.grafana.dzerv.art
       tls:
         - hosts:
-            - loki.grafana.k8s.dzervas.gr
+            - loki.grafana.dzerv.art
           secretName: loki-grafana-k8s-dzervas-gr-cert
 
 ---

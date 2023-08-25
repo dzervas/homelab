@@ -9,6 +9,7 @@ secrets-encryption: true
 disable:
   - traefik
   - metrics-server
+  - local-storage
 
 # IP settings
 node-ip: {{ hostvars[inventory_hostname].k3s_ip }}
@@ -17,6 +18,7 @@ advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
 flannel-iface: wg0
 
 # DNS settings
+resolv-conf: /etc/rancher/k3s/resolv.conf
 node-name: {{ inventory_hostname }}
 tls-san:
   - 127.0.0.1

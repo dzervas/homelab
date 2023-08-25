@@ -1,8 +1,0 @@
-ingress:
-  enabled: true
-  ingressClassName: nginx
-  hosts:
-    - host: ttoc2.ttoc2.top
-      paths:
-        - path: /
-          pathType: Prefix

@@ -8,7 +8,7 @@ metadata:
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: minio-helmchart
+  name: minio
   namespace: kube-system
   labels:
     logme: "true"
@@ -60,10 +60,10 @@ spec:
         nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
         nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
       hosts:
-        - s3.k8s.dzervas.gr
+        - s3.dzerv.art
       tls:
         - hosts:
-            - s3.k8s.dzervas.gr
+            - s3.dzerv.art
           secretName: s3-k8s-dzervas-gr-cert
 
     consoleIngress:
@@ -76,10 +76,10 @@ spec:
         nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
         nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
       hosts:
-        - console.s3.k8s.dzervas.gr
+        - console.s3.dzerv.art
       tls:
         - hosts:
-            - console.s3.k8s.dzervas.gr
+            - console.s3.dzerv.art
           secretName: console-s3-k8s-dzervas-gr-cert
 
 ---

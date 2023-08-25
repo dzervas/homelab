@@ -41,6 +41,12 @@
     recurse: true
     state: directory
 
+- name: Update k3s resolv.conf
+  copy:
+    content: "nameserver 1.1.1.1\nnameserver 1.0.0.1"
+    dest: /etc/rancher/k3s/resolv.conf
+  notify: Restart k3s service
+
 - name: Update k3s config.yaml
   template:
     src: config.yaml.j2
@@ -109,6 +115,27 @@
       protocol: udp
     - port: 10250 # Kubelet Metrics
       protocol: tcp
+
+- name: Allow pod & service traffic (ingress)
+  iptables:
+    chain: INPUT
+    source: "{{ item }}"
+    jump: ACCEPT
+    state: present
+  with_items:
+    - 10.42.0.0/16
+    - 10.43.0.0/16
+
+
+- name: Allow pod & service traffic (egress)
+  iptables:
+    chain: INPUT
+    destination: "{{ item }}"
+    jump: ACCEPT
+    state: present
+  with_items:
+    - 10.42.0.0/16
+    - 10.43.0.0/16
 
 - name: Start k3s
   service:
