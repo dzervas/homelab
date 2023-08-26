@@ -61,23 +61,23 @@ spec:
             - loki.grafana.dzerv.art
           secretName: loki-grafana-k8s-dzervas-gr-cert
 
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-s3-access
-  namespace: s3gw-system
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/component: gateway
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: grafana
-      podSelector:
-        matchLabels:
-          app.kubernetes.io/component: single-binary
-  policyTypes:
-  - Ingress
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: allow-s3-access
+#   namespace: s3gw-system
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app.kubernetes.io/component: gateway
+#   ingress:
+#   - from:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: grafana
+#       podSelector:
+#         matchLabels:
+#           app.kubernetes.io/component: single-binary
+#   policyTypes:
+#   - Ingress

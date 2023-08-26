@@ -2,7 +2,7 @@
 {% if inventory_hostname in groups.master %}
 cluster-init: true
 {% else %}
-server: "https://{{ hostvars[groups.master[0]].address }}:6443"
+server: "https://{{ hostvars[groups.master[0]].k3s_ip }}:6443"
 {% endif %}
 
 secrets-encryption: true

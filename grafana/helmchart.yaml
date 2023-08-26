@@ -27,9 +27,12 @@ spec:
       auth:
         disable_login_form: true
         anonymous:
+          enabled: false
+        proxy:
           enabled: true
-          org_name: Main Org.
-          org_role: Admin
+          header_name: X-WEBAUTH-USER
+          header_property: username
+          auto_sign_up: false
       server:
         domain: grafana.dzerv.art
         root_url: https://grafana.dzerv.art/
@@ -43,6 +46,8 @@ spec:
         nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
         nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
         nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+        nginx.ingress.kubernetes.io/auth-snippet: |
+          proxy_set_header X-WEBAUTH-USER admin;
       hosts:
         - grafana.dzerv.art
       tls:

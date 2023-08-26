@@ -28,7 +28,7 @@ alias fgrep='fgrep --color=always'
 alias egrep='egrep --color=always'
 alias watch='watch --color --beep'
 
-alias ll='ls -Fal'
+alias ll='ls -Falh'
 alias k='kubectl'
 alias v='vim'
 alias hh='history | grep'

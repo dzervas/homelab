@@ -21,9 +21,11 @@ spec:
     borg:
       useKeysSecret: true
     persistence:
-      size: 200Gi
+      size: 180Gi
       storageClass: longhorn
     # replicaCount: 2
+    nodeSelector:
+      kubernetes.io/hostname: "gr0.dzerv.art"
     clients:
       - name: dzervas-desktop
         restrictToPaths:

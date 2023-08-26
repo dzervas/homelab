@@ -22,7 +22,6 @@
         ansible_facts.userspace_bits == "64" ) or
       ansible_facts.architecture is search("aarch64")
 
-
 - name: Download k3s binary armhf
   get_url:
     url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s-armhf
@@ -34,6 +33,23 @@
   when:
     - ansible_facts.architecture is search("arm")
     - ansible_facts.userspace_bits == "32"
+
+- name: Install multipath-tools
+  package:
+    name: multipath-tools
+    state: present
+
+- name: Update multipath.conf
+  copy:
+    src: multipath.conf
+    dest: /etc/multipath.conf
+  notify: Restart multipathd service
+
+- name: Start multipathd service
+  service:
+    name: multipathd
+    state: started
+    enabled: yes
 
 - name: Create k3s config directory
   file:

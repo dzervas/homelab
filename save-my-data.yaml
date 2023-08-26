@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: save-my-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-jiva
+  resources:
+    requests:
+      storage: 1Gi
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: save-my-data
+spec:
+  # nodeSelector:
+    # kubernetes.io/hostname: gr0.dzerv.art
+  containers:
+  - name: save-my-data
+    command:
+      - /bin/bash
+      - -c
+      - apt-get update && apt-get install -y sleuthkit e2fsprogs tmux vim rsync && while true; do :; done
+    image: ubuntu
+    resources:
+     limits:
+      cpu: 1000m
+      memory: 1024Mi
+    volumeMounts:
+    # - name: img
+      # mountPath: /img
+    - name: pv
+      mountPath: /pv
+  volumes:
+  # - name: img
+    # hostPath:
+      # path: /root/k3s-old/longhorn/replicas/pvc-1aac7cbd-e658-4a80-9654-b8557e602c0c-b994fad3/
+      # path: /mnt
+  - name: pv
+    persistentVolumeClaim:
+      # claimName: repos-borgserver-statefulset-0
+      claimName: save-my-data

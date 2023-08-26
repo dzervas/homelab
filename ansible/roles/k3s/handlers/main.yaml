@@ -1,4 +1,8 @@
 ---
+- name: Restart multipathd service
+  service:
+    name: multipathd
+    state: restarted
 
 - name: Restart k3s service
   service:
