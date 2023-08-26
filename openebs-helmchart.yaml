@@ -1,0 +1,89 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openebs
+
+# ---
+# apiVersion: helm.cattle.io/v1
+# kind: HelmChart
+# metadata:
+#   name: openebs
+#   namespace: kube-system
+#   labels:
+#     logme: "true"
+# spec:
+#   chart: openebs
+#   repo: https://openebs.github.io/charts
+#   version: 3.8.0
+#   targetNamespace: openebs
+#   valuesContent: |-
+#     legacy:
+#       enabled: false
+#     ndm:
+#       enabled: false
+#     ndmOperator:
+#       enabled: false
+#     localprovisioner:
+#       enabled:
+#       hostpathclass:
+#         enabled: false
+#       deviceclass:
+#         enabled: false
+
+#     cstor:
+#       enabled: false
+#     openebs-ndm:
+#       enabled: false
+
+#     jiva:
+#       enabled: true
+#       openebsLocalpv:
+#         enabled: true
+#       localpv-provisioner:
+#         openebsNDM:
+#           enabled: true
+
+# ---
+# apiVersion: openebs.io/v1alpha1
+# kind: JivaVolumePolicy
+# metadata:
+#   name: openebs
+#   namespace: openebs
+# spec:
+#   replicaSC: openebs-hostpath
+#   enableBufio: false
+#   autoScaling: false
+#   target:
+#     replicationFactor: 1
+
+# ---
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: openebs-cstor-disk
+#   namespace: openebs
+# provisioner: openebs.io/provisioner-iscsi
+# parameters:
+#   cas-type: cstor
+#   cstorPoolCluster: cstor-disk-pool
+#   replicaCount: "2"
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: openebs
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: jiva
+  repo: https://openebs.github.io/jiva-operator
+  version: 3.5.0
+  targetNamespace: openebs
+  valuesContent: |-
+    defaultPolicy:
+      replicas: 2
+    storageClass:
+      name: openebs-jiva
