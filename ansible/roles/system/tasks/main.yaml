@@ -1,66 +1,7 @@
 ---
-- name: Update and upgrade apt
-  apt:
-    update_cache: yes
-    upgrade: yes
-
-- name: Install basic packages
-  apt:
-    name:
-      - bash-completion
-      - git
-      - vim
-      - tmux
-      - iputils-ping
-    state: present
-
-- name: Remove useless packages
-  apt:
-    name:
-      - snapd
-      - postfix
-      - ufw
-      - docker-ce
-    state: absent
-
-- name: journald max log total size
-  lineinfile:
-    dest: /etc/systemd/journald.conf
-    regexp: ^SystemMaxUse=
-    line: SystemMaxUse=2G
-  notify: Restart journald service
-
-- name: journald max log file size
-  lineinfile:
-    dest: /etc/systemd/journald.conf
-    regexp: ^SystemMaxFileSize=
-    line: SystemMaxFileSize=100M
-  notify: Restart journald service
-
-- name: Overwrite .bashrc for the target user
-  copy:
-    src: .bashrc
-    dest: "{{ ansible_facts.user_dir }}/.bashrc"
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: 0600
-
-- name: Apply sysctl settings
-  sysctl:
-    name: "{{ item.name }}"
-    value: "{{ item.value }}"
-    state: present
-    reload: yes
-  loop:
-    # IPv4 forwarding - needed for k3s
-    - { name: 'net.ipv4.ip_forward', value: '1' }
-    # Raise the maximum number of open files
-    - { name: 'fs.inotify.max_queued_events', value: '32768' }
-    - { name: 'fs.inotify.max_user_instances', value: '512' }
-    - { name: 'fs.inotify.max_user_watches', value: '524288' }
-    # Cause who needs IPv6
-    - { name: 'net.ipv6.conf.all.disable_ipv6', value: '1' }
-    - { name: 'net.ipv6.conf.default.disable_ipv6', value: '1' }
+- import_tasks: packages.yaml
+- import_tasks: config.yaml
+- import_tasks: firewall.yaml
 
 # TODO: Fix these
 # - name: Set default DNS for all interfaces
@@ -71,8 +12,8 @@
 - name: Add IP address of all hosts to all hosts
   lineinfile:
     dest: /etc/hosts
-    regexp: '^.* {{ hostvars[item].inventory_hostname }} {{ hostvars[item].inventory_hostname_short }}$'
-    line: "{{ hostvars[item].address }} {{ hostvars[item].inventory_hostname }} {{ hostvars[item].inventory_hostname_short }}"
+    regexp: '^.* {{ inventory_hostname }} {{ inventory_hostname_short }}$'
+    line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }} {{ inventory_hostname_short }}"
     state: present
-  when: ansible_hostname != item
+  when: inventory_hostname != item
   with_items: "{{ groups.all }}"

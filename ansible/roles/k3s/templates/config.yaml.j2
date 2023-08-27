@@ -15,7 +15,7 @@ disable:
 node-ip: {{ hostvars[inventory_hostname].k3s_ip }}
 node-external-ip: {{ hostvars[inventory_hostname].address }}
 advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
-flannel-iface: wg0
+flannel-iface: {{ k3s_iface }}
 
 # DNS settings
 resolv-conf: /etc/rancher/k3s/resolv.conf

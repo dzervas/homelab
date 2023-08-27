@@ -1,0 +1,58 @@
+---
+- name: Allow k3s traffic
+  iptables:
+    chain: INPUT
+    protocol: "{{ item.protocol }}"
+    destination_port: "{{ item.port }}"
+    in_interface: "{{ k3s_iface }}"
+    jump: ACCEPT
+    state: present
+  notify: save iptables
+  with_items:
+    - port: 2379 # ETCD server
+      protocol: tcp
+    - port: 2380 # ETCD server
+      protocol: tcp
+    - port: 6443 # API server
+      protocol: tcp
+    - port: 8472 # Flannel VXLAN
+      protocol: udp
+    - port: 10250 # Kubelet Metrics
+      protocol: tcp
+
+- name: Allow pod & service traffic (ingress)
+  iptables:
+    chain: INPUT
+    source: "{{ item }}"
+    in_interface: "{{ k3s_iface }}"
+    jump: ACCEPT
+    state: present
+  notify: save iptables
+  with_items:
+    - 10.42.0.0/16
+    - 10.43.0.0/16
+
+- name: Allow pod & service traffic (egress)
+  iptables:
+    chain: INPUT
+    destination: "{{ item }}"
+    in_interface: "{{ k3s_iface }}"
+    jump: ACCEPT
+    state: present
+  notify: save iptables
+  with_items:
+    - 10.42.0.0/16
+    - 10.43.0.0/16
+
+- name: Allow services traffic
+  iptables:
+    chain: INPUT
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+    state: present
+  notify: save iptables
+  with_items:
+    - 80 # HTTP
+    - 443 # HTTPS
+    - 2222 # Borg
+    - 6443 # Kube API

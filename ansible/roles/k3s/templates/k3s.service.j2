@@ -3,8 +3,9 @@
 Description=Lightweight Kubernetes
 Documentation=https://k3s.io
 Wants=network-online.target
-After=network-online.target wg-quick@wg0.service
-Requires=wg-quick@wg0.service
+After=network-online.target
+{# After=network-online.target wg-quick@wg0.service #}
+{# Requires=wg-quick@wg0.service #}
 
 [Install]
 WantedBy=multi-user.target

@@ -34,3 +34,6 @@ alias v='vim'
 alias hh='history | grep'
 alias rg='grep --color=always'
 alias ipa='ip -br -c a'
+
+# Completion
+source /etc/profile.d/bash_completion.sh

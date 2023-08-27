@@ -1,0 +1,16 @@
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+    - shell: iptables -P INPUT ACCEPT
+    - shell: iptables -P FORWARD ACCEPT
+    - shell: iptables -P OUTPUT ACCEPT
+    - shell: iptables -F
+    - shell: iptables -X
+    - shell: iptables -Z
+    - shell: iptables -t nat -F
+    - shell: iptables -t nat -X
+    - shell: iptables -t mangle -F
+    - shell: iptables -t mangle -X
+    - shell: iptables -t raw -F
+    - shell: iptables -t raw -X

@@ -1,0 +1,29 @@
+---
+- name: Wait for agent-token
+  wait_for:
+    path: /var/lib/rancher/k3s/server/agent-token
+    state: present
+    timeout: 30
+    delay: 1
+  when: inventory_hostname in groups.master
+
+- name: Slurp agent-token
+  slurp:
+    src: /var/lib/rancher/k3s/server/agent-token
+  register: agent_token
+  when: inventory_hostname in groups.master
+
+- name: Set k3s_token fact
+  set_fact:
+    k3s_token: "{{ agent_token.content | b64decode | regex_replace('\n', '') }}"
+  when: inventory_hostname in groups.master
+
+- name: Update k3s service env
+  copy:
+    content: "K3S_TOKEN=\"{{ hostvars[groups.master[0]].k3s_token }}\""
+    dest: /etc/systemd/system/k3s.service.env
+    owner: root
+    group: root
+    mode: '0600'
+  notify: Restart k3s service
+  when: inventory_hostname not in groups.master

@@ -1,0 +1,30 @@
+---
+- name: Update and upgrade apt
+  apt:
+    update_cache: yes
+    upgrade: yes
+    clean: true
+  when: update is defined and update
+
+- name: Install basic packages
+  apt:
+    name:
+      - bash-completion
+      - git
+      - vim
+      - tmux
+      - iputils-ping
+    state: present
+
+- name: Remove useless packages
+  apt:
+    name:
+      - snapd
+      - postfix
+      - ufw
+      - docker-ce
+      - nftables
+    purge: true
+    autoclean: true
+    autoremove: true
+    state: absent

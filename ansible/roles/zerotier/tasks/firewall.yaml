@@ -1,0 +1,20 @@
+---
+- name: Allow ZeroTier traffic
+  iptables:
+    chain: INPUT
+    protocol: "{{ item }}"
+    destination_port: 9993
+    jump: ACCEPT
+    state: present
+  notify: save iptables
+  with_items:
+    - tcp
+    - udp
+
+- name: Open all ports on ZeroTier interface
+  iptables:
+    chain: INPUT
+    in_interface: zt+
+    jump: ACCEPT
+    state: present
+  notify: save iptables

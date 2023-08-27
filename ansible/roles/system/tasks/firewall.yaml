@@ -1,0 +1,39 @@
+---
+- name: Allow SSH
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 22
+    jump: ACCEPT
+    state: present
+  notify: save iptables
+
+- name: Allow established connections
+  iptables:
+    chain: INPUT
+    match: conntrack
+    ctstate: established,related
+    jump: ACCEPT
+    state: present
+  notify: save iptables
+
+- name: Default drop input
+  iptables:
+    chain: INPUT
+    policy: DROP
+    state: present
+  notify: save iptables
+
+- name: Default drop forward
+  iptables:
+    chain: FORWARD
+    policy: DROP
+    state: present
+  notify: save iptables
+
+- name: Enable iptables service
+  service:
+    name: iptables
+    enabled: yes
+    state: started
+  ignore_errors: true

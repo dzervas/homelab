@@ -7,3 +7,8 @@
   apt_repository:
     repo: deb http://download.zerotier.com/debian/{{ ansible_facts.distribution_release }} {{ ansible_facts.distribution_release }} main
     state: present
+
+- name: Install ZeroTier
+  apt:
+    name: zerotier-one
+    state: present

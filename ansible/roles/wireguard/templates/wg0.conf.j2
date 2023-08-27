@@ -5,9 +5,16 @@ PrivateKey = {{ wireguard_private_key.content | b64decode }}
 Address = {{ hostvars[inventory_hostname].wireguard_ip }}/24
 DNS = 1.1.1.1, 1.0.0.1
 
-MTU = 1420
-PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+PreUp = iptables -I INPUT -p udp --dport 51820 -j ACCEPT
+PostDown = iptables -D INPUT -p udp --dport 51820 -j ACCEPT
+
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT
+PostUp = iptables -A INPUT -i wg0 -j ACCEPT
+PostUp = iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
+PostDown = iptables -D INPUT -i wg0 -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
 
 {% for peer in groups.all %}
 {% if peer != inventory_hostname %}

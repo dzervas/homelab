@@ -24,6 +24,7 @@
   vars:
     wireguard_subnet: "10.11.12.0/24"
     zerotier_subnet: "10.9.8.0/24"
+    update: no
   tasks:
     - name: Calculate VPN addresses
       set_fact:
@@ -48,7 +49,8 @@
 - hosts: all
   become: true
   vars:
-    k3s_version: "{{ lookup('env', 'TF_VAR_k3s_version') }}"
+    k3s_iface: "wg0"
+    k3s_version: "1.27.4+k3s1"
     zerotier_network_id: "{{ lookup('env', 'TF_VAR_zerotier_network_id') }}"
   roles:
     - system
