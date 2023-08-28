@@ -1,5 +1,18 @@
-data "zerotier_network" "k3s" {
-  id = var.zerotier_network_id
+resource "zerotier_network" "homelab" {
+  name        = "HomeLab"
+  description = "Managed by Terraform"
+
+  route {
+    target = "10.9.8.0/24"
+  }
+
+  route {
+    target = "10.11.12.0/24"
+  }
+
+  enable_broadcast = true
+  private          = true
+  flow_rules       = "accept;"
 }
 
 resource "zerotier_identity" "k3s" {
@@ -12,7 +25,7 @@ resource "zerotier_member" "k3s" {
   member_id               = zerotier_identity.k3s[count.index].id
   network_id              = var.zerotier_network_id
   description             = "Managed by Terraform"
-  ip_assignments          = [ for r in data.zerotier_network.k3s.route : cidrhost(r.target, 200 + count.index) ]
+  ip_assignments          = [ for r in zerotier_network.homelab.route : cidrhost(r.target, 200 + count.index) ]
   allow_ethernet_bridging = true
   hidden                  = false
 }

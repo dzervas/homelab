@@ -3,8 +3,3 @@
   service:
     name: systemd-journald
     state: restarted
-
-- name: save iptables
-  community.general.iptables_state:
-    state: saved
-    path: /etc/iptables/rules

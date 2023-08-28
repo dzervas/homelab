@@ -1,6 +1,4 @@
 ---
-- import_tasks: ../system/handlers/main.yaml
-
 - name: Restart ZeroTier service
   service:
     name: zerotier-one

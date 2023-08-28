@@ -1,4 +1,8 @@
 variable "ssh_public_key" {}
+variable "domain" {
+  default = "dzerv.art"
+  type = string
+}
 
 // Oracle Cloud API credentials
 variable "tenancy_ocid" {}

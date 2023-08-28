@@ -1,6 +1,4 @@
 ---
-- import_tasks: ../system/handlers/main.yaml
-
 - name: Restart multipathd service
   service:
     name: multipathd

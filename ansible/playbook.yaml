@@ -49,13 +49,13 @@
 - hosts: all
   become: true
   vars:
-    k3s_iface: "wg0"
-    k3s_version: "1.27.4+k3s1"
+    k3s_iface: "ztrfyoirbv"
+    k3s_version: "v1.27.4+k3s1"
     zerotier_network_id: "{{ lookup('env', 'TF_VAR_zerotier_network_id') }}"
   roles:
     - system
-    # - zerotier
-    - wireguard
+    - zerotier
+    # - wireguard
     - k3s
 
 # Do k3s crictl rmi --prune

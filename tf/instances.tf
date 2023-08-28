@@ -3,14 +3,14 @@ data "template_file" "oracle_k3s" {
   template = file("${path.module}/cloud-init-config.yaml")
 
   vars = {
-    fqdn = "${split("-", var.region)[1]}${count.index}.${tolist(data.zerotier_network.k3s.dns)[0].domain}"
+    fqdn = "${split("-", var.region)[1]}${count.index}.${var.domain}"
   }
 }
 
 resource "oci_core_instance" "k3s" {
   count               = var.instance_count
   availability_domain = var.availability_domain
-  display_name        = "${split("-", var.region)[1]}${count.index}.${tolist(data.zerotier_network.k3s.dns)[0].domain}"
+  display_name        = "${split("-", var.region)[1]}${count.index}.${var.domain}"
   compartment_id      = var.compartment_ocid
   shape               = "VM.Standard.A1.Flex" # Free tier allowance
 

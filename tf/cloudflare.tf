@@ -1,6 +1,6 @@
 data "cloudflare_zones" "main" {
   filter {
-    name = tolist(data.zerotier_network.k3s.dns)[0].domain
+    name = var.domain
   }
 }
 
