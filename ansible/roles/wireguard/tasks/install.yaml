@@ -1,7 +1,0 @@
----
-- name: Install WireGuard & resolvconf
-  apt:
-    name:
-      - wireguard
-      - resolvconf
-    state: present

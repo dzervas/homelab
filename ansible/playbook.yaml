@@ -65,7 +65,6 @@
   roles:
     - system
     - zerotier
-    # - wireguard
     - k3s
 
 # Do k3s crictl rmi --prune
