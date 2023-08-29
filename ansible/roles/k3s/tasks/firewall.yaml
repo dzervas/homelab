@@ -20,7 +20,7 @@
     - port: "10251" # kube-scheduler
       protocol: tcp
 
-- name: Allow pod & service traffic (ingress)
+- name: Allow pod & service traffic
   ufw:
     rule: allow
     from: "{{ item }}"
@@ -29,15 +29,15 @@
     - 10.42.0.0/16
     - 10.43.0.0/16
 
-# - name: Allow pod & service traffic (egress)
-#   ufw:
-#     rule: allow
-#     dest: "{{ item }}"
-#     interface: "{{ k3s_iface }}"
-#     direction: out
-#   loop:
-#     - 10.42.0.0/16
-#     - 10.43.0.0/16
+- name: Allow pod & service routing through k3s interface
+  ufw:
+    rule: allow
+    from: "{{ item }}"
+    interface_in: "{{ k3s_iface }}"
+    route: true
+  loop:
+    - 10.42.0.0/16
+    - 10.43.0.0/16
 
 - name: Allow services traffic
   ufw:

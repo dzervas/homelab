@@ -15,7 +15,9 @@
     owner: zerotier-one
     group: zerotier-one
     mode: '0600'
-  when: '"zerotier_identity" in hostvars[inventory_hostname]'
+  when:
+    - hostvars[inventory_hostname].zerotier_identity is defined
+    - hostvars[inventory_hostname].zerotier_identity.private is defined
   notify: Restart ZeroTier service
 
 - name: Update ZeroTier identity public
@@ -25,5 +27,7 @@
     owner: zerotier-one
     group: zerotier-one
     mode: '0644'
-  when: '"zerotier_identity" in hostvars[inventory_hostname]'
+  when:
+    - hostvars[inventory_hostname].zerotier_identity is defined
+    - hostvars[inventory_hostname].zerotier_identity.public is defined
   notify: Restart ZeroTier service

@@ -4,10 +4,12 @@ resource "zerotier_network" "homelab" {
 
   route {
     target = "10.9.8.0/24"
+    via = "10.9.8.1"
   }
 
   route {
     target = "10.11.12.0/24"
+    via = "10.11.12.1"
   }
 
   enable_broadcast = true

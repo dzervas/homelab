@@ -1,4 +1,8 @@
 ---
+# Optional variables:
+# - zerotier_identity: (bool) Get the zerotier identity from terraform
+# - k3s_init: (bool) Initialize the k3s cluster (should be used if agent-token does not exist)
+
 - name: Gather Terraform outputs
   hosts: localhost
   gather_facts: no
@@ -12,12 +16,16 @@
         targets:
           - output.zerotier_identities
       register: terraform_state
-      when: skip_zerotier is not defined or skip_zerotier == false
+      when:
+        - zerotier_identity is defined
+        - zerotier_identity
 
     - name: Set ZeroTier identity as fact
       set_fact:
         zerotier_identities: "{{ terraform_state.outputs.zerotier_identities.value }}"
-      when: skip_zerotier is not defined or skip_zerotier == false
+      when:
+        - zerotier_identity is defined
+        - zerotier_identity
 
 - hosts: all
   gather_facts: yes
@@ -35,7 +43,9 @@
     - name: Set ZeroTier identity
       set_fact:
         zerotier_identity: "{{ hostvars['localhost'].zerotier_identities[inventory_hostname] }}"
-      when: (skip_zerotier is not defined or skip_zerotier == false) and inventory_hostname in hostvars['localhost'].zerotier_identities
+      when:
+        - hostvars['localhost'].zerotier_identities is defined
+        - inventory_hostname in hostvars['localhost'].zerotier_identities
 
     - name: Node VPN IPs
       debug:

@@ -22,6 +22,11 @@
 
 - name: K3s config check
   command: k3s check-config
+  args:
+    stdin_add_newline: no
+  register: check
+  # STATUS: pass with ansi colors
+  failed_when: "(check.stdout | split('\n') | last) != '\u001b[37mSTATUS\u001b[m: \u001b[32mpass\u001b[m' or check.rc != 0"
 
 - name: Update k3s service
   template:

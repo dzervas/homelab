@@ -24,18 +24,17 @@ spec:
       enabled: true
       storageClassName: longhorn
     grafana.ini:
-      auth:
-        disable_login_form: true
-        anonymous:
-          enabled: false
-        proxy:
-          enabled: true
-          header_name: X-WEBAUTH-USER
-          header_property: username
-          auto_sign_up: false
-      server:
-        domain: grafana.dzerv.art
-        root_url: https://grafana.dzerv.art/
+      users:
+        allow_sign_up: false
+      # auth.proxy:
+      #   enabled: true
+      #   header_name: X-WEBAUTH-USER
+      #   header_property: username
+      #   auto_sign_up: false
+      #   enable_login_token: true
+      # server:
+      #   domain: grafana.dzerv.art
+      #   root_url: https://grafana.dzerv.art/
 
     ingress:
       enabled: true
@@ -46,8 +45,8 @@ spec:
         nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
         nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
         nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
-        nginx.ingress.kubernetes.io/auth-snippet: |
-          proxy_set_header X-WEBAUTH-USER admin;
+        nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-WEBAUTH-USER admin;
+        nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
       hosts:
         - grafana.dzerv.art
       tls:
