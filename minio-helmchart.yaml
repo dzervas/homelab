@@ -18,7 +18,8 @@ spec:
   version: 5.0.13
   targetNamespace: minio
   valuesContent: |-
-    mode: standalone # maybe distributed?
+    mode: distributed # maybe distributed?
+    replicas: 2
     persistence:
       enabled: true
       storageClass: longhorn
@@ -86,23 +87,23 @@ spec:
             - console.s3.dzerv.art
           secretName: console-s3-k8s-dzervas-gr-cert
 
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-s3-access
-  namespace: minio
-spec:
-  podSelector:
-    matchLabels:
-      app: minio
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: grafana
-      podSelector:
-        matchLabels:
-          app.kubernetes.io/component: single-binary
-  policyTypes:
-  - Ingress
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: allow-s3-access
+#   namespace: minio
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: minio
+#   ingress:
+#   - from:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: grafana
+#       podSelector:
+#         matchLabels:
+#           app.kubernetes.io/component: single-binary
+#   policyTypes:
+#   - Ingress
