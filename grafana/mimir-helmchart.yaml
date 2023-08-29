@@ -43,4 +43,4 @@ spec:
         tls:
           - hosts:
               - mimir.grafana.dzerv.art
-            secretName: mimir-grafana-k8s-dzervas-gr-cert
+            secretName: mimir-grafana-dzerv-art-cert

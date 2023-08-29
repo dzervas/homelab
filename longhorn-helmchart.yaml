@@ -34,7 +34,7 @@ spec:
       ingressClassName: nginx
       host: storage.dzerv.art
       tls: true
-      tlsSecret: storage-k8s-dzervas-gr-cert
+      tlsSecret: storage-dzerv-art-cert
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
         nginx.ingress.kubernetes.io/ssl-redirect: "true"

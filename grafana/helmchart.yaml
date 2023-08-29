@@ -43,7 +43,7 @@ spec:
       tls:
         - hosts:
             - grafana.dzerv.art
-          secretName: grafana-k8s-dzervas-gr-cert
+          secretName: grafana-dzerv-art-cert
     datasources:
       datasources.yaml:
         apiVersion: 1

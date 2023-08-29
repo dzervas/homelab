@@ -62,7 +62,7 @@ spec:
       tls:
         - hosts:
             - loki.grafana.dzerv.art
-          secretName: loki-grafana-k8s-dzervas-gr-cert
+          secretName: loki-grafana-dzerv-art-cert
 
 # ---
 # apiVersion: networking.k8s.io/v1
