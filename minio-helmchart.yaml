@@ -25,6 +25,17 @@ spec:
       storageClass: longhorn
       size: 50Gi
 
+    networkPolicy:
+      enabled: true
+
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
+
+    postJob:
+      securityContext:
+        enabled: true
+
     resources:
       requests:
         cpu: 500m
@@ -33,17 +44,22 @@ spec:
         cpu: 2000m
         memory: 2Gi
 
-    svcaccts:
-    - user: loki
-      accessKey: loki
-      secretKey: loki
-      policy:
+    users:
+      - accessKey: console
+        secretKey: console123
+        policy: consoleAdmin
+      - accessKey: loki
+        secretKey: lokiloki
+        policy: loki
+
+    policies:
+      - name: loki
         statements:
           - resources:
-              - 'arn:aws:s3:::loki/*'
+              - 'arn:aws:s3:::loki-*/*'
             actions:
               - "s3:ListBucket"
-              - "s3:PutBucket"
+              - "s3:PutObject"
               - "s3:GetObject"
               - "s3:DeleteObject"
 
@@ -86,24 +102,3 @@ spec:
         - hosts:
             - console.s3.dzerv.art
           secretName: console-s3-k8s-dzervas-gr-cert
-
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   name: allow-s3-access
-#   namespace: minio
-# spec:
-#   podSelector:
-#     matchLabels:
-#       app: minio
-#   ingress:
-#   - from:
-#     - namespaceSelector:
-#         matchLabels:
-#           name: grafana
-#       podSelector:
-#         matchLabels:
-#           app.kubernetes.io/component: single-binary
-#   policyTypes:
-#   - Ingress

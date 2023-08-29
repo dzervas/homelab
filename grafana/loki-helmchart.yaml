@@ -13,7 +13,7 @@ spec:
   targetNamespace: grafana
   valuesContent: |-
     loki:
-      auth_enabled: true
+      auth_enabled: false
       storage:
         type: s3
         bucketNames:
@@ -21,12 +21,15 @@ spec:
           ruler: loki-ruler
           admin: loki-admin
         s3:
-          endpoint: http://minio.minio.svc.cluster.local:443
+          endpoint: http://minio.minio.svc.cluster.local:9000
+          accessKeyId: loki
+          secretAccessKey: lokiloki
+          s3ForcePathStyle: true
           insecure: true
     singleBinary:
       replicas: 2
       persistence:
-        size: 50Gi
+        size: 5Gi
         storageClassName: longhorn
     read:
       replicas: 0

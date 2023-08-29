@@ -26,15 +26,6 @@ spec:
     grafana.ini:
       users:
         allow_sign_up: false
-      # auth.proxy:
-      #   enabled: true
-      #   header_name: X-WEBAUTH-USER
-      #   header_property: username
-      #   auto_sign_up: false
-      #   enable_login_token: true
-      # server:
-      #   domain: grafana.dzerv.art
-      #   root_url: https://grafana.dzerv.art/
 
     ingress:
       enabled: true
@@ -63,3 +54,7 @@ spec:
           - name: Loki
             type: loki
             url: http://loki:3100
+            jsonData:
+              httpHeaderName1: 'X-Scope-OrgID'
+            secureJsonData:
+              httpHeaderValue1: '1'
