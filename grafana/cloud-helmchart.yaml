@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: grafana
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: grafana-cloud
+  namespace: kube-system
+spec:
+  chart: k8s-monitoring
+  repo: https://grafana.github.io/helm-charts
+  version: 0.1.15
+  targetNamespace: grafana
+  valuesContent: |-
+    cluster:
+      name: "dzerv.art"
+
+    externalServices:
+      prometheus:
+        host: "https://prometheus-prod-24-prod-eu-west-2.grafana.net"
+        basicAuth:
+          username: "1169494"
+          password: "glc_eyJvIjoiOTM1NjEwIiwibiI6ImszcyIsImsiOiI1MTdxZml0SzJ1VEsxRjlRNTJGc0tyODAiLCJtIjp7InIiOiJwcm9kLWV1LXdlc3QtMiJ9fQ=="
+
+      loki:
+        host: "https://logs-prod-012.grafana.net"
+        basicAuth:
+          username: "683822"
+          password: "glc_eyJvIjoiOTM1NjEwIiwibiI6ImszcyIsImsiOiI1MTdxZml0SzJ1VEsxRjlRNTJGc0tyODAiLCJtIjp7InIiOiJwcm9kLWV1LXdlc3QtMiJ9fQ=="
+
+    metrics:
+      cost:
+        enabled: false
+    opencost:
+        enabled: false
