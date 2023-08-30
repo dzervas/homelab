@@ -51,10 +51,10 @@ spec:
           - name: Mimir
             type: prometheus
             url: http://mimir-nginx/prometheus
-          - name: Loki
-            type: loki
-            url: http://loki:3100
             jsonData:
               httpHeaderName1: 'X-Scope-OrgID'
             secureJsonData:
-              httpHeaderValue1: '1'
+              httpHeaderValue1: 'metamonitoring'
+          - name: Loki
+            type: loki
+            url: http://loki-gateway

@@ -1,0 +1,13 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: agent-operator
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: grafana-agent-operator
+  repo: https://grafana.github.io/helm-charts
+  version: 0.3.2
+  targetNamespace: grafana

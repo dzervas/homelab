@@ -1,7 +1,7 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: grafana-mimir
+  name: mimir
   namespace: kube-system
   labels:
     logme: "true"
@@ -11,13 +11,27 @@ spec:
   version: 4.3.1
   targetNamespace: grafana
   valuesContent: |-
+    mimir:
+      structuredConfig:
+        blocks_storage:
+          backend: filesystem
+
     minio:
       enabled: false
     alertmanager:
-      persistentVolume:
-        storageClass: longhorn
+      enabled: false
+    overrides_exporter:
+      enabled: false
+    query_scheduler:
+      enabled: false
+    ruler:
+      enabled: false
+    nginx:
+      enabled: false
+
     ingester:
       persistentVolume:
+        size: 20Gi
         storageClass: longhorn
     store_gateway:
       persistentVolume:
@@ -25,6 +39,7 @@ spec:
     compactor:
       persistentVolume:
         storageClass: longhorn
+
     nginx:
       ingress:
         enabled: true
@@ -36,11 +51,19 @@ spec:
           nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
           nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
         hosts:
-          - host: mimir.grafana.dzerv.art
+          - host: metrics.dzerv.art
             paths:
               - path: /
                 pathType: Prefix
         tls:
           - hosts:
-              - mimir.grafana.dzerv.art
-            secretName: mimir-grafana-dzerv-art-cert
+              - metrics.dzerv.art
+            secretName: metrics-dzerv-art-cert
+
+    metaMonitoring:
+      dashboards:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+      grafanaAgent:
+        enabled: true
