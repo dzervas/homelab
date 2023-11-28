@@ -1,16 +1,17 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: save-my-data
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: openebs-jiva
-  resources:
-    requests:
-      storage: 1Gi
----
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: save-my-data
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   storageClassName: openebs-jiva
+#   resources:
+#     requests:
+#       storage: 1Gi
 
+---
 apiVersion: v1
 kind: Pod
 metadata:
@@ -42,4 +43,4 @@ spec:
   - name: pv
     persistentVolumeClaim:
       # claimName: repos-borgserver-statefulset-0
-      claimName: save-my-data
+      claimName: snipeit

@@ -62,8 +62,13 @@
     k3s_iface: "ztrfyoirbv"
     k3s_version: "v1.27.4+k3s1"
     zerotier_network_id: "{{ lookup('env', 'TF_VAR_zerotier_network_id') }}"
+    fail2ban_ignoreips:
+      - "127.0.0.1/8"
+      - "10.9.8.0/24"
+      - "10.11.12.0/24"
   roles:
     - system
+    - robertdebock.fail2ban
     - zerotier
     - k3s
 
