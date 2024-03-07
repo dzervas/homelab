@@ -41,3 +41,5 @@ spec:
       storageClass: longhorn
       podcasts:
         size: 1Gi
+      audiobooks:
+        size: 100Gi
