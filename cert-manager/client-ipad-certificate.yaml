@@ -1,0 +1,26 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: client-ipad
+  namespace: cert-manager
+spec:
+  secretName: client-ipad-certificate
+  dnsNames:
+    - dzerv.art
+    - staging.blogaki.io
+    - staging.dzerv.it
+    - "*.dzerv.art"
+    - "*.staging.blogaki.io"
+  isCA: false
+  duration: 87658h # 10 years
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  usages:
+    - server auth
+    - client auth
+
+  issuerRef:
+    name: client-ca
+    kind: Issuer
