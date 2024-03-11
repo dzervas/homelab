@@ -2,16 +2,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: client-steamdeck
+  name: client-fani-mobile
   namespace: cert-manager
 spec:
-  secretName: client-steamdeck-certificate
+  secretName: client-fani-mobile-certificate
   dnsNames:
-    - dzerv.art
-    - staging.blogaki.io
-    - staging.dzerv.it
-    - "*.dzerv.art"
-    - "*.staging.blogaki.io"
+    - audiobooks.dzerv.art
   isCA: false
   duration: 87658h # 10 years
   privateKey:
