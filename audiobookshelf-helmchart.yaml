@@ -23,10 +23,22 @@ spec:
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
-        nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
-        nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
-        nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
         nginx.ingress.kubernetes.io/proxy-body-size: "4096m"
+        nginx.ingress.kubernetes.io/auth-url: "http://magicentry.auth.svc.cluster.local/proxied"
+        nginx.ingress.kubernetes.io/auth-signin: "https://auth.dzerv.art/login"
+        # nginx.ingress.kubernetes.io/auth-url: "https://f86f-31-152-208-149.ngrok-free.app/proxied"
+        # nginx.ingress.kubernetes.io/auth-signin: "https://f86f-31-152-208-149.ngrok-free.app/login"
+        nginx.ingress.kubernetes.io/server-snippet: |
+          location = /__magicentry_auth_code {
+            # if ($http_origin = "https://auth.dzerv.art") {
+              add_header Set-Cookie "code=$arg_code; Path=/; HttpOnly; Secure; Max-Age=60; SameSite=Lax";
+              return 302 /;
+            # }
+          }
+
+        # nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+        # nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
+        # nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
       hosts:
         - host: audiobooks.dzerv.art
           paths:
