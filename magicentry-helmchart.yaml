@@ -69,3 +69,8 @@ spec:
           username: fani
           realms:
             - audiobooks
+        - name: Giorgos Galanakis
+          email: ggalan87@gmail.com
+          username: ggalan87
+          realms:
+            - audiobooks
