@@ -14,7 +14,7 @@ metadata:
     logme: "true"
 spec:
   chart: oci://ghcr.io/dzervas/charts/magicentry
-  version: 0.2.1
+  version: 0.2.5
   targetNamespace: auth
   valuesContent: |-
     ingress:
@@ -44,10 +44,10 @@ spec:
 
     config:
       title: DZerv.Art Auth Service
-      request_enable: false # Defaults to CI Notify
-      smtp_enable: true
-      smtp_from: Just Passwordless <magicentry@demomailtrap.com>
-      smtp_url: "smtp://api:e3c460e80f6a2db37d1c468b5df21839@live.smtp.mailtrap.io:587?tls=required"
+      request_enable: true # Defaults to CI Notify
+      # request_url: https://www.cinotify.cc/api/notify
+      # request_data: "to={email}&subject={title} Login&body=Click the link to login: <a href=\"{magic_link}\">Login</a>&type=text/html"
+      # request_method: POST
 
       oidc_enable: true
       oidc_clients:
