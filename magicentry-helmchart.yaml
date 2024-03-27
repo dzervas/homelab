@@ -45,9 +45,6 @@ spec:
     config:
       title: DZerv.Art Auth Service
       request_enable: true # Defaults to CI Notify
-      # request_url: https://www.cinotify.cc/api/notify
-      # request_data: "to={email}&subject={title} Login&body=Click the link to login: <a href=\"{magic_link}\">Login</a>&type=text/html"
-      # request_method: POST
 
       oidc_enable: true
       oidc_clients:
@@ -72,5 +69,15 @@ spec:
         - name: Giorgos Galanakis
           email: ggalan87@gmail.com
           username: ggalan87
+          realms:
+            - audiobooks
+        - name: Lilaki
+          email: liliagkounisofikiti@hotmail.com
+          username: lilia
+          realms:
+            - audiobooks
+        - name: xiaflos
+          email: asmolf@gmail.com
+          username: xiaflos
           realms:
             - audiobooks
