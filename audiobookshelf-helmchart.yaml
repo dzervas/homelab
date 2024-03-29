@@ -22,6 +22,9 @@ spec:
       ingressClassName: nginx
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
+        magicentry.rs/realms: audiobooks,public
+        magicentry.rs/auth-url: "true"
+        magicentry.rs/manage-ingress-nginx: "true"
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/proxy-body-size: "4096m"
         nginx.ingress.kubernetes.io/auth-url: "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"

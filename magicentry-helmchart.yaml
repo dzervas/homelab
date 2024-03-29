@@ -14,7 +14,7 @@ metadata:
     logme: "true"
 spec:
   chart: oci://ghcr.io/dzervas/charts/magicentry
-  version: 0.2.5
+  version: 0.2.10
   targetNamespace: auth
   valuesContent: |-
     ingress:
@@ -45,6 +45,8 @@ spec:
     config:
       title: DZerv.Art Auth Service
       request_enable: true # Defaults to CI Notify
+      request_data: "to={email}&subject={title} Login&body=Click the link to login: <a href=\"{magic_link}\">Login</a>&type=text/html"
+      database_url: /db/database.db
 
       oidc_enable: true
       oidc_clients:
@@ -79,5 +81,15 @@ spec:
         - name: xiaflos
           email: asmolf@gmail.com
           username: xiaflos
+          realms:
+            - audiobooks
+        - name: Alextrical
+          email: benjackson990@gmail.com
+          username: alextrical
+          realms:
+            - audiobooks
+        - name: Darina Golos
+          email: darinagolos@gmail.com
+          username: darina
           realms:
             - audiobooks
