@@ -14,7 +14,7 @@ metadata:
     logme: "true"
 spec:
   chart: oci://ghcr.io/dzervas/charts/magicentry
-  version: 0.2.10
+  version: 0.3.0
   targetNamespace: auth
   valuesContent: |-
     ingress:
