@@ -14,7 +14,7 @@ metadata:
     logme: "true"
 spec:
   chart: oci://ghcr.io/dzervas/charts/magicentry
-  version: 0.3.0
+  version: 0.3.13
   targetNamespace: auth
   valuesContent: |-
     ingress:
@@ -46,7 +46,7 @@ spec:
       title: DZerv.Art Auth Service
       request_enable: true # Defaults to CI Notify
       request_data: "to={email}&subject={title} Login&body=Click the link to login: <a href=\"{magic_link}\">Login</a>&type=text/html"
-      database_url: /db/database.db
+      external_url: https://auth.dzerv.art
 
       oidc_enable: true
       oidc_clients:
@@ -56,6 +56,7 @@ spec:
             - https://audiobooks.dzerv.art/auth/openid/callback
           realms:
             - audiobooks
+            - public
 
       users:
         - name: Dimitris Zervas
@@ -91,5 +92,15 @@ spec:
         - name: Darina Golos
           email: darinagolos@gmail.com
           username: darina
+          realms:
+            - audiobooks
+        - name: Endri Meto
+          email: audiobooks@endme.gr
+          username: endme
+          realms:
+            - public
+        - name: test
+          email: dzervas@protonmail.com
+          username: test
           realms:
             - audiobooks
