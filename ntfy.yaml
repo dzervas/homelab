@@ -1,0 +1,103 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ntfy
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ntfy
+  namespace: ntfy
+spec:
+  selector:
+    matchLabels:
+      app: ntfy
+  serviceName: ntfy
+  template:
+    metadata:
+      labels:
+        app: ntfy
+    spec:
+      containers:
+      - name: ntfy
+        image: binwiederhier/ntfy
+        args: ["serve"]
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/ntfy"
+          readOnly: true
+        - name: data
+          mountPath: "/var/lib/ntfy"
+      volumes:
+        - name: config
+          configMap:
+            name: ntfy
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+---
+# Basic service for port 80
+apiVersion: v1
+kind: Service
+metadata:
+  name: ntfy
+  namespace: ntfy
+spec:
+  selector:
+    app: ntfy
+  ports:
+  - port: 80
+    targetPort: 80
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ntfy
+  namespace: ntfy
+data:
+  server.yml: |
+    base-url: https://ntfy.dzerv.art
+    upstream-base-url: https://ntfy.sh
+    behind-proxy: true
+    auth-default-access: deny-all
+    auth-file: /var/lib/ntfy/user.db
+    cache-file: /var/lib/ntfy/cache.db
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ntfy
+  namespace: ntfy
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ntfy.dzerv.art
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name:  ntfy
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - ntfy.dzerv.art
+      secretName: ntfy-dzerv-art-cert
