@@ -33,7 +33,7 @@
   ufw:
     rule: allow
     from: "{{ item }}"
-    interface_in: "{{ k3s_iface }}"
+    # interface_in: "{{ k3s_iface }}"
     route: true
   loop:
     - 10.42.0.0/16

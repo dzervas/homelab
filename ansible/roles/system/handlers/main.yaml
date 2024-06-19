@@ -3,3 +3,8 @@
   service:
     name: systemd-journald
     state: restarted
+
+- name: Reboot and wait
+  reboot:
+    post_reboot_delay: 180
+    reboot_timeout: 1200

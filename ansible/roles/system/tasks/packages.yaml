@@ -5,6 +5,7 @@
     upgrade: yes
     clean: true
   when: update is defined and update
+  notify: Reboot and wait
 
 - name: Install basic packages
   apt:
