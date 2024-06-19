@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: watch
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: invidious
+  namespace: kube-system
+  labels:
+    logme: "true"
+spec:
+  chart: invidious
+  repo: https://charts-helm.invidious.io
+  version: 2.0.4
+  targetNamespace: watch
+  # Currently there's no multi-arch image in latest so the tag latest-arm64 is used
+  valuesContent: |-
+    config:
+      hmac_key: "Twu+zm9XSryHK0RiORQr/1BeKhw"
+      domain: watch.dzerv.art
+      external_port: 443
+      https_only: true
+      registration_enabled: false
+      captcha_enabled: false
+      admins:
+        - dzervas
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    image:
+      tag: latest-arm64
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+        nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
+        nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+      hosts:
+        - host: watch.dzerv.art
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - watch.dzerv.art
+          secretName: watch-dzerv-art-cert
