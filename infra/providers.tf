@@ -3,7 +3,7 @@ terraform {
     organization = "dzervas"
 
     workspaces {
-      name = "homelab-k8s"
+      name = "homelab-infra"
     }
   }
 

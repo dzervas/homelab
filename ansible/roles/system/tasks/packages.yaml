@@ -16,6 +16,7 @@
       - tmux
       - iputils-ping
       - ufw
+      - etcd-client # For k3s debugging
     state: present
 
 - name: Remove useless packages

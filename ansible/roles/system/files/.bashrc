@@ -21,6 +21,14 @@ color=$(( 31 + (hash % 6) )) # Using modulo to select from range (31 to 36)
 
 export PS1="\u@\[\e[1;${color}m\]\h\[\e[m\]:\w\$ "
 
+# ETCD stuff
+export ETCDCTL_ENDPOINTS="https://127.0.0.1:2379"
+export ETCDCTL_CACERT="/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt"
+export ETCDCTL_CERT="/var/lib/rancher/k3s/server/tls/etcd/server-client.crt"
+export ETCDCTL_KEY="/var/lib/rancher/k3s/server/tls/etcd/server-client.key"
+export ETCDCTL_API=3
+
+
 # Aliases
 alias ls='ls --color=always'
 alias grep='grep --color=always'
@@ -38,3 +46,4 @@ alias ipa='ip -br -c a'
 
 # Completion
 source /etc/profile.d/bash_completion.sh
+command -v k3s &>/dev/null && . <(k3s completion bash)
