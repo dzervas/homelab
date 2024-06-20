@@ -5,21 +5,26 @@ cluster-init: true
 server: "https://{{ hostvars[groups.master[0]].k3s_ip }}:6443"
 {% endif %}
 
-secrets-encryption: true
-disable:
-  - traefik
-  - metrics-server
-  - local-storage
-
 # IP settings
 node-ip: {{ hostvars[inventory_hostname].k3s_ip }}
 node-external-ip: {{ hostvars[inventory_hostname].address }}
-advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
 flannel-iface: {{ k3s_iface }}
 
 # DNS settings
 resolv-conf: /etc/rancher/k3s/resolv.conf
 node-name: {{ inventory_hostname }}
+
+{% if inventory_hostname not in groups.agent -%}
+# Cluster IPs
+advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
+# Encrypt secrets in etcd
+secrets-encryption: true
+# Disable some default k3s services
+disable:
+  - traefik
+  - metrics-server
+  - local-storage
+# Master node certificate SANs
 tls-san:
   - 127.0.0.1
   - localhost
@@ -30,5 +35,6 @@ tls-san:
 {% for ip in (hostvars[inventory_hostname].additional_ips | difference([hostvars[inventory_hostname].k3s_ip])) %}
   - {{ ip }}
 {% endfor %}
+{%- endif %}
 
 # TODO: etcd backups to oracle
