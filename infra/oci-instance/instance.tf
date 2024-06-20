@@ -1,3 +1,7 @@
+locals {
+  is_arm = strcontains(var.shape, ".A1.")
+}
+
 data "template_file" "oracle_k3s" {
   template = file("${path.module}/cloud-init-config.yaml")
 
@@ -23,7 +27,7 @@ resource "oci_core_instance" "k3s" {
 
   create_vnic_details {
     subnet_id        = var.vnic_subnet_id
-    assign_public_ip = false
+    assign_public_ip = var.auto_assign_public_ip
   }
 
   source_details {
@@ -38,18 +42,9 @@ resource "oci_core_instance" "k3s" {
     # boot_volume_type = "VFIO" # Errors out?
     network_type = "PARAVIRTUALIZED" # Nothing else is supported for ARM
     # remote_data_volume_type = "VFIO" # We don't need this
-    is_pv_encryption_in_transit_enabled = true
+    is_pv_encryption_in_transit_enabled = local.is_arm
     is_consistent_volume_naming_enabled = true
   }
-
-  # Not supported on ARM
-  # platform_config {
-  #   type = "regular"
-  #   is_measured_boot_enabled = true
-  #   is_secure_boot_enabled = true
-  #   is_trusted_platform_module_enabled = true
-  #   is_memory_encryption_enabled = true
-  # }
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key

@@ -42,3 +42,10 @@ variable "arm_image_ocid" {
   type        = string
   default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaacmd5kkjmy2dxcpaulal2eohsd4xmjkxbjw3pr3gg2kmzomehx4ha"
 }
+
+variable "x86_image_ocid" {
+  description = "The x86 image OCID to use"
+  type        = string
+  # Canonical-Ubuntu-22.04-Minimal-2024.05.31-0
+  default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaaew5licvc3purkupr5rcwxxplgfvewpalcoyqd7om6nz42vcn3ofq"
+}

@@ -49,3 +49,9 @@ variable "image" {
 variable "ssh_public_key" {
   type = string
 }
+
+variable "auto_assign_public_ip" {
+  description = "Whether to auto-assign a public IP to the instance"
+  type        = bool
+  default     = true
+}
