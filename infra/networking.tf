@@ -55,27 +55,3 @@ resource "oci_core_subnet" "k3s" {
   dns_label                  = "k3ssubnet"
   prohibit_public_ip_on_vnic = false
 }
-
-data "oci_core_vnic_attachments" "k3s" {
-  count          = length(oci_core_instance.k3s)
-  compartment_id = var.compartment_ocid
-  instance_id    = oci_core_instance.k3s[count.index].id
-
-  depends_on = [ oci_core_instance.k3s ]
-}
-
-data "oci_core_private_ips" "k3s" {
-  count = length(oci_core_instance.k3s)
-  vnic_id = data.oci_core_vnic_attachments.k3s[count.index].vnic_attachments[0].vnic_id
-
-  depends_on = [ oci_core_instance.k3s ]
-}
-
-
-resource "oci_core_public_ip" "k3s" {
-  count               = length(oci_core_instance.k3s)
-  compartment_id      = var.compartment_ocid
-  display_name        = "${split("-", var.region)[1]}${count.index}.${var.domain}"
-  lifetime            = "RESERVED"
-  private_ip_id       = data.oci_core_private_ips.k3s[count.index].private_ips[0].id
-}

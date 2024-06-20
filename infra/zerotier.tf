@@ -34,7 +34,7 @@ resource "zerotier_member" "k3s" {
 
 output "zerotier_identities" {
   value = {
-    for i, v in zerotier_identity.k3s : oci_core_instance.k3s[i].display_name => { public = v.public_key, private = v.private_key }
+    for i, v in zerotier_identity.k3s : module.oci_instances_arm[i].name => { public = v.public_key, private = v.private_key }
   }
   sensitive = true
 }

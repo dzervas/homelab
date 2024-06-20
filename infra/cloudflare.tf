@@ -5,14 +5,14 @@ data "cloudflare_zones" "main" {
 }
 
 resource "cloudflare_record" "instance" {
-  count = length(oci_core_instance.k3s)
+  count = length(module.oci_instances_arm)
 
   zone_id    = data.cloudflare_zones.main.zones[0].id
   name       = "${split("-", var.region)[1]}${count.index}"
-  value      = oci_core_public_ip.k3s[count.index].ip_address
+  value      = module.oci_instances_arm[count.index].ip
   type       = "A"
   proxied    = false
   ttl        = 60
 
-  depends_on = [ oci_core_public_ip.k3s ]
+  depends_on = [ module.oci_instances_arm ]
 }
