@@ -5,3 +5,8 @@ output "ip" {
 output "name" {
   value = oci_core_instance.k3s.display_name
 }
+
+output "zerotier_identity" {
+  value     = { public = zerotier_identity.instance.public_key, private = zerotier_identity.instance.private_key }
+  sensitive = true
+}

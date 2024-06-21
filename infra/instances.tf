@@ -20,6 +20,10 @@ module "oci_instances_arm" {
   auto_assign_public_ip = false
 
   cloudflare_zone_id = data.cloudflare_zones.main.zones[0].id
+
+  zerotier_index      = 200 + count.index
+  zerotier_network_id = zerotier_network.homelab.id
+  zerotier_routes     = zerotier_network.homelab.route
 }
 
 # module "oci_instances_arm_alt" {
@@ -30,8 +34,7 @@ module "oci_instances_arm" {
 #     oci = oci.alt
 #   }
 
-#   index                 = 1
-#   domain                = var.domain
+#   fqdn                  = "${split("-", var.region)[1]}${count.index + length(module.oci_instances_arm)}.${var.domain}"
 #   region                = var.region_alt
 #   availability_domain   = var.availability_domain_alt
 #   compartment_ocid      = var.compartment_ocid_alt
@@ -43,4 +46,10 @@ module "oci_instances_arm" {
 #   image                 = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaa7je5yvlqunoi2mxr3vlvg5ua2wn3bxbncsxbc25mbcptjthlbqyq"
 #   ssh_public_key        = var.ssh_public_key
 #   auto_assign_public_ip = false
+
+#   cloudflare_zone_id = data.cloudflare_zones.main.zones[0].id
+
+#   zerotier_index      = 200 + count.index + length(module.oci_instances_arm)
+#   zerotier_network_id = zerotier_network.homelab.id
+#   zerotier_routes     = zerotier_network.homelab.route
 # }

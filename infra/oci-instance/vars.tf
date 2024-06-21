@@ -55,3 +55,15 @@ variable "auto_assign_public_ip" {
 variable "cloudflare_zone_id" {
   type = string
 }
+
+variable "zerotier_index" {
+  type = string
+}
+variable "zerotier_network_id" {
+  type = string
+}
+variable "zerotier_routes" {
+  type = list(object({
+    target = string
+  }))
+}

@@ -17,37 +17,10 @@ resource "zerotier_network" "homelab" {
   flow_rules       = "accept;"
 }
 
-resource "zerotier_identity" "k3s" {
-  # count = length(module.oci_instances_arm) + length(module.oci_instances_arm_alt)
-  count = length(module.oci_instances_arm)
-}
-
-resource "zerotier_member" "k3s_arm" {
-  count                   = length(module.oci_instances_arm)
-  name                    = "${split("-", var.region)[1]}${count.index}"
-  member_id               = zerotier_identity.k3s[count.index].id
-  network_id              = var.zerotier_network_id
-  description             = "Managed by Terraform"
-  ip_assignments          = [for r in zerotier_network.homelab.route : cidrhost(r.target, 200 + count.index)]
-  allow_ethernet_bridging = true
-  hidden                  = false
-}
-
-# resource "zerotier_member" "k3s_x86" {
-#   count                   = length(module.oci_instances_arm_alt)
-#   name                    = "${split("-", var.region)[1]}${count.index + length(module.oci_instances_arm)}"
-#   member_id               = zerotier_identity.k3s[count.index + length(module.oci_instances_arm)].id
-#   network_id              = var.zerotier_network_id
-#   description             = "Managed by Terraform"
-#   ip_assignments          = [for r in zerotier_network.homelab.route : cidrhost(r.target, 200 + count.index + length(module.oci_instances_arm))]
-#   allow_ethernet_bridging = true
-#   hidden                  = false
-# }
-
 output "zerotier_identities" {
   value = {
     # for i, v in zerotier_identity.k3s : concat(module.oci_instances_arm, module.oci_instances_arm_alt)[i].name => { public = v.public_key, private = v.private_key }
-    for i, v in zerotier_identity.k3s : module.oci_instances_arm[i].name => { public = v.public_key, private = v.private_key }
+    for v in module.oci_instances_arm : v.name => v.zerotier_identity
   }
   sensitive = true
 }
