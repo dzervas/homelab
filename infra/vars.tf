@@ -53,13 +53,14 @@ variable "availability_domain" {
 variable "availability_domain_alt" {
   description = "The availability domain to deploy to"
   type        = string
-  default     = "Ogqp:EU-FRANKFURT-1-AD-2"
+  default     = "zHdw:EU-FRANKFURT-1-AD-3"
 }
 
 variable "arm_image_ocid" {
   description = "The ARM image OCID to use"
   type        = string
-  default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaacmd5kkjmy2dxcpaulal2eohsd4xmjkxbjw3pr3gg2kmzomehx4ha"
+  # Canonical-Ubuntu-22.04-Minimal-aarch64-2024.05.31-0
+  default = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaa7je5yvlqunoi2mxr3vlvg5ua2wn3bxbncsxbc25mbcptjthlbqyq"
 }
 
 variable "x86_image_ocid" {

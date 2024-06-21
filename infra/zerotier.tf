@@ -18,7 +18,7 @@ resource "zerotier_network" "homelab" {
 }
 
 resource "zerotier_identity" "k3s" {
-  count = length(module.oci_instances_arm) + length(module.oci_instances_x86)
+  count = length(module.oci_instances_arm) + length(module.oci_instances_arm_alt)
 }
 
 resource "zerotier_member" "k3s_arm" {
@@ -33,7 +33,7 @@ resource "zerotier_member" "k3s_arm" {
 }
 
 resource "zerotier_member" "k3s_x86" {
-  count                   = length(module.oci_instances_x86)
+  count                   = length(module.oci_instances_arm_alt)
   name                    = "${split("-", var.region)[1]}${count.index + length(module.oci_instances_arm)}"
   member_id               = zerotier_identity.k3s[count.index + length(module.oci_instances_arm)].id
   network_id              = var.zerotier_network_id
@@ -45,12 +45,7 @@ resource "zerotier_member" "k3s_x86" {
 
 output "zerotier_identities" {
   value = {
-    for i, v in zerotier_identity.k3s : concat(module.oci_instances_arm, module.oci_instances_x86)[i].name => { public = v.public_key, private = v.private_key }
+    for i, v in zerotier_identity.k3s : concat(module.oci_instances_arm, module.oci_instances_arm_alt)[i].name => { public = v.public_key, private = v.private_key }
   }
   sensitive = true
-}
-
-moved {
-  from = zerotier_member.k3s
-  to   = zerotier_member.k3s_arm
 }
