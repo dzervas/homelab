@@ -6,13 +6,13 @@ data "template_file" "oracle_k3s" {
   template = file("${path.module}/cloud-init-config.yaml")
 
   vars = {
-    fqdn = "${split("-", var.region)[1]}${var.index}.${var.domain}"
+    fqdn = var.fqdn
   }
 }
 
 resource "oci_core_instance" "k3s" {
   availability_domain = var.availability_domain
-  display_name        = "${split("-", var.region)[1]}${var.index}.${var.domain}"
+  display_name        = var.fqdn
   compartment_id      = var.compartment_ocid
   shape               = var.shape # Free tier allowance
 

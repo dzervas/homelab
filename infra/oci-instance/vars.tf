@@ -1,8 +1,4 @@
-variable "index" {
-  type = number
-}
-
-variable "domain" {
+variable "fqdn" {
   type = string
 }
 
@@ -54,4 +50,8 @@ variable "auto_assign_public_ip" {
   description = "Whether to auto-assign a public IP to the instance"
   type        = bool
   default     = true
+}
+
+variable "cloudflare_zone_id" {
+  type = string
 }
