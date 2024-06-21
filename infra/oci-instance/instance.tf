@@ -37,7 +37,7 @@ resource "oci_core_instance" "k3s" {
     boot_volume_vpus_per_gb = 120
   }
 
-#   is_pv_encryption_in_transit_enabled = true
+  #   is_pv_encryption_in_transit_enabled = true
   launch_options {
     # boot_volume_type = "VFIO" # Errors out?
     network_type = "PARAVIRTUALIZED" # Nothing else is supported for ARM

@@ -28,12 +28,22 @@ terraform {
 }
 
 provider "oci" {
-  region              = var.region
-  auth                = "ApiKey"
-  tenancy_ocid         = var.tenancy_ocid
-  user_ocid = var.user_ocid
-  fingerprint = var.oci_fingerprint
-  private_key = var.oci_private_key
+  region       = var.region
+  auth         = "ApiKey"
+  tenancy_ocid = var.tenancy_ocid
+  user_ocid    = var.user_ocid
+  fingerprint  = var.oci_fingerprint
+  private_key  = var.oci_private_key
+}
+
+provider "oci" {
+  alias        = "alt"
+  region       = var.region_alt
+  auth         = "ApiKey"
+  tenancy_ocid = var.tenancy_ocid_alt
+  user_ocid    = var.user_ocid_alt
+  fingerprint  = var.oci_fingerprint_alt
+  private_key  = var.oci_private_key_alt
 }
 
 provider "cloudflare" {
