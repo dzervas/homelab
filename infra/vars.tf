@@ -4,13 +4,6 @@ variable "domain" {
   type    = string
 }
 
-// AWS API credentials
-variable "aws_region_info" {}
-variable "aws_access_key_info" {}
-variable "aws_secret_key_info" {
-  sensitive = true
-}
-
 // Oracle Cloud API credentials
 variable "tenancy_ocid" {}
 variable "user_ocid" {}

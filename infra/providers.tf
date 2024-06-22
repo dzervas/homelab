@@ -8,9 +8,9 @@ terraform {
   }
 
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.13"
     }
     oci = {
       source  = "oracle/oci"
@@ -20,22 +20,11 @@ terraform {
       source  = "hashicorp/template"
       version = "~> 2.2"
     }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.13"
-    }
     zerotier = {
       source  = "zerotier/zerotier"
       version = "~> 1.4"
     }
   }
-}
-
-provider "aws" {
-  alias      = "info"
-  region     = var.aws_region_info
-  access_key = var.aws_access_key_info
-  secret_key = var.aws_secret_key_info
 }
 
 provider "oci" {
