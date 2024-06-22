@@ -4,19 +4,30 @@ variable "domain" {
   type    = string
 }
 
+// AWS API credentials
+variable "aws_region_info" {}
+variable "aws_access_key_info" {}
+variable "aws_secret_key_info" {
+  sensitive = true
+}
+
 // Oracle Cloud API credentials
 variable "tenancy_ocid" {}
 variable "user_ocid" {}
 variable "compartment_ocid" {}
 variable "oci_fingerprint" {}
-variable "oci_private_key" {}
+variable "oci_private_key" {
+  sensitive = true
+}
 
 // Oracle Cloud API Alt credentials
 variable "tenancy_ocid_alt" {}
 variable "user_ocid_alt" {}
 variable "compartment_ocid_alt" {}
 variable "oci_fingerprint_alt" {}
-variable "oci_private_key_alt" {}
+variable "oci_private_key_alt" {
+  sensitive = true
+}
 
 // CloudFlare
 variable "cloudflare_email" {}

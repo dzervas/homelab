@@ -8,6 +8,10 @@ terraform {
   }
 
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
     oci = {
       source  = "oracle/oci"
       version = "~> 5.0"
@@ -25,6 +29,13 @@ terraform {
       version = "~> 1.4"
     }
   }
+}
+
+provider "aws" {
+  alias      = "info"
+  region     = var.aws_region_info
+  access_key = var.aws_access_key_info
+  secret_key = var.aws_secret_key_info
 }
 
 provider "oci" {
