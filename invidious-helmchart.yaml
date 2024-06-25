@@ -29,9 +29,9 @@ spec:
       admins:
         - dzervas
     nodeSelector:
-      kubernetes.io/arch: arm64
+      kubernetes.io/arch: amd64
     image:
-      tag: latest-arm64
+      tag: latest
     ingress:
       enabled: true
       className: nginx

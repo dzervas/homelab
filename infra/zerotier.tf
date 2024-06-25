@@ -19,8 +19,7 @@ resource "zerotier_network" "homelab" {
 
 output "zerotier_identities" {
   value = {
-    # for i, v in zerotier_identity.k3s : concat(module.oci_instances_arm, module.oci_instances_arm_alt)[i].name => { public = v.public_key, private = v.private_key }
-    for v in module.oci_instances_arm : v.name => v.zerotier_identity
+    for v in concat(module.oci_instances_arm, module.oci_instances_arm_alt) : v.name => v.zerotier_identity
   }
   sensitive = true
 }
