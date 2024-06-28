@@ -1,3 +1,4 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
 # Managed by Ansible
 {% if inventory_hostname in groups.master %}
 cluster-init: true

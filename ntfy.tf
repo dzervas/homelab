@@ -38,7 +38,7 @@ resource "kubernetes_service" "ntfy" {
   }
 
   spec {
-    selector = kubernetes_stateful_set.ntfy.spec[0].selector[0]
+    selector = kubernetes_stateful_set.ntfy.spec[0].selector[0].match_labels
 
     port {
       port        = 80
@@ -61,7 +61,9 @@ resource "kubernetes_stateful_set" "ntfy" {
     service_name = "ntfy"
 
     selector {
-      match_labels = kubernetes_stateful_set.ntfy.spec[0].template[0].metadata[0].labels
+      match_labels = {
+        app = "ntfy"
+      }
     }
 
     template {
@@ -75,7 +77,8 @@ resource "kubernetes_stateful_set" "ntfy" {
       spec {
         container {
           name  = "ntfy"
-          image = "ntfy/ntfy:latest"
+          image = "binwiederhier/ntfy:latest"
+          args  = ["serve"]
 
           port {
             container_port = 80
@@ -103,9 +106,14 @@ resource "kubernetes_stateful_set" "ntfy" {
       }
     }
 
+    persistent_volume_claim_retention_policy {
+      when_deleted = "Retain"
+      when_scaled  = "Retain"
+    }
     volume_claim_template {
       metadata {
-        name = "data"
+        name      = "data"
+        namespace = kubernetes_namespace.ntfy.metadata[0].name
         labels = {
           managed_by = "terraform"
         }
