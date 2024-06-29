@@ -1,12 +1,3 @@
-resource "kubernetes_namespace" "magicentry" {
-  metadata {
-    name = "auth"
-    labels = {
-      managed_by = "terraform"
-    }
-  }
-}
-
 resource "helm_release" "magicentry" {
   name             = "auth"
   namespace        = kubernetes_namespace.magicentry.metadata[0].name
