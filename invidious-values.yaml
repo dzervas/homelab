@@ -1,0 +1,32 @@
+config:
+  hmac_key: "Twu+zm9XSryHK0RiORQr/1BeKhw"
+  domain: watch.dzerv.art
+  external_port: 443
+  https_only: true
+  registration_enabled: false
+  captcha_enabled: false
+  admins:
+    - dzervas
+nodeSelector:
+  kubernetes.io/arch: amd64
+image:
+  tag: latest
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "128m"
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+    nginx.ingress.kubernetes.io/auth-tls-secret: "cert-manager/client-ca-certificate"
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+  hosts:
+    - host: watch.dzerv.art
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - watch.dzerv.art
+      secretName: watch-dzerv-art-cert

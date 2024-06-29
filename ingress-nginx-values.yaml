@@ -1,7 +1,0 @@
-tcp:
-  2222: "borgserver/borgserver-service:2222"
-controller:
-  replicaCount: 2
-  watchIngressWithoutClass: true
-  ingressClassResource:
-    default: true

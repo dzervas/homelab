@@ -1,10 +1,9 @@
 locals {
-  main_domain = "dzerv.art"
   domains = [
-    "dzerv.art",
+    var.domain,
     "staging.blogaki.io",
     "staging.dzerv.it",
-    "*.dzerv.art",
+    "*.${var.domain}",
     "*.staging.blogaki.io",
   ]
   cert_duration = "87658h0m0s" # 10 years
@@ -94,7 +93,7 @@ resource "kubernetes_manifest" "cm_client_ca" {
       secretName = "client-ca-certificate"
       dnsNames   = local.domains
       subject = {
-        organizations = [local.main_domain]
+        organizations = [var.domain]
       }
       duration = local.cert_duration
       privateKey = {
@@ -184,8 +183,8 @@ resource "kubernetes_manifest" "cm_letsencrypt_issuer" {
               }
               selector = {
                 dnsNames = [
-                  local.main_domain,
-                  "*.${local.main_domain}"
+                  var.domain,
+                  "*.${var.domain}"
                 ]
               }
             }

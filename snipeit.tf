@@ -1,3 +1,9 @@
+module "snipeit_ingress" {
+  source = "./ingress-block"
+
+  fqdn = "snipeit.${var.domain}"
+}
+
 resource "helm_release" "snipeit" {
   name             = "snipeit"
   namespace        = "snipeit"
@@ -8,5 +14,27 @@ resource "helm_release" "snipeit" {
   chart      = "snipeit"
   version    = "3.4.1"
 
-  values = [file("${path.module}/snipeit-values.yaml")]
+  values = [yamlencode({
+    config = {
+      snipeit = {
+        url      = "https://snipeit.${var.domain}"
+        timezone = var.timezone
+        key      = "base64:z54akAQPx9M8x5TTnUp+j2Sh62oDl9/3W8+ZY02TWcc="
+      }
+    }
+    mysql = {
+      enabled = true
+      persistence = {
+        enabled      = true
+        storageClass = "longhorn"
+        size         = "5Gi"
+      }
+    }
+    persistence = {
+      enabled      = true
+      storageClass = "longhorn"
+      size         = "1Gi"
+    }
+    ingress = module.snipeit_ingress.host_list
+  })]
 }
