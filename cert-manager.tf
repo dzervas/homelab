@@ -43,8 +43,11 @@ resource "kubernetes_manifest" "cm_certificates" {
       secretName = "client-${each.key}-certificate"
       dnsNames   = kubernetes_manifest.cm_client_ca.object.spec.dnsNames
       # isCA       = false
-      duration   = kubernetes_manifest.cm_client_ca.object.spec.duration
-      privateKey = kubernetes_manifest.cm_client_ca.object.spec.privateKey
+      duration = kubernetes_manifest.cm_client_ca.object.spec.duration
+      privateKey = {
+        algorithm = kubernetes_manifest.cm_client_ca.object.spec.privateKey.algorithm
+        size      = kubernetes_manifest.cm_client_ca.object.spec.privateKey.size
+      }
       usages = [
         "server auth",
         "client auth",
@@ -175,7 +178,7 @@ resource "kubernetes_manifest" "cm_letsencrypt_issuer" {
               cloudflare = {
                 email = "dzervas@dzervas.gr"
                 apiTokenSecretRef = {
-                  name = "cert-manager-cloudflare-api-token"
+                  name = kubernetes_manifest.cm_cloudflare_api_token.object.metadata.name
                   key  = "api-token"
                 }
               }
