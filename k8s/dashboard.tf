@@ -30,3 +30,34 @@ resource "helm_release" "dashboard" {
     }
   })]
 }
+
+resource "kubernetes_service_account_v1" "dashboard_admin" {
+  metadata {
+    name      = "dashboard-admin"
+    namespace = helm_release.dashboard.namespace
+    labels = {
+      managed_by = "terraform"
+    }
+  }
+}
+
+resource "kubernetes_cluster_role_binding_v1" "dashboard_admin" {
+  metadata {
+    name = "dashboard-admin"
+    labels = {
+      managed_by = "terraform"
+    }
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "cluster-admin"
+  }
+
+  subject {
+    kind      = "ServiceAccount"
+    name      = kubernetes_service_account_v1.dashboard_admin.metadata.0.name
+    namespace = kubernetes_service_account_v1.dashboard_admin.metadata.0.namespace
+  }
+}
