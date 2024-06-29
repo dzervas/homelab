@@ -127,6 +127,31 @@ resource "kubernetes_manifest" "cm_client_issuer" {
   }
 }
 
+resource "kubernetes_manifest" "cm_cloudflare_api_token" {
+  manifest = {
+    apiVersion = "bitnami.com/v1alpha1"
+    kind       = "SealedSecret"
+    metadata = {
+      name      = "cert-manager-cloudflare-api-token"
+      namespace = helm_release.cert_manager.namespace
+      labels = {
+        managed_by = "terraform"
+      }
+    }
+    spec = {
+      encryptedData = {
+        "api-token" = "AgCa3SSW7XfuSiTbuuuLW8DhfKh24a4lO7fPP+PK7K8qjLsN4t7hQanp3PIK1S9vRCxWOXyZnzymo3BgIw722yIKmNPif9vAeyRBZlErQg2ucKDWi4tv2/xlWoygLs6uMVOBbI8RQ8MBvfVpBbmdXBHrDRFZhHi9nGMPLzhPgf9wK8kP4orgn2u+dkkGhaXStSV+cGdoz1bKfAGrejdeNJ3pb6bC32VKtdYwxxWRqTc2hjnMjyv8mnhnxUUt8bAIXhvPU7BusYPlE8nZ7c90XUQ4C9ZfCUdEk6kco6sQka9oDYOL5QYaX60vf4N5t4ji5NeOmB9HvSq16reSgGP9pFG+qlgfXnddZ1N2tEV6U7urLX/eZdXuPcqsXL43Uc0R2matiYFFXFx8aMzIlBYeZSuzKjFf4UpOXQjlcKVF9EzZ99ikXYeYPL6mRtH6D+8bSjYTK6ROpECt5Gh3fwkAg6/N3+fvsvgoRKFJvnvQ5akcBOt3LFH+16r7uT0hf1/obfSXMYftzKrwNyjFq87rnWBpF3NaBnaiOBwTE+HqmA+WibNJIx+aPhCUwJUykN9a1I5v9+J1fgqGHz9P7Di2iB3HCMhsNnODGOOYAcVHpdIxRI2vRL8fkk1SsB4utPozQLDBm+apI9ANjm0Mb5FsArusedKyqlYOzIhaj/GUEvfjAUCxP98lmPfadwOD8IxfnGPPeMnkPWP9MHVKTNwxFzawWFKwJzhLEEKrGBue+nJoBVNFeX5b8y/a"
+      }
+      template = {
+        metadata = {
+          name      = "cert-manager-cloudflare-api-token"
+          namespace = helm_release.cert_manager.namespace
+        }
+      }
+    }
+  }
+}
+
 resource "kubernetes_manifest" "cm_letsencrypt_issuer" {
   manifest = {
     apiVersion = "cert-manager.io/v1"
