@@ -6,7 +6,7 @@ resource "helm_release" "borgserver" {
 
   repository = "https://dzervas.github.io/docker-borgserver/"
   chart      = "borgserver"
-  version    = "1.2.6-0"
+  version    = "1.2.8-0"
 
   values = [yamlencode({
     borg = {
