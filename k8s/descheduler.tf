@@ -12,5 +12,6 @@ resource "helm_release" "descheduler" {
   namespace  = kubernetes_namespace.descheduler.metadata[0].name
   repository = "https://kubernetes-sigs.github.io/descheduler"
   chart      = "descheduler"
-  version    = "0.30.1"
+  # For upgrading: https://github.com/kubernetes-sigs/descheduler/releases
+  version = "0.30.1"
 }

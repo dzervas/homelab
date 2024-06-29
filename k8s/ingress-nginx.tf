@@ -6,7 +6,9 @@ resource "helm_release" "ingress_nginx" {
 
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
-  version    = "4.7.1"
+  # For upgrading: https://github.com/kubernetes/ingress-nginx/releases
+  version = "4.10.1"
+
   values = [yamlencode({
     controller = {
       replicaCount             = 2

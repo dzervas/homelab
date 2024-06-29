@@ -5,5 +5,6 @@ resource "helm_release" "sealed_secrets_controller" {
 
   repository = "https://bitnami-labs.github.io/sealed-secrets"
   chart      = "sealed-secrets"
-  version    = "2.7.3"
+  # For upgrading: https://github.com/bitnami-labs/sealed-secrets/blob/main/RELEASE-NOTES.md
+  version = "2.16.0"
 }

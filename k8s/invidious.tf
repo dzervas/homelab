@@ -24,7 +24,8 @@ resource "helm_release" "invidious" {
 
   repository = "https://charts-helm.invidious.io"
   chart      = "invidious"
-  version    = "2.0.4"
+  # For upgrading: https://github.com/iv-org/invidious-helm-chart/tree/master/invidious
+  version = "2.0.4"
 
   values = [yamlencode({
     config = {
