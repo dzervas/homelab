@@ -7,5 +7,16 @@ resource "helm_release" "ingress_nginx" {
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   version    = "4.7.1"
-  values     = [file("${path.module}/ingress-nginx-values.yaml")]
+  values = [yamlencode({
+    controller = {
+      replicaCount             = 2
+      watchIngressWithoutClass = true
+      ingressClassResource = {
+        default = true
+      }
+    }
+    tcp = {
+      2222 = "borgserver/borgserver-service:2222"
+    }
+  })]
 }
