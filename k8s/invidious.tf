@@ -1,7 +1,11 @@
+locals {
+  fqdn = "watch.${var.domain}"
+}
+
 module "invidious_ingress" {
   source = "./ingress-block"
 
-  fqdn = "watch.${var.domain}"
+  fqdn = local.fqdn
   additional_annotations = {
     # Allow uploading large files - for importing history
     "nginx.ingress.kubernetes.io/proxy-body-size" = "128m"
@@ -21,7 +25,7 @@ resource "helm_release" "invidious" {
   values = [yamlencode({
     config = {
       hmac_key             = "Twu+zm9XSryHK0RiORQr/1BeKhw"
-      domain               = "watch.dzerv.art"
+      domain               = local.fqdn
       external_port        = 443
       https_only           = true
       registration_enabled = false
