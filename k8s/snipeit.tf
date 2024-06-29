@@ -19,7 +19,8 @@ resource "helm_release" "snipeit" {
       snipeit = {
         url      = "https://snipeit.${var.domain}"
         timezone = var.timezone
-        key      = "base64:z54akAQPx9M8x5TTnUp+j2Sh62oDl9/3W8+ZY02TWcc="
+        # TODO: Move this to random_string resource
+        key = "base64:z54akAQPx9M8x5TTnUp+j2Sh62oDl9/3W8+ZY02TWcc="
       }
     }
     mysql = {

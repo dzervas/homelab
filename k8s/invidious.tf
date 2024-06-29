@@ -12,6 +12,10 @@ module "invidious_ingress" {
   }
 }
 
+resource "random_string" "invidious_hmac_key" {
+  length = 20
+}
+
 resource "helm_release" "invidious" {
   name             = "invidious"
   namespace        = "watch"
@@ -24,7 +28,7 @@ resource "helm_release" "invidious" {
 
   values = [yamlencode({
     config = {
-      hmac_key             = "Twu+zm9XSryHK0RiORQr/1BeKhw"
+      hmac_key             = random_string.invidious_hmac_key.result
       domain               = local.fqdn
       external_port        = 443
       https_only           = true
@@ -33,11 +37,8 @@ resource "helm_release" "invidious" {
       admins               = ["dzervas"]
     }
     ingress = module.invidious_ingress.host_obj
-    # nodeSelector = {
-    #   "kubernetes.io/arch" = "arm64"
-    # }
-    # image = {
-    #   tag = "latest-arm64"
-    # }
+    nodeSelector = {
+      "kubernetes.io/arch" = "amd64"
+    }
   })]
 }

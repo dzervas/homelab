@@ -10,11 +10,15 @@ terraform {
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.31"
+      version = "2.31"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 2.14"
+      version = "2.14"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3"
     }
   }
 }
@@ -30,3 +34,5 @@ provider "helm" {
     config_context = "gr"
   }
 }
+
+provider "random" {}
