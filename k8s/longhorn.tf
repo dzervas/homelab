@@ -8,6 +8,7 @@ resource "kubernetes_namespace" "longhorn-system" {
       "pod-security.kubernetes.io/audit-version"   = "latest"
       "pod-security.kubernetes.io/warn"            = "privileged"
       "pod-security.kubernetes.io/warn-version"    = "latest"
+      managed_by                                   = "terraform"
     }
   }
 }
