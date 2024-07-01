@@ -60,7 +60,7 @@
   become: true
   vars:
     k3s_iface: "ztrfyoirbv"
-    k3s_version: "v1.27.4+k3s1"
+    k3s_version: "v1.29.6+k3s1"
     zerotier_network_id: "{{ lookup('env', 'TF_VAR_zerotier_network_id') }}"
     fail2ban_ignoreips:
       - "127.0.0.1/8"
