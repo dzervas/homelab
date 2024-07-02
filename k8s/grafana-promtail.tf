@@ -5,4 +5,8 @@ resource "helm_release" "promtail" {
   chart      = "promtail"
   version    = "6.16.2"
   atomic     = true
+
+  values = [yamlencode({
+    serviceMonitor = { enabled = true }
+  })]
 }

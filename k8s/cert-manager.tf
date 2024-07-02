@@ -20,10 +20,12 @@ resource "helm_release" "cert_manager" {
   # For upgrading: https://cert-manager.io/docs/releases/upgrading/upgrading-1.12-1.13
   version = "v1.15.1"
 
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
+  values = [yamlencode({
+    installCRDs = true
+    prometheus = {
+      servicemonitor = { enabled = true }
+    }
+  })]
 }
 
 resource "kubernetes_manifest" "cm_certificates" {

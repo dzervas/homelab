@@ -14,4 +14,11 @@ resource "helm_release" "descheduler" {
   chart      = "descheduler"
   # For upgrading: https://github.com/kubernetes-sigs/descheduler/releases
   version = "0.30.1"
+
+  values = [yamlencode({
+    serviceMonitor = {
+      enabled   = true
+      namespace = "prometheus"
+    }
+  })]
 }

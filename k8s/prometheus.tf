@@ -12,8 +12,10 @@ resource "helm_release" "prometheus" {
     alertmanager = { enabled = false }
     prometheus = {
       prometheusSpec = {
-        scrapeInterval     = "30s"
-        evaluationInterval = "30s"
+        scrapeInterval                          = "30s"
+        evaluationInterval                      = "30s"
+        podMonitorSelectorNilUsesHelmValues     = false
+        serviceMonitorSelectorNilUsesHelmValues = false
       }
     }
   })]

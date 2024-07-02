@@ -14,8 +14,14 @@ resource "helm_release" "ingress_nginx" {
       replicaCount                = 2
       watchIngressWithoutClass    = true
       enableAnnotationValidations = true
-      ingressClassResource = {
-        default = true
+      ingressClassResource        = { default = true }
+      metrics = {
+        enabled        = true
+        serviceMonitor = { enabled = true }
+      }
+      podAnnotations = {
+        "prometheus.io/scrape" = "true"
+        "prometheus.io/port"   = "10254"
       }
     }
     tcp = {
