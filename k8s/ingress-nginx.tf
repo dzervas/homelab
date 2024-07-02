@@ -11,8 +11,9 @@ resource "helm_release" "ingress_nginx" {
 
   values = [yamlencode({
     controller = {
-      replicaCount             = 2
-      watchIngressWithoutClass = true
+      replicaCount                = 2
+      watchIngressWithoutClass    = true
+      enableAnnotationValidations = true
       ingressClassResource = {
         default = true
       }

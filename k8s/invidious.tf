@@ -1,11 +1,11 @@
 locals {
-  fqdn = "watch.${var.domain}"
+  invidious_fqdn = "watch.${var.domain}"
 }
 
 module "invidious_ingress" {
   source = "./ingress-block"
 
-  fqdn = local.fqdn
+  fqdn = local.invidious_fqdn
   additional_annotations = {
     # Allow uploading large files - for importing history
     "nginx.ingress.kubernetes.io/proxy-body-size" = "128m"
@@ -30,7 +30,7 @@ resource "helm_release" "invidious" {
   values = [yamlencode({
     config = {
       hmac_key             = random_string.invidious_hmac_key.result
-      domain               = local.fqdn
+      domain               = local.invidious_fqdn
       external_port        = 443
       https_only           = true
       registration_enabled = false

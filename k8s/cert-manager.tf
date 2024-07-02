@@ -42,8 +42,7 @@ resource "kubernetes_manifest" "cm_certificates" {
     spec = {
       secretName = "client-${each.key}-certificate"
       dnsNames   = kubernetes_manifest.cm_client_ca.object.spec.dnsNames
-      # isCA       = false
-      duration = kubernetes_manifest.cm_client_ca.object.spec.duration
+      duration   = kubernetes_manifest.cm_client_ca.object.spec.duration
       privateKey = {
         algorithm = kubernetes_manifest.cm_client_ca.object.spec.privateKey.algorithm
         size      = kubernetes_manifest.cm_client_ca.object.spec.privateKey.size
