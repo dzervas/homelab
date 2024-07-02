@@ -35,13 +35,14 @@ resource "helm_release" "loki" {
       replicas = 1
       persistence = {
         enabled          = true
+        size             = "20Gi"
         storageClassName = "longhorn"
       }
     }
     monitoring = {
       selfMonitoring = {
         grafanaAgent = {
-          installOperator = true
+          installOperator = false
         }
       }
     }
@@ -49,9 +50,9 @@ resource "helm_release" "loki" {
     read    = { replicas = 0 }
     write   = { replicas = 0 }
 
+    # TODO: Re-enable it
     # lokiCanary = {
-    #   nodeSelector = {
-    #   }
+    #   enabled = false
     # }
   })]
 }

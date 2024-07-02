@@ -30,6 +30,9 @@ resource "helm_release" "snipeit" {
         storageClass = "longhorn"
         size         = "5Gi"
       }
+      nodeSelector = {
+        "kubernetes.io/arch" = "amd64"
+      }
     }
     persistence = {
       enabled      = true

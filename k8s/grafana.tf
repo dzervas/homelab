@@ -51,9 +51,18 @@ resource "helm_release" "grafana" {
             name = "Loki"
             type = "loki"
             url  = "http://loki-gateway"
-          }
+          },
+          {
+            name = "Prometheus"
+            type = "prometheus"
+            url  = "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+          },
         ]
       }
+    }
+    nodeSelector = {
+      # TODO: Fix gr1
+      "kubernetes.io/hostname" = "gr0.dzerv.art"
     }
   })]
 }
