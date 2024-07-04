@@ -14,6 +14,7 @@ resource "helm_release" "ingress_nginx" {
       replicaCount                = 2
       watchIngressWithoutClass    = true
       enableAnnotationValidations = true
+      allowSnippetAnnotations     = true
       ingressClassResource        = { default = true }
       metrics = {
         enabled        = true

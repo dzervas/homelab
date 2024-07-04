@@ -16,8 +16,8 @@ module "grafana_ingress" {
 
   fqdn = local.grafana_fqdn
   additional_annotations = {
-    # "nginx.ingress.kubernetes.io/auth-snippet"                          = "proxy_set_header X-WEBAUTH-USER admin;"
-    # "nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream" = "true"
+    "nginx.ingress.kubernetes.io/auth-snippet"                          = "proxy_set_header X-WEBAUTH-USER admin;"
+    "nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream" = "true"
   }
 }
 
