@@ -2,6 +2,7 @@
 - import_tasks: packages.yaml
 - import_tasks: config.yaml
 - import_tasks: firewall.yaml
+  tags: firewall
 
 # TODO: Fix these
 # - name: Set default DNS for all interfaces
@@ -12,7 +13,7 @@
 - name: Add IP address of all hosts to all hosts
   lineinfile:
     dest: /etc/hosts
-    regexp: '^.* {{ inventory_hostname }} {{ inventory_hostname_short }}$'
+    regexp: "^.* {{ inventory_hostname }} {{ inventory_hostname_short }}$"
     line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }} {{ inventory_hostname_short }}"
     state: present
   when: inventory_hostname != item

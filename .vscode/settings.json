@@ -2,6 +2,8 @@
 	"ansible.python.interpreterPath": "/bin/python",
 	"editor.formatOnSave": true,
 	"cSpell.words": [
-		"borgserver"
+		"borgserver",
+		"iface",
+		"proto"
 	]
 }

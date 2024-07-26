@@ -19,6 +19,10 @@
       protocol: tcp
     - port: "10251" # kube-scheduler
       protocol: tcp
+  register: ufw_result
+  until: ufw_result is succeeded
+  retries: 5
+  delay: 2
 
 - name: Allow pod & service traffic
   ufw:
@@ -28,16 +32,24 @@
   loop:
     - 10.42.0.0/16
     - 10.43.0.0/16
+  register: ufw_result
+  until: ufw_result is succeeded
+  retries: 5
+  delay: 2
 
 - name: Allow pod & service routing through k3s interface
   ufw:
     rule: allow
     from: "{{ item }}"
-    # interface_in: "{{ k3s_iface }}"
+    interface_in: "{{ k3s_iface }}"
     route: true
   loop:
     - 10.42.0.0/16
     - 10.43.0.0/16
+  register: ufw_result
+  until: ufw_result is succeeded
+  retries: 5
+  delay: 2
 
 - name: Allow ingress traffic
   ufw:
@@ -48,3 +60,28 @@
     - "80"
     - "443"
     - "2222"
+  register: ufw_result
+  until: ufw_result is succeeded
+  retries: 5
+  delay: 2
+
+- name: Fetch GitHub Actions IP ranges
+  uri:
+    url: "https://api.github.com/meta"
+    return_content: yes
+  register: github_meta
+  until: github_meta is succeeded
+  retries: 5
+  delay: 2
+
+- name: Allow GitHub Actions IPs through UFW for HTTPS
+  ufw:
+    rule: allow
+    to_port: 6443
+    from_ip: "{{ item }}"
+    proto: tcp
+  loop: "{{ github_meta.json.actions }}"
+  register: ufw_result
+  until: ufw_result is succeeded
+  retries: 5
+  delay: 2

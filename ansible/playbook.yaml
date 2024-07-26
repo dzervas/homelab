@@ -5,7 +5,8 @@
 
 - name: Gather Terraform outputs
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  tags: zerotier
   tasks:
     - name: Gather Terraform outputs
       terraform:
@@ -28,11 +29,12 @@
         - zerotier_identity
 
 - hosts: all
-  gather_facts: yes
+  gather_facts: true
   vars:
     wireguard_subnet: "10.11.12.0/24"
     zerotier_subnet: "10.9.8.0/24"
     update: no
+  tags: zerotier
   tasks:
     - name: Calculate VPN addresses
       set_fact:
@@ -67,9 +69,12 @@
       - "10.9.8.0/24"
       - "10.11.12.0/24"
   roles:
-    - system
-    - robertdebock.fail2ban
-    - zerotier
-    - k3s
-
+    - role: system
+      tags: system
+    - role: robertdebock.fail2ban
+      tags: fail2ban
+    - role: zerotier
+      tags: zerotier
+    - role: k3s
+      tags: k3s
 # Do k3s crictl rmi --prune

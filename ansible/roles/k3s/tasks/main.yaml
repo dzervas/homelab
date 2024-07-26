@@ -12,6 +12,7 @@
 
 - import_tasks: agent-token.yaml
 - import_tasks: firewall.yaml
+  tags: firewall
 
 - name: Start k3s
   service:

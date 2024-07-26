@@ -2,6 +2,7 @@
 - import_tasks: install.yaml
 - import_tasks: config.yaml
 - import_tasks: firewall.yaml
+  tags: firewall
 
 - name: Start ZeroTier service
   service:

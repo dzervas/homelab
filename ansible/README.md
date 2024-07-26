@@ -15,7 +15,7 @@ ansible-galaxy role install -r requirements.yaml
 Run the playbook
 
 ```bash
-ansible-playbook -i inventory.ini playbook.yaml
+ansible-playbook playbook.yaml
 ```
 
 ## New hosts
