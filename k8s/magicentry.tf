@@ -29,7 +29,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.3.14"
+  version    = "0.3.15"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -45,22 +45,36 @@ resource "helm_release" "magicentry" {
       external_url   = "https://auth.dzerv.art"
 
       oidc_enable = true
-      oidc_clients = [{
-        id            = "u5SMBIZFtshHApkv9o2D8JDxb6QVvAVnwU2XN9u03Ko"
-        secret        = "F7WRYALJ2viCeLNxz1-f5JHwJRzArxh5-zNS27WMouJg_AxxBYtPBHxws92FprVw3rDuyKPsNgoiwF_G3yamoA"
-        redirect_uris = ["https://audiobooks.dzerv.art/auth/openid/callback"]
-        realms        = ["audiobooks", "public"]
-      }]
+      oidc_clients = [
+        {
+          id            = "u5SMBIZFtshHApkv9o2D8JDxb6QVvAVnwU2XN9u03Ko"
+          secret        = "F7WRYALJ2viCeLNxz1-f5JHwJRzArxh5-zNS27WMouJg_AxxBYtPBHxws92FprVw3rDuyKPsNgoiwF_G3yamoA"
+          redirect_uris = ["https://audiobooks.dzerv.art/auth/openid/callback"]
+          realms        = ["audiobooks", "public"]
+        },
+        {
+          id     = "EyWZe2EqeovjsJ56rcIrQBwgJRtt8aRqT2uKmhA3A"
+          secret = "v5r1vRqBDFQdHr2Crth8A1JH1Uqzv6GYHRHV1iG8vlDJ6kf3d2zwKU17U1kdtVyJpsK0BLkAd4JoMezpGg"
+          redirect_uris = [
+            "https://cook.dzerv.art/",
+            "https://cook.dzerv.art/login",
+            "https://cook.dzerv.art/login?direct=1"
+          ]
+          realms = ["cook"]
+        }
+      ]
       users = [
         { name = "Dimitris Zervas", email = "dzervas@dzervas.gr", username = "dzervas", realms = ["all"] },
-        { name = "Fani", email = "fani-garouf@hotmail.com", username = "fani", realms = ["audiobooks"] },
-        { name = "Giorgos Galanakis", email = "ggalan87@gmail.com", username = "ggalan87", realms = ["audiobooks"] },
+        { name = "Fani", email = "fani-garouf@hotmail.com", username = "fani", realms = ["audiobooks", "cook"] },
+        { name = "test", email = "dzervas@protonmail.com", username = "test", realms = ["audiobooks", "cook"] },
+
         { name = "Lilaki", email = "liliagkounisofikiti@hotmail.com", username = "lilia", realms = ["audiobooks"] },
+
+        { name = "Giorgos Galanakis", email = "ggalan87@gmail.com", username = "ggalan87", realms = ["audiobooks"] },
         { name = "xiaflos", email = "asmolf@gmail.com", username = "xiaflos", realms = ["audiobooks"] },
         { name = "Alextrical", email = "benjackson990@gmail.com", username = "alextrical", realms = ["audiobooks"] },
         { name = "Darina Golos", email = "darinagolos@gmail.com", username = "darina", realms = ["audiobooks"] },
         { name = "Endri Meto", email = "audiobooks@endme.gr", username = "endme", realms = ["public"] },
-        { name = "test", email = "dzervas@protonmail.com", username = "test", realms = ["audiobooks"] },
       ]
     }
   })]

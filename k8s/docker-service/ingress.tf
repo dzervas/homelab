@@ -6,11 +6,26 @@ resource "kubernetes_ingress_v1" "docker" {
     annotations = merge({
       "cert-manager.io/cluster-issuer"           = "letsencrypt"
       "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
-      }, var.mtls_enabled ? {
-      "nginx.ingress.kubernetes.io/auth-tls-verify-client" = "on"
-      "nginx.ingress.kubernetes.io/auth-tls-secret"        = "cert-manager/client-ca-certificate"
-      "nginx.ingress.kubernetes.io/auth-tls-verify-depth"  = "1"
-    } : {})
+      },
+      var.auth == "mtls" ? {
+        "nginx.ingress.kubernetes.io/auth-tls-verify-client" = "on"
+        "nginx.ingress.kubernetes.io/auth-tls-secret"        = "cert-manager/client-ca-certificate"
+        "nginx.ingress.kubernetes.io/auth-tls-verify-depth"  = "1"
+      } :
+      var.auth == "oauth" ? {
+        "magicentry.rs/realms"                       = var.name
+        "magicentry.rs/auth-url"                     = "true"
+        "magicentry.rs/manage-ingress-nginx"         = "true"
+        "nginx.ingress.kubernetes.io/auth-url"       = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
+        "nginx.ingress.kubernetes.io/auth-signin"    = "https://auth.dzerv.art/login"
+        "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
+          location = /__magicentry_auth_code {
+            add_header Set-Cookie "code=$arg_code; Path=/; HttpOnly; Secure; Max-Age=60; SameSite=Lax";
+            return 302 /;
+          }
+        EOF
+      } : {}
+    )
     labels = {
       managed_by = "terraform"
       service    = var.name

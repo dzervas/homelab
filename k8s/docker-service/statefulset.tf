@@ -39,6 +39,14 @@ resource "kubernetes_stateful_set" "docker" {
             container_port = var.port
           }
 
+          dynamic "env" {
+            for_each = var.env
+            content {
+              name  = env.key
+              value = env.value
+            }
+          }
+
           dynamic "volume_mount" {
             for_each = var.config_maps
             content {
