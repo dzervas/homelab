@@ -10,14 +10,14 @@ module "magicentry_ingress" {
   fqdn         = "auth.${var.domain}"
   mtls_enabled = false
   additional_annotations = {
-    "cert-manager.io/cluster-issuer"                    = "letsencrypt"
-    "nginx.ingress.kubernetes.io/ssl-redirect"          = "true"
-    "nginx.ingress.kubernetes.io/configuration-snippet" = <<EOF
-      location /oidc/token {
-        deny all;
-        return 403;
-      }
-    EOF
+    "cert-manager.io/cluster-issuer"           = "letsencrypt"
+    "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
+    # "nginx.ingress.kubernetes.io/configuration-snippet" = <<EOF
+    #   location /oidc/token {
+    #     deny all;
+    #     return 403;
+    #   }
+    # EOF
   }
 }
 
@@ -29,7 +29,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.3.15"
+  version    = "0.4.2"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -60,8 +60,15 @@ resource "helm_release" "magicentry" {
             "https://cook.dzerv.art/login",
             "https://cook.dzerv.art/login?direct=1"
           ]
-          realms = ["cook"]
-        }
+          origins = ["https://cook.dzerv.art"]
+          realms  = ["cook"]
+        },
+        {
+          id            = "jksU5OEyoSBBtLl1n56RYoKLj6RoFGU2i68Rf24E"
+          secret        = "N6oi8didSndDDGfdPXZHKm6WQkks7LrczlnzAPQCd8MZHU9T8KY5zIJWpgLYXqQEl2OedFOcGc9fLkdBZtQ"
+          redirect_uris = ["https://meals.dzerv.art/accounts/oidc/magicentry/login/callback/"]
+          realms        = ["cook"]
+        },
       ]
       users = [
         { name = "Dimitris Zervas", email = "dzervas@dzervas.gr", username = "dzervas", realms = ["all"] },

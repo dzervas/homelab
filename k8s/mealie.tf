@@ -21,7 +21,7 @@ module "mealie" {
 
   env = {
     ALLOW_SIGNUP        = "true"
-    TZ                  = "Athens/Europe"
+    TZ                  = var.timezone
     BASE_URL            = "http://cook.${var.domain}"
     DAILY_SCHEDULE_TIME = "06:30"
 
