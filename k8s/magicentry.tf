@@ -29,7 +29,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.4.2"
+  version    = "0.4.3"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -57,8 +57,8 @@ resource "helm_release" "magicentry" {
           secret = "v5r1vRqBDFQdHr2Crth8A1JH1Uqzv6GYHRHV1iG8vlDJ6kf3d2zwKU17U1kdtVyJpsK0BLkAd4JoMezpGg"
           redirect_uris = [
             "https://cook.dzerv.art/",
-            "https://cook.dzerv.art/login",
-            "https://cook.dzerv.art/login?direct=1"
+            "https://cook.dzerv.art/login/",
+            "https://cook.dzerv.art/login/?direct=1"
           ]
           origins = ["https://cook.dzerv.art"]
           realms  = ["cook"]

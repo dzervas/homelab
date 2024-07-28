@@ -20,18 +20,18 @@ module "mealie" {
   }
 
   env = {
-    ALLOW_SIGNUP        = "true"
+    ALLOW_SIGNUP        = "false"
     TZ                  = var.timezone
     BASE_URL            = "http://cook.${var.domain}"
     DAILY_SCHEDULE_TIME = "06:30"
 
     # OIDC
-    OIDC_AUTH_ENABLED      = "true"
-    OIDC_SIGNUP_ENABLED    = "true"
-    OIDC_CONFIGURATION_URL = "https://auth.dzerv.art/.well-known/openid-configuration"
-    OIDC_CLIENT_ID         = (yamldecode(helm_release.magicentry.values[0])).config.oidc_clients[1].id
-    OIDC_AUTO_REDIRECT     = "true"
-    OIDC_REMEMBER_ME       = "true"
-    OIDC_PROVIDER_NAME     = "Magic ✨"
+    # OIDC_AUTH_ENABLED      = "true"
+    # OIDC_SIGNUP_ENABLED    = "true"
+    # OIDC_CONFIGURATION_URL = "https://auth.dzerv.art/.well-known/openid-configuration"
+    # OIDC_CLIENT_ID         = (yamldecode(helm_release.magicentry.values[0])).config.oidc_clients[1].id
+    # OIDC_AUTO_REDIRECT     = "true"
+    # OIDC_REMEMBER_ME       = "true"
+    # OIDC_PROVIDER_NAME     = "Magic ✨"
   }
 }
