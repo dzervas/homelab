@@ -5,7 +5,7 @@ module "ntfy" {
   name            = "ntfy"
   fqdn            = "ntfy.${var.domain}"
   ingress_enabled = true
-  mtls_enabled    = false
+  auth            = "none"
   image           = "binwiederhier/ntfy:latest"
   args            = ["serve"]
   port            = 80

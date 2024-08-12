@@ -38,6 +38,11 @@ variable "args" {
   default = []
 }
 
+variable "env" {
+  type    = map(string)
+  default = {}
+}
+
 variable "config_maps" {
   type        = map(string)
   default     = {}
@@ -64,7 +69,12 @@ variable "ingress_enabled" {
   default = true
 }
 
-variable "mtls_enabled" {
-  type    = bool
-  default = true
+variable "auth" {
+  type        = string
+  description = "The type of external authentiaction to implement - none, mtls or oauth (magicentry)"
+  default     = "statefulset"
+  validation {
+    condition     = contains(["none", "mtls", "oauth"], var.auth)
+    error_message = "Invalid service type. Must be one of deployment or statefulset"
+  }
 }

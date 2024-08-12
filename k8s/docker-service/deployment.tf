@@ -33,9 +33,21 @@ resource "kubernetes_deployment" "docker" {
           name  = var.name
           image = var.image
           args  = var.args
+          # env   = for k, v in var.env : {
+          #   name  = k
+          #   value = v
+          # }
 
           port {
             container_port = var.port
+          }
+
+          dynamic "env" {
+            for_each = var.env
+            content {
+              name  = env.key
+              value = env.value
+            }
           }
 
           # TODO: Add volumes
