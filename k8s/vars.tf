@@ -9,8 +9,9 @@ variable "timezone" {
   default     = "Europe/Athens"
 }
 
-variable "onepassword_vault" {
+variable "op_vault" {
   type        = string
   default     = "secrets"
   description = "The vault ID to use for fetching secrets"
+  sensitive   = true
 }

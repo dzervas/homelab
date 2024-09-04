@@ -1,4 +1,9 @@
-variable "op_vault" {}
+variable "op_vault" {
+  type        = string
+  default     = "secrets"
+  description = "The vault ID to use for fetching secrets"
+  sensitive   = true
+}
 
 variable "ssh_public_key" {}
 variable "domain" {

@@ -2,6 +2,12 @@ locals {
   magicentry_users_audiobooks = [
     { name = "Fani", email = "fani-garouf@hotmail.com" }
   ]
+  magicentry_secrets = { for obj in data.onepassword_item.magicentry.section[0].field : obj.label => obj.value }
+}
+
+data "onepassword_item" "magicentry" {
+  vault = var.op_vault
+  title = "MagicEntry"
 }
 
 module "magicentry_ingress" {
@@ -47,14 +53,14 @@ resource "helm_release" "magicentry" {
       oidc_enable = true
       oidc_clients = [
         {
-          id            = "u5SMBIZFtshHApkv9o2D8JDxb6QVvAVnwU2XN9u03Ko"
-          secret        = "F7WRYALJ2viCeLNxz1-f5JHwJRzArxh5-zNS27WMouJg_AxxBYtPBHxws92FprVw3rDuyKPsNgoiwF_G3yamoA"
+          id            = local.magicentry_secrets.audiobooks_id
+          secret        = local.magicentry_secrets.audiobooks_secret
           redirect_uris = ["https://audiobooks.dzerv.art/auth/openid/callback"]
           realms        = ["audiobooks", "public"]
         },
         {
-          id     = "EyWZe2EqeovjsJ56rcIrQBwgJRtt8aRqT2uKmhA3A"
-          secret = "v5r1vRqBDFQdHr2Crth8A1JH1Uqzv6GYHRHV1iG8vlDJ6kf3d2zwKU17U1kdtVyJpsK0BLkAd4JoMezpGg"
+          id     = local.magicentry_secrets.cook_id
+          secret = local.magicentry_secrets.cook_secret
           redirect_uris = [
             "https://cook.dzerv.art/",
             "https://cook.dzerv.art/login/",
@@ -62,12 +68,6 @@ resource "helm_release" "magicentry" {
           ]
           origins = ["https://cook.dzerv.art"]
           realms  = ["cook"]
-        },
-        {
-          id            = "jksU5OEyoSBBtLl1n56RYoKLj6RoFGU2i68Rf24E"
-          secret        = "N6oi8didSndDDGfdPXZHKm6WQkks7LrczlnzAPQCd8MZHU9T8KY5zIJWpgLYXqQEl2OedFOcGc9fLkdBZtQ"
-          redirect_uris = ["https://meals.dzerv.art/accounts/oidc/magicentry/login/callback/"]
-          realms        = ["cook"]
         },
       ]
       users = [
