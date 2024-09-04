@@ -28,3 +28,14 @@ kubectl --kubeconfig /tmp/newkubeconfig config set-context default --user $SERVI
 kubectl --kubeconfig /tmp/newkubeconfig config set-cluster default --server $(kubectl config view -o jsonpath='{$.clusters[?(@.name == "'$(kubectl config current-context)'")].cluster.server}')
 kubectl --kubeconfig /tmp/newkubeconfig config set clusters.default.certificate-authority-data $(kubectl config view -o jsonpath='{$.clusters[?(@.name == "'$(kubectl config current-context)'")].cluster.certificate-authority-data}' --raw)
 ```
+
+## Modem ACME fix
+
+```bash
+ln -s /etc/opkg/openwrt/distfeeds.conf /etc/opkg/
+opkg update
+opkg install acme acme-dnsapi
+/etc/init.d/acme restart
+/etc/init.d/acme enable
+opkg install prometheus-node-exporter-lua-openwrt
+```
