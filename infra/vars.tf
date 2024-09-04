@@ -1,34 +1,10 @@
+variable "op_vault" {}
+
 variable "ssh_public_key" {}
 variable "domain" {
   default = "dzerv.art"
   type    = string
 }
-
-// Oracle Cloud API credentials
-variable "tenancy_ocid" {}
-variable "user_ocid" {}
-variable "compartment_ocid" {}
-variable "oci_fingerprint" {}
-variable "oci_private_key" {
-  sensitive = true
-}
-
-// Oracle Cloud API Alt credentials
-variable "tenancy_ocid_alt" {}
-variable "user_ocid_alt" {}
-variable "compartment_ocid_alt" {}
-variable "oci_fingerprint_alt" {}
-variable "oci_private_key_alt" {
-  sensitive = true
-}
-
-// CloudFlare
-variable "cloudflare_email" {}
-variable "cloudflare_api_token" {}
-
-// ZeroTier
-variable "zerotier_central_token" {}
-variable "zerotier_network_id" {}
 
 variable "instance_count" {
   description = "The number of instances to deploy"
