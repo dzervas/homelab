@@ -6,7 +6,7 @@ module "mealie" {
   fqdn            = "cook.${var.domain}"
   ingress_enabled = true
   auth            = "oauth"
-  image           = "ghcr.io/mealie-recipes/mealie:v1.10.2"
+  image           = "ghcr.io/mealie-recipes/mealie:v1.12.0"
   port            = 9000
   retain_pvcs     = true
   pvcs = {
