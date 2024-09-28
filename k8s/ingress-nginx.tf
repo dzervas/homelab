@@ -26,7 +26,8 @@ resource "helm_release" "ingress_nginx" {
       }
     }
     tcp = {
-      2222 = "borgserver/borgserver-service:2222"
+      2222  = "borgserver/borgserver-service:2222"
+      25565 = "minecraft/minecraft-minecraft:25565"
     }
   })]
 }
