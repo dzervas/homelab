@@ -10,10 +10,11 @@
     state: started
     enabled: true
 
-- name: Join ZeroTier network
-  command: zerotier-cli join {{ zerotier_network_id }}
-  args:
-    creates: /var/lib/zerotier-one/networks.d/{{ zerotier_network_id }}.conf
+# TODO: Populate the variable
+# - name: Join ZeroTier network
+#   command: zerotier-cli join {{ zerotier_network_id }}
+#   args:
+#     creates: /var/lib/zerotier-one/networks.d/{{ zerotier_network_id }}.conf
 
 - meta: flush_handlers
 

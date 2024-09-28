@@ -60,6 +60,7 @@
     - "80"
     - "443"
     - "2222"
+    - "25565"
   register: ufw_result
   until: ufw_result is succeeded
   retries: 5
