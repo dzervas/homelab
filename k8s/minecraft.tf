@@ -28,14 +28,11 @@ resource "helm_release" "minecraft" {
       type       = "FORGE"
       motd       = "I'm a form of art"
       version    = "1.20.1"
-      modUrls    = ["https://mediafilez.forgecdn.net/files/5689/514/create-1.20.1-0.5.1.h.jar", "https://mediafilez.forgecdn.net/files/5733/601/tombstone-1.20.1-8.7.4.jar"]
       onlineMode = true
-      levelSeed  = 31563250179158
+      levelSeed  = "31563250179158"
 
-      # These error out but can be added from the console with kubectl attach
-      # /whitelist add dzervasgr gkaklas chinesium_ looselyrigorous
-      # whitelist  = ["dzervasgr", "gkaklas", "chinesium_", "looselyrigorous"]
-      # ops = ["dzervasgr"]
+      whitelist = "dzervasgr,gkaklas,chinesium_,looselyrigorous"
+      ops       = "dzervasgr"
 
       autoCurseForge = {
         apiKey = {
@@ -44,10 +41,20 @@ resource "helm_release" "minecraft" {
       }
     }
 
+    extraEnv = {
+      // Disable flight kick (for tombstone mod)
+      ALLOW_FLIGHT     = "TRUE"
+      CURSEFORGE_FILES = "create,corail-tombstone,jei,xaeros-minimap"
+    }
+
     persistence = {
       dataDir = {
         enabled = true
       }
+    }
+
+    nodeSelector = {
+      "kubernetes.io/hostname" = "gr0.dzerv.art"
     }
   })]
 }
