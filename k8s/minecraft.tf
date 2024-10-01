@@ -24,6 +24,10 @@ resource "helm_release" "minecraft" {
 
   values = [yamlencode({
     minecraftServer = {
+      // NOTE: Needs:
+      // /gamerule mobGriefing false (disable creeper explosions and endermen picking up blocks)
+      // /gamerule playersSleepingPercentage 1 (skip night if 1 player is sleeping)
+      // Patch file in config/tombstone-server.toml decorative_grave.prayer_cooldown = 10 (Ankh takes too long to recharge, 10m is good)
       eula       = "TRUE"
       type       = "FORGE"
       motd       = "I'm a form of art"
@@ -42,7 +46,7 @@ resource "helm_release" "minecraft" {
     }
 
     extraEnv = {
-      // Disable flight kick (for tombstone mod)
+      // Disable flight kick (for tombstone mod) - didn't work
       ALLOW_FLIGHT     = "TRUE"
       CURSEFORGE_FILES = "create,corail-tombstone,jei,xaeros-minimap"
     }
