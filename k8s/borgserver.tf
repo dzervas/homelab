@@ -30,7 +30,7 @@ resource "helm_release" "borgserver" {
         name            = "dzervas-hass"
         restrictToPaths = ["/backup/dzervas-hass"]
         type            = "ssh-ed25519"
-        key             = "AAAAC3NzaC1lZDI1NTE5AAAAIHYF2FfOQAsVsdR0+ya3iXiDjklWHdMAfWt31uXMz6rE"
+        key             = "AAAAC3NzaC1lZDI1NTE5AAAAINOirl4WE2aK9ggha350TFaZY6N7pZTvfNLIC+DEDbqi"
       }
     ]
   })]

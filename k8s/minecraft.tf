@@ -54,6 +54,7 @@ resource "helm_release" "minecraft" {
     persistence = {
       dataDir = {
         enabled = true
+        # Size    = "10Gi"
       }
     }
 
