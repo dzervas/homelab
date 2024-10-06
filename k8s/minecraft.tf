@@ -48,13 +48,13 @@ resource "helm_release" "minecraft" {
     extraEnv = {
       // Disable flight kick (for tombstone mod) - didn't work
       ALLOW_FLIGHT     = "TRUE"
-      CURSEFORGE_FILES = "create,corail-tombstone,jei,xaeros-minimap"
+      CURSEFORGE_FILES = "create,corail-tombstone,jei,xaeros-minimap,ping-wheel"
     }
 
     persistence = {
       dataDir = {
         enabled = true
-        # Size    = "10Gi"
+        Size    = "10Gi"
       }
     }
 
