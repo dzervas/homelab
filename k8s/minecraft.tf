@@ -46,9 +46,21 @@ resource "helm_release" "minecraft" {
     }
 
     extraEnv = {
-      // Disable flight kick (for tombstone mod) - didn't work
-      ALLOW_FLIGHT     = "TRUE"
-      CURSEFORGE_FILES = "create,corail-tombstone,jei,xaeros-minimap,ping-wheel"
+      ALLOW_FLIGHT = "TRUE" // Disable flight kick (for tombstone mod)
+      CURSEFORGE_FILES = join(",", [
+        // QoL/Essentials
+        "appleskin",        // Apple Skin - Hunger preview
+        "advanced-compass", // Compass with coordinates (to find others, etc.)
+        "inventory-sorter", // Middle click to sort inventory (alts: inventory-bogosorter, inventory-profiles-next)
+        "jei",              // Just Enough Items - Recipe viewer & search
+        "ping-wheel",       // Ping with mouse 5
+        "xaeros-minimap",   // Minimap (U & Y keybinds to open)
+
+        // Game Mods
+        "create", // Create - Mechanical contraptions
+        # "corail-tombstone",
+        "gravestone-mod",
+      ])
     }
 
     persistence = {
