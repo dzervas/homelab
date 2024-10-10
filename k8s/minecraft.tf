@@ -21,6 +21,7 @@ resource "helm_release" "minecraft" {
   repository = "https://itzg.github.io/minecraft-server-charts/"
   chart      = "minecraft"
   version    = "4.23.2"
+  timeout    = 600 # Takes about 5:30 to install a new mod
 
   values = [yamlencode({
     minecraftServer = {
@@ -58,7 +59,7 @@ resource "helm_release" "minecraft" {
 
         // Game Mods
         "create", // Create - Mechanical contraptions
-        // "create-goggles", // Combine goggles with helmets
+        "create-goggles", "architectury-api", // Combine goggles with helmets, architectury is a dep
 
         // To play/test:
         // "botania", // magic, seems very nice and vanilla-esque
