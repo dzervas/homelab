@@ -58,7 +58,21 @@ resource "helm_release" "minecraft" {
 
         // Game Mods
         "create", // Create - Mechanical contraptions
-        # "corail-tombstone",
+        // "create-goggles", // Combine goggles with helmets
+
+        // To play/test:
+        // "botania", // magic, seems very nice and vanilla-esque
+        // "thermal-expansion", // magic/tech
+        // "farmers-delight", // more farming & cooking stuff
+        // "create-easy-structures", // adds random create mod structures around the world - in alpha
+        // "create-diesel-generators", // adds diesel & diesel generator, seems cool, kinda OP?
+        // "create-confectionary", // adds various snacks & snack liquids
+        // "create-recycle-everything", // recycles stuff. not OP, seems cool
+        // "create-power-loader", // loads chunks, needs more research
+        // "createaddition", // adds electricity in a balanced way
+        // "create-jetpack", // adds jetpacks, like backtank. needs elytra
+
+        // Item recovery after death (corail-tombstone is broken)
         "gravestone-mod",
       ])
     }
