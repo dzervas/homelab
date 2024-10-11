@@ -18,7 +18,8 @@ resource "helm_release" "longhorn" {
   namespace  = kubernetes_namespace.longhorn-system.metadata.0.name
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  version    = "1.6.2"
+  version    = "1.7.1"
+  timeout    = 1800 # Fucking gr1
   values = [yamlencode({
     persistence = {
       defaultClass             = true
@@ -38,6 +39,11 @@ resource "helm_release" "longhorn" {
       host      = "storage.${var.domain}"
       tls       = true
       tlsSecret = "storage-${replace(var.domain, ".", "-")}-cert"
+    }
+
+    csi = {
+      # See https://github.com/longhorn/longhorn/issues/1861
+      kubeletRootDir = "/var/lib/kubelet/"
     }
   })]
 }
