@@ -7,6 +7,8 @@ module "oci_instances_arm" {
   }
 
   fqdn                  = "${split("-", var.region)[1]}${count.index}.${var.domain}"
+  apex_record           = true
+  wildcard_record       = true
   region                = var.region
   availability_domain   = var.availability_domain
   compartment_ocid      = local.oci_main.compartment_ocid
@@ -35,6 +37,8 @@ module "oci_instances_arm_alt" {
   }
 
   fqdn                  = "${split("-", var.region)[1]}${count.index + length(module.oci_instances_arm)}.${var.domain}"
+  apex_record           = true
+  wildcard_record       = true
   region                = var.region_alt
   availability_domain   = var.availability_domain_alt
   compartment_ocid      = local.oci_alt.compartment_ocid

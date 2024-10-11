@@ -2,6 +2,18 @@ variable "fqdn" {
   type = string
 }
 
+variable "apex_record" {
+  description = "Add an A record for the apex domain to this host"
+  type = bool
+  default = false
+}
+
+variable "wildcard_record" {
+  description = "Add an A record for the wildcard domain to this host"
+  type = bool
+  default = false
+}
+
 variable "region" {
   type = string
 }
