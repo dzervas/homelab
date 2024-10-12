@@ -1,8 +1,3 @@
-# module "snipeit_ingress" {
-#   source = "./ingress-block"
-
-#   fqdn = "mc.${var.domain}"
-# }
 locals {
   minecraft_secrets = { for obj in data.onepassword_item.minecraft.section[0].field : obj.label => obj.value }
 }
@@ -25,16 +20,19 @@ resource "helm_release" "minecraft" {
 
   values = [yamlencode({
     minecraftServer = {
-      // NOTE: Needs:
-      // /gamerule mobGriefing false (disable creeper explosions and endermen picking up blocks)
-      // /gamerule playersSleepingPercentage 1 (skip night if 1 player is sleeping)
-      // Patch file in config/tombstone-server.toml decorative_grave.prayer_cooldown = 10 (Ankh takes too long to recharge, 10m is good)
+      # TODO: Add a mechanism for patch files to be applied on startup (https:#docker-minecraft-server.readthedocs.io/en/latest/configuration/interpolating/#patching-existing-files)
       eula       = "TRUE"
       type       = "FORGE"
       motd       = "I'm a form of art"
-      version    = "1.20.1"
+      icon       = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
       onlineMode = true
-      levelSeed  = "31563250179158"
+
+      version   = "1.20.1"
+      levelSeed = "31563250179158"
+
+      spawnProtection          = 0
+      difficulty               = "normal"
+      overrideServerProperties = true # Allows to set custom server.properties even after initial setup
 
       whitelist = "dzervasgr,gkaklas,chinesium_,looselyrigorous"
       ops       = "dzervasgr"
@@ -44,36 +42,54 @@ resource "helm_release" "minecraft" {
           key = local.minecraft_secrets.cf_api_key
         }
       }
+
+      # Needed for RCON startup commands to work
+      rcon = {
+        # Since we don't expose the service from ingress, we're safe
+        enabled               = true
+        withGeneratedPassword = true
+      }
     }
 
     extraEnv = {
-      ALLOW_FLIGHT = "TRUE" // Disable flight kick (for tombstone mod)
+      ALLOW_FLIGHT    = "TRUE"  # Disable flight kick (for tombstone mod)
+      SNOOPER_ENABLED = "FALSE" # Disable telemetry
+      INIT_MEMORY     = "1G"
+      MAX_MEMORY      = "4G"
+      RCON_CMDS_STARTUP = join("\n", [
+        "gamerule mobGriefing false",
+        "gamerule playersSleepingPercentage 1",
+        "mobgriefing minecraft:villager true",
+      ])
       CURSEFORGE_FILES = join(",", [
-        // QoL/Essentials
-        "appleskin",        // Apple Skin - Hunger preview
-        "advanced-compass", // Compass with coordinates (to find others, etc.)
-        "inventory-sorter", // Middle click to sort inventory (alts: inventory-bogosorter, inventory-profiles-next)
-        "jei",              // Just Enough Items - Recipe viewer & search
-        "ping-wheel",       // Ping with mouse 5
-        "xaeros-minimap",   // Minimap (U & Y keybinds to open)
+        # QoL/Essentials
+        "appleskin",                # Apple Skin - Hunger preview
+        "advanced-compass",         # Compass with coordinates (to find others, etc.)
+        "inventory-sorter",         # Middle click to sort inventory (alts: inventory-bogosorter, inventory-profiles-next)
+        "jei",                      # Just Enough Items - Recipe viewer & search
+        "ping-wheel",               # Ping with mouse 5
+        "xaeros-minimap",           # Minimap (U & Y keybinds to open)
+        "more-mobgriefing-options", # Allows to disable mobGriefing but allow farmer breeding
+        # Find a chest coloring mod
+        # Multi-step crafter (queue crafting, stack crafting of weird recipes etc.)
 
-        // Game Mods
-        "create", // Create - Mechanical contraptions
-        "create-goggles", "architectury-api", // Combine goggles with helmets, architectury is a dep
+        # Game Mods
+        "create",                             # Create - Mechanical contraptions
+        "create-goggles", "architectury-api", # Combine goggles with helmets, architectury is a dep
 
-        // To play/test:
-        // "botania", // magic, seems very nice and vanilla-esque
-        // "thermal-expansion", // magic/tech
-        // "farmers-delight", // more farming & cooking stuff
-        // "create-easy-structures", // adds random create mod structures around the world - in alpha
-        // "create-diesel-generators", // adds diesel & diesel generator, seems cool, kinda OP?
-        // "create-confectionary", // adds various snacks & snack liquids
-        // "create-recycle-everything", // recycles stuff. not OP, seems cool
-        // "create-power-loader", // loads chunks, needs more research
-        // "createaddition", // adds electricity in a balanced way
-        // "create-jetpack", // adds jetpacks, like backtank. needs elytra
+        # To play/test:
+        # "botania", # magic, seems very nice and vanilla-esque
+        # "thermal-expansion", # magic/tech
+        # "farmers-delight", # more farming & cooking stuff
+        # "create-easy-structures", # adds random create mod structures around the world - in alpha
+        # "create-diesel-generators", # adds diesel & diesel generator, seems cool, kinda OP?
+        # "create-confectionary", # adds various snacks & snack liquids
+        # "create-recycle-everything", # recycles stuff. not OP, seems cool
+        # "create-power-loader", # loads chunks, needs more research
+        # "createaddition", # adds electricity in a balanced way
+        # "create-jetpack", # adds jetpacks, like backtank. needs elytra
 
-        // Item recovery after death (corail-tombstone is broken)
+        # Item recovery after death (corail-tombstone is broken)
         "gravestone-mod",
       ])
     }
