@@ -95,6 +95,9 @@ resource "helm_release" "minecraft" {
     }
 
     persistence = {
+      labels = {
+        "recurring-job-group.longhorn.io/minecraft" = "enabled"
+      }
       dataDir = {
         enabled = true
         Size    = "10Gi"
@@ -105,4 +108,31 @@ resource "helm_release" "minecraft" {
       "kubernetes.io/hostname" = "gr0.dzerv.art"
     }
   })]
+}
+
+# To enable the job for the PVC:
+# kubectl -n minecraft label pvc/<the pvc> recurring-job-group.longhorn.io/minecraft=enabled
+resource "kubernetes_manifest" "minecraft_snapshot_task" {
+  manifest = {
+    apiVersion = "longhorn.io/v1beta2"
+    kind       = "RecurringJob"
+    metadata = {
+      name      = "minecraft-snpashot"
+      namespace = helm_release.longhorn.namespace
+      labels = {
+        managed_by = "terraform"
+      }
+    }
+    spec = {
+      name = "minecraft-snpashot"
+      cron = "0 10 * * *" # At 10:00 AM every day
+      task = "snapshot"
+      retain = 14 # 2 Weeks
+      concurrency = 1
+      groups = ["minecraft"]
+      labels = {
+        managed_by = "terraform"
+      }
+    }
+  }
 }
