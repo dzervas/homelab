@@ -60,6 +60,8 @@ resource "helm_release" "minecraft" {
         "gamerule mobGriefing false",
         "gamerule playersSleepingPercentage 1",
         "mobgriefing minecraft:villager true",
+        "mobgriefing minecraft:zombie true",
+        "mobgriefing minecraft:zombie_villager true",
       ])
       CURSEFORGE_FILES = join(",", [
         # QoL/Essentials
@@ -91,6 +93,11 @@ resource "helm_release" "minecraft" {
 
         # Item recovery after death (corail-tombstone is broken)
         "gravestone-mod",
+
+        # To open to the public:
+        # mclink - patreon-based subscription whitelisting
+        # open-parties-and-claims - create-compatible claims
+        # prometheus-exporter
       ])
     }
 
