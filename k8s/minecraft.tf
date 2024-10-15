@@ -98,6 +98,7 @@ resource "helm_release" "minecraft" {
         # "create-power-loader", # loads chunks, needs more research
         # "createaddition", # adds electricity in a balanced way
         # "create-jetpack", # adds jetpacks, like backtank. needs elytra
+        # "trackwork", # create mod contraptions-as-vehicles
 
         # Item recovery after death (corail-tombstone is broken)
         "gravestone-mod",
