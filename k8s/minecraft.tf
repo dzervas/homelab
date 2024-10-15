@@ -70,6 +70,7 @@ resource "helm_release" "minecraft" {
         "mobgriefing minecraft:zombie true",
         "mobgriefing minecraft:zombie_villager true",
       ])
+      # MODRINTH_DOWNLOAD_DEPENDENCIES = "required"
       CURSEFORGE_FILES = join(",", [
         # QoL/Essentials
         # Client side: Extreme sound muffler, can mute certain sounds around defined areas
@@ -91,7 +92,7 @@ resource "helm_release" "minecraft" {
         # "botania", # magic, seems very nice and vanilla-esque
         # "thermal-expansion", # magic/tech
         # "farmers-delight", # more farming & cooking stuff
-        # "create-easy-structures", # adds random create mod structures around the world - in alpha
+        # "create-easy-structures", or "create-structures" # adds random create mod structures around the world - in alpha
         # "create-diesel-generators", # adds diesel & diesel generator, seems cool, kinda OP?
         # "create-confectionary", # adds various snacks & snack liquids
         # "create-recycle-everything", # recycles stuff. not OP, seems cool
