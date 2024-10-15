@@ -34,7 +34,14 @@ resource "helm_release" "minecraft" {
       difficulty               = "normal"
       overrideServerProperties = true # Allows to set custom server.properties even after initial setup
 
-      whitelist = "dzervasgr,gkaklas,chinesium_,looselyrigorous"
+      whitelist = join(",", [
+        "dzervasgr",
+        "gkaklas",
+        "chinesium_",
+        "looselyrigorous",
+
+        "quicksilver100", # Reddit guy
+      ])
       ops       = "dzervasgr"
 
       autoCurseForge = {
