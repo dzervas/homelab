@@ -41,8 +41,10 @@ resource "helm_release" "minecraft" {
         "looselyrigorous",
 
         "quicksilver100", # Reddit guy
+        "Raffle_Daffle",  # ortiz
+        "Hendog2014",     # ortiz's friend
       ])
-      ops       = "dzervasgr"
+      ops = "dzervasgr"
 
       autoCurseForge = {
         apiKey = {
@@ -92,6 +94,7 @@ resource "helm_release" "minecraft" {
         # "botania", # magic, seems very nice and vanilla-esque
         # "thermal-expansion", # magic/tech
         # "farmers-delight", # more farming & cooking stuff
+        # "create-connected", # more create features and QoL stuff
         # "create-easy-structures", or "create-structures" # adds random create mod structures around the world - in alpha
         # "create-diesel-generators", # adds diesel & diesel generator, seems cool, kinda OP?
         # "create-confectionary", # adds various snacks & snack liquids
@@ -141,12 +144,12 @@ resource "kubernetes_manifest" "minecraft_snapshot_task" {
       }
     }
     spec = {
-      name = "minecraft-snpashot"
-      cron = "0 10 * * *" # At 10:00 AM every day
-      task = "snapshot"
-      retain = 14 # 2 Weeks
+      name        = "minecraft-snpashot"
+      cron        = "0 10 * * *" # At 10:00 AM every day
+      task        = "snapshot"
+      retain      = 14 # 2 Weeks
       concurrency = 1
-      groups = ["minecraft"]
+      groups      = ["minecraft"]
       labels = {
         managed_by = "terraform"
       }
