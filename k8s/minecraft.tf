@@ -63,8 +63,8 @@ resource "helm_release" "minecraft" {
     extraEnv = {
       ALLOW_FLIGHT    = "TRUE"  # Disable flight kick (for tombstone mod)
       SNOOPER_ENABLED = "FALSE" # Disable telemetry
-      INIT_MEMORY     = "1G"
-      MAX_MEMORY      = "4G"
+      INIT_MEMORY     = "2G"
+      MAX_MEMORY      = "8G"
       RCON_CMDS_STARTUP = join("\n", [
         "gamerule mobGriefing false",
         "gamerule playersSleepingPercentage 1",
@@ -83,6 +83,7 @@ resource "helm_release" "minecraft" {
         "ping-wheel",               # Ping with mouse 5
         "xaeros-minimap",           # Minimap (U & Y keybinds to open)
         "more-mobgriefing-options", # Allows to disable mobGriefing but allow farmer breeding
+        "zombie-villager-control",  # Zombie Villager Control - Villagers convert 100% on all difficulties and optionally QuickCure
         # Find a chest coloring mod
         # Multi-step crafter (queue crafting, stack crafting of weird recipes etc.)
 
@@ -111,11 +112,14 @@ resource "helm_release" "minecraft" {
         # mclink - patreon-based subscription whitelisting
         # open-parties-and-claims - create-compatible claims
         # prometheus-exporter
+        # Performance/Profiling
+        "spark", # Profiling
       ])
     }
 
     persistence = {
       labels = {
+        "recurring-job.longhorn.io/source"          = "enabled"
         "recurring-job-group.longhorn.io/minecraft" = "enabled"
       }
       dataDir = {
