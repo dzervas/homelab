@@ -71,6 +71,15 @@ resource "helm_release" "minecraft" {
         "mobgriefing minecraft:villager true",
         "mobgriefing minecraft:zombie true",
         "mobgriefing minecraft:zombie_villager true",
+
+        # Animal growth
+        "mobgriefing minecraft:bee true",
+        "mobgriefing minecraft:cat true",
+        "mobgriefing minecraft:chicken true",
+        "mobgriefing minecraft:cow true",
+        "mobgriefing minecraft:horse true",
+        "mobgriefing minecraft:sheep true",
+        "mobgriefing minecraft:wolf true",
       ])
       # MODRINTH_DOWNLOAD_DEPENDENCIES = "required"
       CURSEFORGE_FILES = join(",", [
