@@ -86,7 +86,6 @@ resource "helm_release" "minecraft" {
         # QoL/Essentials
         # Client side: Extreme sound muffler, can mute certain sounds around defined areas
         "appleskin",                # Apple Skin - Hunger preview
-        "advanced-compass",         # Compass with coordinates (to find others, etc.)
         "inventory-sorter",         # Middle click to sort inventory (alts: inventory-bogosorter, inventory-profiles-next)
         "jei",                      # Just Enough Items - Recipe viewer & search
         "ping-wheel",               # Ping with mouse 5
