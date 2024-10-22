@@ -81,11 +81,6 @@ resource "helm_release" "minecraft" {
           embedded = false # Creates a new service, doesn't merge it to mc's
           type     = "ClusterIP"
           port     = 19565
-          annotations = {
-            "prometheus.io/scrape" = "true"
-            "prometheus.io/path"   = "/"
-            "prometheus.io/port"   = "19565"
-          }
         }
       }]
     }
@@ -99,8 +94,11 @@ resource "helm_release" "minecraft" {
 
       # Mod list
       CURSEFORGE_FILES = join(",", [
-        # Client side: Extreme sound muffler, can mute certain sounds around defined areas
-        # For shaders: Embedium, Embedium Extra, Flywheel Compat, Oculus
+        # Client side:
+        #  - Extreme sound muffler: can mute certain sounds around defined areas
+        #  - Just Enough Items, Breeding, Resources: HUD with item recipes & more. IT'S A MUST.
+        #  - Jade: Shows what's in front of you, HP, etc.
+        # For shaders: Embeddium, Sodium/Embeddium Extras, Sodium/Embeddium Dynamic Lights, Oculus Flywheel Compat, Oculus
 
         # QoL/Essentials
         "appleskin",                # Apple Skin - Hunger preview
@@ -119,6 +117,7 @@ resource "helm_release" "minecraft" {
         # Game Mods
         "create",                             # Create - Mechanical contraptions
         "create-goggles", "architectury-api", # Combine goggles with helmets, architectury is a dep
+        "create-power-loader",                # loads chunks, needs more research
 
         # To play/test:
         # "botania", # magic, seems very nice and vanilla-esque
@@ -129,7 +128,6 @@ resource "helm_release" "minecraft" {
         # "create-diesel-generators", # adds diesel & diesel generator, seems cool, kinda OP?
         # "create-confectionary", # adds various snacks & snack liquids
         # "create-recycle-everything", # recycles stuff. not OP, seems cool
-        # "create-power-loader", # loads chunks, needs more research
         # "createaddition", # adds electricity in a balanced way
         # "create-jetpack", # adds jetpacks, like backtank. needs elytra
         # "create-cobblestone", # Adds a balanced cobble generator block to reduce server lag
