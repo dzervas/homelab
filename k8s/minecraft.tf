@@ -63,16 +63,22 @@ module "minecraft" {
   ]
   modrinth_allowed_version_type = "beta"
   datapack_urls = [
-    "https://mediafilez.forgecdn.net/files/4905/38/backpacked_recipe_fix_datapack.zip",                           # Backpacks recipe uses leather instead of rabbit hide
+    "https://cdn.modrinth.com/data/8W2fvQSU/versions/iErJtT1r/backpacked_leather_recipe.zip",                     # Backpacks recipe uses leather instead of rabbit hide
     "https://cdn.modrinth.com/data/IAnP4np7/versions/GHYR6eCT/Create%20Structures%20-%20v0.1.1%20-%201.20.1.zip", # Create mod structures
   ]
 
   patches = {
-    "backpacked.json" = jsonencode({
-      file = "/data/config/backpacked.server.toml"
+    "backpacked-common.json" = jsonencode({
+      file = "/data/config/backpacked-common.toml"
       ops = [
-        { "$set" = { path = "$.pickpocketing.enabledPickpocketing", value = false, value-type = "bool" } },
-        { "$set" = { path = "$.backpack.autoEquipOnPickup", value = true, value-type = "bool" } },
+        { "$set" = { path = "$.common.backpackInventorySize", value = 3 } },
+      ]
+    })
+    "backpacked-server.json" = jsonencode({
+      file = "/data/world/serverconfig/backpacked-server.toml"
+      ops = [
+        { "$set" = { path = "$.common.pickpocketBackpacks", value = false, value-type = "bool" } },
+        { "$set" = { path = "$.common.autoEquipBackpackOnPickup", value = true, value-type = "bool" } },
       ]
     })
     "universal-graves.json" = jsonencode({
@@ -81,6 +87,31 @@ module "minecraft" {
         { "$set" = { path = "$.interactions.enable_click_to_open_gui", value = false, value-type = "bool" } },
       ]
     })
+  }
+
+  datapacks = {
+    "backpacked_leather" = {
+      description = "Backpacked Leather Recipe"
+      pack_format = 15
+      data = {
+        "data/backpacked/recipes/backpack.json" = jsonencode({
+          type     = "minecraft:crafting_shaped"
+          category = "misc"
+          key = {
+            H = { item = "minecraft:leather" }
+            I = { item = "minecraft:iron_ingot" }
+            S = { item = "minecraft:string" }
+          }
+          pattern = [
+            "HHH",
+            "SIS",
+            "HHH"
+          ]
+          result            = { item = "backpacked:backpack" }
+          show_notification = true
+        })
+      }
+    }
   }
 
   # Client side:

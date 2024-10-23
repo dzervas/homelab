@@ -135,3 +135,8 @@ variable "patches" {
   description = "Map of patches to apply to the server - https://docker-minecraft-server.readthedocs.io/en/latest/configuration/interpolating/#patching-existing-files"
   default     = {}
 }
+
+variable "datapacks" {
+  description = "Datapacks to define"
+  default     = {}
+}
