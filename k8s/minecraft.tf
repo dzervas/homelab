@@ -1,7 +1,5 @@
 locals {
   minecraft_secrets = { for obj in data.onepassword_item.minecraft.section[0].field : obj.label => obj.value }
-  minecraft_mem_min = "2G"
-  minecraft_mem_max = "8G"
 }
 
 data "onepassword_item" "minecraft" {
@@ -9,221 +7,67 @@ data "onepassword_item" "minecraft" {
   title = "Minecraft"
 }
 
-resource "kubernetes_namespace" "minecraft" {
-  metadata {
-    name = "minecraft"
-    labels = {
-      managed_by = "terraform"
-    }
-  }
+module "minecraft" {
+  source             = "./minecraft-server"
+  mem_min            = "2G"
+  mem_max            = "8G"
+  motd               = "I'm a form of art"
+  icon               = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
+  difficulty         = "hard"
+  curseforge_api_key = local.minecraft_secrets.cf_api_key
+  ops                = ["dzervasgr", "looselyrigorous"]
 
-  lifecycle {
-    prevent_destroy = true
-  }
-}
+  whitelist = [
+    "dzervasgr",
+    "gkaklas",
+    "chinesium_",
+    "looselyrigorous",
 
-resource "helm_release" "minecraft" {
-  name             = "minecraft"
-  namespace        = kubernetes_namespace.minecraft.metadata[0].name
-  create_namespace = false
-  atomic           = true
+    "quicksilver100", # Reddit guy
+    "Raffle_Daffle",  # ortiz
+    "Hendog2014",     # ortiz's friend
+  ]
 
-  repository = "https://itzg.github.io/minecraft-server-charts/"
-  chart      = "minecraft"
-  version    = "4.23.2"
-  timeout    = 600 # Takes about 5:30 to install a new mod
+  minecraft_version = "1.20.1"
+  mod_loader        = "FABRIC"
 
-  # https://github.com/itzg/minecraft-server-charts/blob/master/charts/minecraft/values.yaml
-  values = [yamlencode({
-    minecraftServer = {
-      # Server Info
-      eula                     = "TRUE"
-      motd                     = "I'm a form of art"
-      icon                     = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
-      onlineMode               = true
-      spawnProtection          = 0
-      difficulty               = "hard"
-      overrideServerProperties = true # Allows to set custom server.properties even after initial setup
-      ops                      = "dzervasgr,looselyrigorous"
+  startup_commands = [
+    "gamerule mobGriefing false",
+    "gamerule playersSleepingPercentage 1",
+  ]
 
-      # Wipe-related
-      type    = "FABRIC"
-      version = "1.20.1"
+  curseforge_mods = [
+    "backpacked-fabric", "framework-fabric", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
 
-      # Players
-      whitelist = join(",", [
-        "dzervasgr",
-        "gkaklas",
-        "chinesium_",
-        "looselyrigorous",
+    # Performance/Profiling
+    "prometheus-exporter",
+    # "spark", # Profiling
+  ]
+  modrinth_mods = [
+    # QoL/Essentials
+    "appleskin", # Apple Skin - Hunger preview
+    "trinkets",
+    "jei",                    # Just Enough Items - Recipe viewer & search
+    "ping-wheel",             # Ping with mouse 5
+    "xaeros-minimap",         # Minimap (U & Y keybinds to open)
+    "convenient-mobgriefing", # Allows to disable mobGriefing but allow farmer breeding
+    "universal-graves",       # Item recovery after death (corail-tombstone is broken)
 
-        "quicksilver100", # Reddit guy
-        "Raffle_Daffle",  # ortiz
-        "Hendog2014",     # ortiz's friend
-      ])
+    # Game Mods
+    "create-fabric",              # Create - Mechanical contraptions
+    "create-goggles",             # Combine goggles with helmets, architectury is a dep
+    "create-power-loader-fabric", # Chunk loader, super hard to build one and needs rotational power
 
-      autoCurseForge = {
-        apiKey = {
-          key = local.minecraft_secrets.cf_api_key
-        }
-      }
+    # Data packs
+    # "datapack:create-structures"
+  ]
+  modrinth_allowed_version_type = "beta"
+  datapack_urls = [
+    "https://mediafilez.forgecdn.net/files/4905/38/backpacked_recipe_fix_datapack.zip",                           # Backpacks recipe uses leather instead of rabbit hide
+    "https://cdn.modrinth.com/data/IAnP4np7/versions/GHYR6eCT/Create%20Structures%20-%20v0.1.1%20-%201.20.1.zip", # Create mod structures
+  ]
 
-      # Needed for RCON startup commands to work
-      rcon = {
-        # Since we don't expose the service from ingress, we're safe
-        enabled               = true
-        withGeneratedPassword = true
-      }
-
-      extraPorts = [{
-        name          = "prometheus"
-        containerPort = 19565
-        protocol      = "TCP"
-        service = {
-          enabled  = true
-          embedded = false # Creates a new service, doesn't merge it to mc's
-          type     = "ClusterIP"
-          port     = 19565
-        }
-      }]
-    }
-
-    extraEnv = {
-      # Startup commands (can't be done via patching)
-      RCON_CMDS_STARTUP = join("\n", [
-        "gamerule mobGriefing false",
-        "gamerule playersSleepingPercentage 1",
-      ])
-
-      # Mod list
-      CURSEFORGE_FILES = join(",", [
-        # Client side:
-        #  - Extreme sound muffler: can mute certain sounds around defined areas
-        #  - Just Enough Items, Breeding, Resources: HUD with item recipes & more. IT'S A MUST.
-        #  - Jade: Shows what's in front of you, HP, etc.
-        # For shaders: Embeddium, Sodium/Embeddium Extras, Sodium/Embeddium Dynamic Lights, Oculus Flywheel Compat, Oculus
-
-        # Find a chest coloring mod
-        # Multi-step crafter (queue crafting, stack crafting of weird recipes etc.)
-        # "beans-backpacks", # Backpacks - it's weird
-
-        # To play/test:
-        # "botania", # magic, seems very nice and vanilla-esque
-        # "thermal-expansion", # magic/tech
-        # "farmers-delight", # more farming & cooking stuff
-        # "create-connected", # more create features and QoL stuff
-        # "create-easy-structures", or "create-structures" # adds random create mod structures around the world - in alpha
-        # "create-diesel-generators", # adds diesel & diesel generator, seems cool, kinda OP?
-        # "create-confectionary", # adds various snacks & snack liquids
-        # "create-recycle-everything", # recycles stuff. not OP, seems cool
-        # "createaddition", # adds electricity in a balanced way
-        # "create-jetpack", # adds jetpacks, like backtank. needs elytra
-        # "create-cobblestone", # Adds a balanced cobble generator block to reduce server lag
-        # "trackwork", # create mod contraptions-as-vehicles
-
-        # To open to the public:
-        # mclink - patreon-based subscription whitelisting
-        # open-parties-and-claims - create-compatible claims
-
-        "backpacked-fabric", "framework-fabric", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
-
-        # Performance/Profiling
-        "prometheus-exporter",
-        # "spark", # Profiling
-      ])
-
-      DATAPACKS = join(",", [
-        "https://mediafilez.forgecdn.net/files/4905/38/backpacked_recipe_fix_datapack.zip",                           # Backpacks recipe uses leather instead of rabbit hide
-        "https://cdn.modrinth.com/data/IAnP4np7/versions/GHYR6eCT/Create%20Structures%20-%20v0.1.1%20-%201.20.1.zip", # Create mod structures
-      ])
-
-      MODRINTH_DOWNLOAD_DEPENDENCIES = "required"
-      MODRINTH_ALLOWED_VERSION_TYPE  = "beta"
-      MODRINTH_PROJECTS = join(",", [
-        # QoL/Essentials
-        "appleskin", # Apple Skin - Hunger preview
-        "trinkets",
-        "jei",                    # Just Enough Items - Recipe viewer & search
-        "ping-wheel",             # Ping with mouse 5
-        "xaeros-minimap",         # Minimap (U & Y keybinds to open)
-        "convenient-mobgriefing", # Allows to disable mobGriefing but allow farmer breeding
-        "universal-graves",       # Item recovery after death (corail-tombstone is broken)
-
-        # Game Mods
-        "create-fabric",              # Create - Mechanical contraptions
-        "create-goggles",             # Combine goggles with helmets, architectury is a dep
-        "create-power-loader-fabric", # Chunk loader, super hard to build one and needs rotational power
-
-        # Data packs
-        # "datapack:create-structures"
-      ])
-      ALLOW_FLIGHT         = "TRUE"  # Disable flight kick (for tombstone mod)
-      SNOOPER_ENABLED      = "FALSE" # Disable telemetry
-      INIT_MEMORY          = local.minecraft_mem_min
-      MAX_MEMORY           = local.minecraft_mem_max
-      PATCH_DEFINITIONS    = "/patches"
-      REMOVE_OLD_DATAPACKS = "TRUE"
-    }
-
-    persistence = {
-      labels = {
-        "recurring-job.longhorn.io/source"          = "enabled"
-        "recurring-job-group.longhorn.io/minecraft" = "enabled"
-      }
-      dataDir = {
-        enabled = true
-        Size    = "10Gi"
-      }
-    }
-
-    # Expose the patches as files
-    extraVolumes = [{
-      volumeMounts = [{
-        name      = kubernetes_config_map.minecraft_patches.metadata[0].name
-        mountPath = "/patches/"
-        readOnly  = true
-      }]
-      volumes = [{
-        name = kubernetes_config_map.minecraft_patches.metadata[0].name
-        configMap = {
-          name = kubernetes_config_map.minecraft_patches.metadata[0].name
-        }
-      }]
-    }]
-
-    nodeSelector = {
-      "kubernetes.io/hostname" = "gr0.dzerv.art"
-    }
-
-    resources = {
-      requests = {
-        memory = local.minecraft_mem_min
-        cpu    = "1.0"
-      }
-      limits = {
-        memory = local.minecraft_mem_max
-      }
-    }
-  })]
-
-  depends_on = [kubernetes_config_map.minecraft_patches]
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-# Config patches
-resource "kubernetes_config_map" "minecraft_patches" {
-  metadata {
-    name      = "patches"
-    namespace = kubernetes_namespace.minecraft.metadata[0].name
-    labels = {
-      managed_by = "terraform"
-    }
-  }
-
-  # https://docker-minecraft-server.readthedocs.io/en/latest/configuration/interpolating/#patching-existing-files
-  data = {
+  patches = {
     "backpacked.json" = jsonencode({
       file = "/data/config/backpacked.server.toml"
       ops = [
@@ -232,60 +76,32 @@ resource "kubernetes_config_map" "minecraft_patches" {
       ]
     })
   }
-}
 
-# To enable the job for the PVC:
-# kubectl -n minecraft label pvc/<the pvc> recurring-job-group.longhorn.io/minecraft=enabled
-resource "kubernetes_manifest" "minecraft_snapshot_task" {
-  manifest = {
-    apiVersion = "longhorn.io/v1beta2"
-    kind       = "RecurringJob"
-    metadata = {
-      name      = "minecraft-snpashot"
-      namespace = helm_release.longhorn.namespace
-      labels = {
-        managed_by = "terraform"
-      }
-    }
-    spec = {
-      name        = "minecraft-snpashot"
-      cron        = "0 10 * * *" # At 10:00 AM every day
-      task        = "snapshot"
-      retain      = 14 # 2 Weeks
-      concurrency = 1
-      groups      = ["minecraft"]
-      labels = {
-        managed_by = "terraform"
-      }
-    }
-  }
-}
+  # Client side:
+  #  - Extreme sound muffler: can mute certain sounds around defined areas
+  #  - Just Enough Items, Breeding, Resources: HUD with item recipes & more. IT'S A MUST.
+  #  - Jade: Shows what's in front of you, HP, etc.
+  # For shaders: Embeddium, Sodium/Embeddium Extras, Sodium/Embeddium Dynamic Lights, Oculus Flywheel Compat, Oculus
 
-resource "kubernetes_manifest" "minecraft_exporter" {
-  manifest = {
-    apiVersion = "monitoring.coreos.com/v1"
-    kind       = "ServiceMonitor"
-    metadata = {
-      name      = "minecraft-exporter"
-      namespace = helm_release.prometheus.namespace
-      labels = {
-        managed_by = "terraform"
-      }
-    }
-    spec = {
-      jobLabel = "minecraft"
-      selector = {
-        matchLabels = {
-          "app" = "minecraft-minecraft-prometheus"
-        }
-      }
-      namespaceSelector = {
-        matchNames = [kubernetes_namespace.minecraft.metadata[0].name]
-      }
-      endpoints = [{
-        port     = "prometheus"
-        interval = "15s"
-      }]
-    }
-  }
+  # Find a chest coloring mod
+  # Multi-step crafter (queue crafting, stack crafting of weird recipes etc.)
+  # "beans-backpacks", # Backpacks - it's weird
+
+  # To play/test:
+  # "botania", # magic, seems very nice and vanilla-esque
+  # "thermal-expansion", # magic/tech
+  # "farmers-delight", # more farming & cooking stuff
+  # "create-connected", # more create features and QoL stuff
+  # "create-easy-structures", or "create-structures" # adds random create mod structures around the world - in alpha
+  # "create-diesel-generators", # adds diesel & diesel generator, seems cool, kinda OP?
+  # "create-confectionary", # adds various snacks & snack liquids
+  # "create-recycle-everything", # recycles stuff. not OP, seems cool
+  # "createaddition", # adds electricity in a balanced way
+  # "create-jetpack", # adds jetpacks, like backtank. needs elytra
+  # "create-cobblestone", # Adds a balanced cobble generator block to reduce server lag
+  # "trackwork", # create mod contraptions-as-vehicles
+
+  # To open to the public:
+  # mclink - patreon-based subscription whitelisting
+  # open-parties-and-claims - create-compatible claims
 }
