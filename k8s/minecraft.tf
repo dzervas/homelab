@@ -138,6 +138,7 @@ resource "helm_release" "minecraft" {
       ])
 
       MODRINTH_DOWNLOAD_DEPENDENCIES = "required"
+      MODRINTH_ALLOWED_VERSION_TYPE  = "beta"
       MODRINTH_PROJECTS = join(",", [
         # QoL/Essentials
         "appleskin", # Apple Skin - Hunger preview
@@ -151,7 +152,10 @@ resource "helm_release" "minecraft" {
         # Game Mods
         "create-fabric",              # Create - Mechanical contraptions
         "create-goggles",             # Combine goggles with helmets, architectury is a dep
-        "create-power-loader-fabric", # loads chunks, needs more research
+        "create-power-loader-fabric", # Chunk loader, super hard to build one and needs rotational power
+
+        # Data packs
+        # "datapack:create-structures"
       ])
       ALLOW_FLIGHT         = "TRUE"  # Disable flight kick (for tombstone mod)
       SNOOPER_ENABLED      = "FALSE" # Disable telemetry
