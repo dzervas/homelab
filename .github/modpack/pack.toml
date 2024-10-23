@@ -1,0 +1,13 @@
+name = "Only Create"
+author = "Dimitris Zervas"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "dd9ff7230e8466e6e988564aa0f038cb10fc076d3f3d58707e74bf681f5db39b"
+
+[versions]
+fabric = "0.16.7"
+minecraft = "1.20.1"

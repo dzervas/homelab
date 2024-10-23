@@ -1,0 +1,116 @@
+hash-format = "sha256"
+
+[[files]]
+file = "mods/appleskin.pw.toml"
+hash = "7d44149b8b22e0b19b082f49809edfc1b5f170e5d1d297cd73ae88c0b432c3ab"
+metafile = true
+
+[[files]]
+file = "mods/architectury-api.pw.toml"
+hash = "e12dce3e543168379a2856c66064ee2001e6420a9dfc6163f37b78e518947456"
+metafile = true
+
+[[files]]
+file = "mods/backpacked-fabric.pw.toml"
+hash = "83a32267aa14479c455eb564df451b8a14a6a4148661264193d2ef6aa84a0537"
+metafile = true
+
+[[files]]
+file = "mods/create-fabric.pw.toml"
+hash = "965b3cc83e1bca99bd1b89ec5f94495d831fcf7d03317cb50891752b0ca7ddc0"
+metafile = true
+
+[[files]]
+file = "mods/create-goggles.pw.toml"
+hash = "f10611e22b81f4eae5e9e012fecffe21c694cde7417b43a93ae3381508020f44"
+metafile = true
+
+[[files]]
+file = "mods/create-power-loader-fabric.pw.toml"
+hash = "bf8514a56af755dd22d7ef3994e0c6e33d4db963eea2688fdbe466f998e123b2"
+metafile = true
+
+[[files]]
+file = "mods/extreme_sound_muffler.pw.toml"
+hash = "9cff738b3a3cdf23415a60902a3715a91c00a85e276b7ffd62593c68827aab4a"
+metafile = true
+
+[[files]]
+file = "mods/fabric-api.pw.toml"
+hash = "ebd92e07834dae22ebb7340a1112ac20d79869ec12ef5107938f564dee2661d2"
+metafile = true
+
+[[files]]
+file = "mods/framework-fabric.pw.toml"
+hash = "afc98470b699a933cbdcc7d95822455596d91864ef14ec21a48f4fdd51d5eb03"
+metafile = true
+
+[[files]]
+file = "mods/indium.pw.toml"
+hash = "3d41978dc3fd1d7b7eebe51a7c04e49707e7e7c66f764a1bed0cc214e4032995"
+metafile = true
+
+[[files]]
+file = "mods/iris-flw-compat.pw.toml"
+hash = "8619be4a2d5da2deff6cee6ebda356c1a7fdf3a36d8b58d31cd6ddd5b1649ca1"
+metafile = true
+
+[[files]]
+file = "mods/iris.pw.toml"
+hash = "956298b1bbab6d8bfb5074b169d8d24d04d688182edf8af885bbefc6cc1d9c27"
+metafile = true
+
+[[files]]
+file = "mods/jei.pw.toml"
+hash = "88a665fe5b5b8dfd8535db068e9972d8a41af502602fc600a931520e434637ae"
+metafile = true
+
+[[files]]
+file = "mods/just-enough-resources-jer.pw.toml"
+hash = "60300c6873d127b49ba31b11abc8fa7ac65008480c21c0db4c36d46db25426c5"
+metafile = true
+
+[[files]]
+file = "mods/justenoughbreeding.pw.toml"
+hash = "4821c39ddc42dec010907e83f3bac7f3c1b8996e152270dce2363066494b2046"
+metafile = true
+
+[[files]]
+file = "mods/mouse-wheelie.pw.toml"
+hash = "b71ebab572583fcca1a864236e233a84c637bf00c78f0d1240b742763c0375d8"
+metafile = true
+
+[[files]]
+file = "mods/ping-wheel.pw.toml"
+hash = "71ba549ed46b47d6a57556f746ea45c974ea38a93e1a85277c200a674090bec0"
+metafile = true
+
+[[files]]
+file = "mods/sodium-dynamic-lights.pw.toml"
+hash = "076ca2b418baa1ecfacca16e4f54be9114424298e559aa0ed54ccd7d98fbf71b"
+metafile = true
+
+[[files]]
+file = "mods/sodium-extras.pw.toml"
+hash = "8075d605f49f411c8ae5377b16bd7aeb208d16f356a342fae616553421c09172"
+metafile = true
+
+[[files]]
+file = "mods/sodium-options-api.pw.toml"
+hash = "3a73622079e744e7c68c2073a76a042914cc35d1ee77c6fa20d7177078e5078b"
+metafile = true
+
+[[files]]
+file = "mods/sodium.pw.toml"
+hash = "350cd01b8b55cea244c2b0ea7bb3c9a6ba873cea4701528c62101c63af6b027a"
+metafile = true
+
+[[files]]
+file = "mods/trinkets.pw.toml"
+hash = "ffdb79f5bc29f990e5889f5d159a043c7046b8cd8d79f17f54b44d7ccc2b242a"
+metafile = true
+
+[[files]]
+file = "mods/xaeros-minimap.pw.toml"
+hash = "d5e3d7c6c04ddf47216b4d8f92411bc105dd4fd342a151315d61859a05813b7e"
+metafile = true

@@ -75,17 +75,23 @@ module "minecraft" {
         { "$set" = { path = "$.backpack.autoEquipOnPickup", value = true, value-type = "bool" } },
       ]
     })
+    "universal-graves.json" = jsonencode({
+      file = "/data/config/universal-graves/config.json"
+      ops = [
+        { "$set" = { path = "$.interactions.enable_click_to_open_gui", value = false, value-type = "bool" } },
+      ]
+    })
   }
 
   # Client side:
   #  - Extreme sound muffler: can mute certain sounds around defined areas
   #  - Just Enough Items, Breeding, Resources: HUD with item recipes & more. IT'S A MUST.
   #  - Jade: Shows what's in front of you, HP, etc.
-  # For shaders: Embeddium, Sodium/Embeddium Extras, Sodium/Embeddium Dynamic Lights, Oculus Flywheel Compat, Oculus
+  # For shaders in forge: Embeddium, Sodium/Embeddium Extras, Sodium/Embeddium Dynamic Lights, Oculus Flywheel Compat, Oculus
+  # For shaders in fabric: Sodium, Sodium Extras, Sodium Dynamic Lights, Indium, Iris Flywheel Compat, Iris
 
   # Find a chest coloring mod
   # Multi-step crafter (queue crafting, stack crafting of weird recipes etc.)
-  # "beans-backpacks", # Backpacks - it's weird
 
   # To play/test:
   # "botania", # magic, seems very nice and vanilla-esque
