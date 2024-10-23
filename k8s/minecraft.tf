@@ -42,12 +42,12 @@ resource "helm_release" "minecraft" {
       icon                     = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
       onlineMode               = true
       spawnProtection          = 0
-      difficulty               = "normal"
+      difficulty               = "hard"
       overrideServerProperties = true # Allows to set custom server.properties even after initial setup
       ops                      = "dzervasgr,looselyrigorous"
 
       # Wipe-related
-      type    = "FORGE"
+      type    = "FABRIC"
       version = "1.20.1"
 
       # Players
@@ -103,25 +103,9 @@ resource "helm_release" "minecraft" {
         #  - Jade: Shows what's in front of you, HP, etc.
         # For shaders: Embeddium, Sodium/Embeddium Extras, Sodium/Embeddium Dynamic Lights, Oculus Flywheel Compat, Oculus
 
-        # QoL/Essentials
-        "appleskin", # Apple Skin - Hunger preview
-        # TODO: Update to 3.0.0 stable when it comes out
-        "backpacked@2.2.5", "curios", "framework", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
-        "inventory-sorter",                        # Middle click to sort inventory (alts: inventory-bogosorter, inventory-profiles-next)
-        "jei",                                     # Just Enough Items - Recipe viewer & search
-        "ping-wheel",                              # Ping with mouse 5
-        "xaeros-minimap",                          # Minimap (U & Y keybinds to open)
-        "more-mobgriefing-options",                # Allows to disable mobGriefing but allow farmer breeding
-        "zombie-villager-control",                 # Zombie Villager Control - Villagers convert 100% on all difficulties and optionally QuickCure
-        "gravestone-mod",                          # Item recovery after death (corail-tombstone is broken)
         # Find a chest coloring mod
         # Multi-step crafter (queue crafting, stack crafting of weird recipes etc.)
         # "beans-backpacks", # Backpacks - it's weird
-
-        # Game Mods
-        "create",                             # Create - Mechanical contraptions
-        "create-goggles", "architectury-api", # Combine goggles with helmets, architectury is a dep
-        "create-power-loader",                # loads chunks, needs more research
 
         # To play/test:
         # "botania", # magic, seems very nice and vanilla-esque
@@ -141,17 +125,34 @@ resource "helm_release" "minecraft" {
         # mclink - patreon-based subscription whitelisting
         # open-parties-and-claims - create-compatible claims
 
+        "backpacked-fabric", "framework-fabric", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
+
         # Performance/Profiling
         "prometheus-exporter",
-        "spark", # Profiling
+        # "spark", # Profiling
       ])
 
       DATAPACKS = join(",", [
-        "https://mediafilez.forgecdn.net/files/4905/38/backpacked_recipe_fix_datapack.zip" # Backpacks recipe uses leather instead of rabbit hide
+        "https://mediafilez.forgecdn.net/files/4905/38/backpacked_recipe_fix_datapack.zip",                           # Backpacks recipe uses leather instead of rabbit hide
+        "https://cdn.modrinth.com/data/IAnP4np7/versions/GHYR6eCT/Create%20Structures%20-%20v0.1.1%20-%201.20.1.zip", # Create mod structures
       ])
 
-      # MODRINTH_DOWNLOAD_DEPENDENCIES = "required"
-      # MODRINTH_PROJECTS = join(",", [ ... ])
+      MODRINTH_DOWNLOAD_DEPENDENCIES = "required"
+      MODRINTH_PROJECTS = join(",", [
+        # QoL/Essentials
+        "appleskin", # Apple Skin - Hunger preview
+        "trinkets",
+        "jei",                    # Just Enough Items - Recipe viewer & search
+        "ping-wheel",             # Ping with mouse 5
+        "xaeros-minimap",         # Minimap (U & Y keybinds to open)
+        "convenient-mobgriefing", # Allows to disable mobGriefing but allow farmer breeding
+        "universal-graves",       # Item recovery after death (corail-tombstone is broken)
+
+        # Game Mods
+        "create-fabric",              # Create - Mechanical contraptions
+        "create-goggles",             # Combine goggles with helmets, architectury is a dep
+        "create-power-loader-fabric", # loads chunks, needs more research
+      ])
       ALLOW_FLIGHT         = "TRUE"  # Disable flight kick (for tombstone mod)
       SNOOPER_ENABLED      = "FALSE" # Disable telemetry
       INIT_MEMORY          = local.minecraft_mem_min
@@ -219,31 +220,6 @@ resource "kubernetes_config_map" "minecraft_patches" {
 
   # https://docker-minecraft-server.readthedocs.io/en/latest/configuration/interpolating/#patching-existing-files
   data = {
-    "moremobgriefingoptions.json" = jsonencode({
-      file = "/data/world/serverconfig/moremobgriefingoptions-server.toml"
-      ops = [
-        # Allow villager turning & breeding
-        { "$set" = { path = "$.mobGriefing.minecraft:villager", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:zombie", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:zombie_villager", value = "TRUE" } },
-
-        # Animal growth
-        { "$set" = { path = "$.mobGriefing.minecraft:bee", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:cat", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:chicken", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:cow", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:donkey", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:horse", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:sheep", value = "TRUE" } },
-        { "$set" = { path = "$.mobGriefing.minecraft:wolf", value = "TRUE" } },
-      ]
-    })
-    "zombievillagercontrol.json" = jsonencode({
-      file = "/data/config/zombievillagercontrol-common.toml"
-      ops = [
-        { "$set" = { path = "$['Zombie Villager Control Config']['Enable QuickCure']", value = true, value-type = "bool" } },
-      ]
-    })
     "backpacked.json" = jsonencode({
       file = "/data/config/backpacked.server.toml"
       ops = [
