@@ -16,6 +16,10 @@ resource "kubernetes_namespace" "minecraft" {
       managed_by = "terraform"
     }
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "helm_release" "minecraft" {
@@ -43,9 +47,8 @@ resource "helm_release" "minecraft" {
       ops                      = "dzervasgr,looselyrigorous"
 
       # Wipe-related
-      type      = "FORGE"
-      version   = "1.20.1"
-      levelSeed = "31563250179158"
+      type    = "FORGE"
+      version = "1.20.1"
 
       # Players
       whitelist = join(",", [
@@ -101,17 +104,18 @@ resource "helm_release" "minecraft" {
         # For shaders: Embeddium, Sodium/Embeddium Extras, Sodium/Embeddium Dynamic Lights, Oculus Flywheel Compat, Oculus
 
         # QoL/Essentials
-        "appleskin",                # Apple Skin - Hunger preview
-        "inventory-sorter",         # Middle click to sort inventory (alts: inventory-bogosorter, inventory-profiles-next)
-        "jei",                      # Just Enough Items - Recipe viewer & search
-        "ping-wheel",               # Ping with mouse 5
-        "xaeros-minimap",           # Minimap (U & Y keybinds to open)
-        "more-mobgriefing-options", # Allows to disable mobGriefing but allow farmer breeding
-        "zombie-villager-control",  # Zombie Villager Control - Villagers convert 100% on all difficulties and optionally QuickCure
-        "gravestone-mod",           # Item recovery after death (corail-tombstone is broken)
+        "appleskin", # Apple Skin - Hunger preview
+        # TODO: Update to 3.0.0 stable when it comes out
+        "backpacked@2.2.5", "curios", "framework", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
+        "inventory-sorter",                        # Middle click to sort inventory (alts: inventory-bogosorter, inventory-profiles-next)
+        "jei",                                     # Just Enough Items - Recipe viewer & search
+        "ping-wheel",                              # Ping with mouse 5
+        "xaeros-minimap",                          # Minimap (U & Y keybinds to open)
+        "more-mobgriefing-options",                # Allows to disable mobGriefing but allow farmer breeding
+        "zombie-villager-control",                 # Zombie Villager Control - Villagers convert 100% on all difficulties and optionally QuickCure
+        "gravestone-mod",                          # Item recovery after death (corail-tombstone is broken)
         # Find a chest coloring mod
         # Multi-step crafter (queue crafting, stack crafting of weird recipes etc.)
-        "backpacked", "curios", "framework", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
         # "beans-backpacks", # Backpacks - it's weird
 
         # Game Mods
@@ -198,6 +202,9 @@ resource "helm_release" "minecraft" {
   })]
 
   depends_on = [kubernetes_config_map.minecraft_patches]
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Config patches
