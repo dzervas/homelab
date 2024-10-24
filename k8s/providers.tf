@@ -1,3 +1,11 @@
+locals {
+  op_secrets = { for section in data.onepassword_item.homelab.section :
+    section.label => {
+      for field in section.field : field.label => field.value
+    }
+  }
+}
+
 terraform {
   cloud {
     organization = "dzervas"
@@ -42,3 +50,8 @@ provider "helm" {
 provider "random" {}
 
 provider "onepassword" {}
+
+data "onepassword_item" "homelab" {
+  vault = var.op_vault
+  title = "homelab-k8s"
+}

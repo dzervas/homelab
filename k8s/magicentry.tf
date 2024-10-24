@@ -2,12 +2,6 @@ locals {
   magicentry_users_audiobooks = [
     { name = "Fani", email = "fani-garouf@hotmail.com" }
   ]
-  magicentry_secrets = { for obj in data.onepassword_item.magicentry.section[0].field : obj.label => obj.value }
-}
-
-data "onepassword_item" "magicentry" {
-  vault = var.op_vault
-  title = "MagicEntry"
 }
 
 module "magicentry_ingress" {
@@ -53,14 +47,14 @@ resource "helm_release" "magicentry" {
       oidc_enable = true
       oidc_clients = [
         {
-          id            = local.magicentry_secrets.audiobooks_id
-          secret        = local.magicentry_secrets.audiobooks_secret
+          id            = local.op_secrets.magicentry.audiobooks_id
+          secret        = local.op_secrets.magicentry.audiobooks_secret
           redirect_uris = ["https://audiobooks.dzerv.art/auth/openid/callback"]
           realms        = ["audiobooks", "public"]
         },
         {
-          id     = local.magicentry_secrets.cook_id
-          secret = local.magicentry_secrets.cook_secret
+          id     = local.op_secrets.magicentry.cook_id
+          secret = local.op_secrets.magicentry.cook_secret
           redirect_uris = [
             "https://cook.dzerv.art/",
             "https://cook.dzerv.art/login/",

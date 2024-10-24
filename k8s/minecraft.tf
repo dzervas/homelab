@@ -1,12 +1,3 @@
-locals {
-  minecraft_secrets = { for obj in data.onepassword_item.minecraft.section[0].field : obj.label => obj.value }
-}
-
-data "onepassword_item" "minecraft" {
-  vault = var.op_vault
-  title = "Minecraft"
-}
-
 module "minecraft" {
   source             = "./minecraft-server"
   mem_min            = "2G"
@@ -14,7 +5,7 @@ module "minecraft" {
   motd               = "I'm a form of art"
   icon               = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
   difficulty         = "hard"
-  curseforge_api_key = local.minecraft_secrets.cf_api_key
+  curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
   ops                = ["dzervasgr", "looselyrigorous"]
 
   whitelist = [
@@ -33,6 +24,9 @@ module "minecraft" {
 
   startup_commands = [
     "gamerule mobGriefing false",
+    "gamerule lenientGriefing true",
+    "gamerule witherGriefing false",
+    "gamerule dragonGriefing false",
     "gamerule playersSleepingPercentage 1",
   ]
 

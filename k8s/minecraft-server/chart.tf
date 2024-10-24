@@ -114,6 +114,8 @@ resource "helm_release" "minecraft" {
         memory = var.mem_max
       }
     }
+
+    livenessProbe = { command = ["curl", "-s", "localhost:19565"] }
   })]
 
   depends_on = [kubernetes_config_map.minecraft_patches]
