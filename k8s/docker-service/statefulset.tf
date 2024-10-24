@@ -57,7 +57,7 @@ resource "kubernetes_stateful_set" "docker" {
           }
 
           dynamic "volume_mount" {
-            for_each = var.pvcs
+            for_each = var.pvs
             content {
               name       = volume_mount.value.name
               mount_path = volume_mount.key
@@ -79,11 +79,11 @@ resource "kubernetes_stateful_set" "docker" {
     }
 
     persistent_volume_claim_retention_policy {
-      when_deleted = var.retain_pvcs ? "Retain" : "Delete"
-      when_scaled  = var.retain_pvcs ? "Retain" : "Delete"
+      when_deleted = var.retain_pvs ? "Retain" : "Delete"
+      when_scaled  = var.retain_pvs ? "Retain" : "Delete"
     }
     dynamic "volume_claim_template" {
-      for_each = var.pvcs
+      for_each = var.pvs
 
       content {
         metadata {

@@ -18,3 +18,7 @@
     state: present
   when: inventory_hostname != item
   with_items: "{{ groups.all }}"
+
+- name: Set timezone
+  community.general.timezone:
+    name: "Europe/Athens"

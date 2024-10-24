@@ -15,6 +15,7 @@ resource "oci_core_instance" "k3s" {
   display_name        = var.fqdn
   compartment_id      = var.compartment_ocid
   shape               = var.shape # Free tier allowance
+  state               = "RUNNING"
 
   availability_config {
     is_live_migration_preferred = true

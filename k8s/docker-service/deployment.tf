@@ -61,7 +61,7 @@ resource "kubernetes_deployment" "docker" {
           }
 
           dynamic "volume_mount" {
-            for_each = var.pvcs
+            for_each = var.pvs
             content {
               name       = volume_mount.value.name
               mount_path = volume_mount.key

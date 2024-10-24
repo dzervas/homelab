@@ -9,8 +9,8 @@ module "ntfy" {
   image           = "binwiederhier/ntfy:latest"
   args            = ["serve"]
   port            = 80
-  retain_pvcs     = true
-  pvcs = {
+  retain_pvs      = true
+  pvs = {
     "/var/lib/ntfy" = {
       name         = "data"
       read_only    = false

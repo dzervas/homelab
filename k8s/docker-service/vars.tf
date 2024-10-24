@@ -49,7 +49,9 @@ variable "config_maps" {
   description = "A map of config maps to mount in the container in the format { container_path = config_map_name }"
 }
 
-variable "pvcs" {
+variable "pvs" {
+  description = "A map of persistent volumes to mount in the container"
+  default     = {}
   type = map(object({
     name         = string
     size         = string
@@ -59,7 +61,7 @@ variable "pvcs" {
   }))
 }
 
-variable "retain_pvcs" {
+variable "retain_pvs" {
   type    = bool
   default = true
 }
@@ -72,9 +74,9 @@ variable "ingress_enabled" {
 variable "auth" {
   type        = string
   description = "The type of external authentiaction to implement - none, mtls or oauth (magicentry)"
-  default     = "statefulset"
+  default     = "none"
   validation {
     condition     = contains(["none", "mtls", "oauth"], var.auth)
-    error_message = "Invalid service type. Must be one of deployment or statefulset"
+    error_message = "Invalid auth type. Must be one of none, mtls or oauth"
   }
 }

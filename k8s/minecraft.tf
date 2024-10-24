@@ -54,6 +54,9 @@ module "minecraft" {
 
     # Data packs
     # "datapack:create-structures"
+
+    # Optimization
+    "lithium", # Pure optimization
   ]
   modrinth_allowed_version_type = "beta"
   datapack_urls = [

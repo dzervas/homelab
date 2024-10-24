@@ -8,8 +8,8 @@ module "mealie" {
   auth            = "oauth"
   image           = "ghcr.io/mealie-recipes/mealie:v1.12.0"
   port            = 9000
-  retain_pvcs     = true
-  pvcs = {
+  retain_pvs      = true
+  pvs = {
     "/app/data" = {
       name         = "data"
       read_only    = false
