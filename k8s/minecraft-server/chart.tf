@@ -115,7 +115,8 @@ resource "helm_release" "minecraft" {
       }
     }
 
-    livenessProbe = { command = ["curl", "-s", "localhost:19565"] }
+    livenessProbe  = { command = ["curl", "-s", "localhost:19565"] }
+    readinessProbe = { command = ["curl", "-s", "localhost:19565"] }
   })]
 
   depends_on = [kubernetes_config_map.minecraft_patches]

@@ -4,7 +4,7 @@ module "minecraft" {
   mem_max            = "8G"
   motd               = "I'm a form of art"
   icon               = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
-  difficulty         = "hard"
+  difficulty         = "normal"
   curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
   ops                = ["dzervasgr", "looselyrigorous"]
 
