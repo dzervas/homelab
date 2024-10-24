@@ -18,7 +18,7 @@ resource "helm_release" "cert_manager" {
   repository = "https://charts.jetstack.io/"
   chart      = "cert-manager"
   # For upgrading: https://cert-manager.io/docs/releases/upgrading/upgrading-1.12-1.13
-  version = "v1.15.1"
+  version = "v1.16.1"
 
   values = [yamlencode({
     installCRDs = true

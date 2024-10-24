@@ -10,7 +10,7 @@ module "manyfold" {
   fqdn            = "three.${var.domain}"
   ingress_enabled = true
   auth            = "mtls"
-  image           = "ghcr.io/manyfold3d/manyfold-solo:latest"
+  image           = "ghcr.io/manyfold3d/manyfold-solo:0.86.0"
   port            = 3214
   retain_pvs      = true
   pvs = {
