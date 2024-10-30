@@ -140,3 +140,46 @@ variable "datapacks" {
   description = "Datapacks to define"
   default     = {}
 }
+
+variable "backup" {
+  description = "Enable backup"
+  default     = false
+  type        = bool
+}
+
+variable "backup_interval" {
+  description = "Backup interval"
+  default     = "24h"
+  type        = string
+}
+
+variable "rclone_type" {
+  default = "drive"
+  type    = string
+}
+
+variable "rclone_scope" {
+  default = "drive.appfolder"
+  type    = string
+}
+
+variable "rclone_root_folder_id" {
+  default = "appDataFolder"
+  type    = string
+}
+
+variable "rclone_token" {
+  type      = string
+  sensitive = true
+}
+
+variable "restic_password" {
+  type      = string
+  default   = ""
+  sensitive = true
+
+  validation {
+    condition     = var.backup && length(var.restic_password) > 0
+    error_message = "To use restic, please set restic_password"
+  }
+}

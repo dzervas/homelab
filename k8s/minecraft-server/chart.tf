@@ -117,6 +117,25 @@ resource "helm_release" "minecraft" {
 
     livenessProbe  = { command = ["curl", "-s", "localhost:19565"] }
     readinessProbe = { command = ["curl", "-s", "localhost:19565"] }
+
+    mcbackup = {
+      enabled              = var.backup
+      backupInterval       = var.backup_interval
+      backupMethod         = "restic"
+      rcloneDestDir        = var.namespace
+      resticAdditionalTags = "mc_backups ${var.namespace}"
+      rcloneConfig         = <<EOT
+      [remote]
+      type = ${var.rclone_type}
+      scope = ${var.rclone_scope}
+      root_folder_id = ${var.rclone_root_folder_id}
+      token = ${var.rclone_token}
+      EOT
+      resticRepository     = "remote"
+      resticEnvs = {
+        RESTIC_PASSWORD = var.restic_password
+      }
+    }
   })]
 
   depends_on = [kubernetes_config_map.minecraft_patches]

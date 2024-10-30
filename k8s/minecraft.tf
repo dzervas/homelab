@@ -8,6 +8,11 @@ module "minecraft" {
   curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
   ops                = ["dzervasgr", "looselyrigorous"]
 
+  backup          = true
+  backup_interval = "6h"
+  rclone_token    = local.op_secrets.minecraft.rclone_token
+  restic_password = local.op_secrets.minecraft.restic_password
+
   whitelist = [
     "dzervasgr",
     "gkaklas",
@@ -57,6 +62,9 @@ module "minecraft" {
 
     # Optimization
     "lithium", # Pure optimization
+
+    # Server advanced management
+    # "kubejs", # Scripting
   ]
   modrinth_allowed_version_type = "beta"
   datapack_urls = [
