@@ -8,7 +8,7 @@ module "minecraft" {
   curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
   ops                = ["dzervasgr", "looselyrigorous"]
 
-  backup          = true
+  backup          = false
   backup_interval = "6h"
   rclone_token    = local.op_secrets.minecraft.rclone_token
   restic_password = local.op_secrets.minecraft.restic_password
@@ -40,7 +40,6 @@ module "minecraft" {
 
     # Performance/Profiling
     "prometheus-exporter",
-    # "spark", # Profiling
   ]
   modrinth_mods = [
     # QoL/Essentials
@@ -65,6 +64,7 @@ module "minecraft" {
 
     # Server advanced management
     # "kubejs", # Scripting
+    "spark", # Profiling
   ]
   modrinth_allowed_version_type = "beta"
   datapack_urls = [

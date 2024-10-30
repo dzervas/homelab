@@ -179,7 +179,7 @@ variable "restic_password" {
   sensitive = true
 
   validation {
-    condition     = var.backup && length(var.restic_password) > 0
+    condition     = !var.backup || length(var.restic_password) > 0
     error_message = "To use restic, please set restic_password"
   }
 }

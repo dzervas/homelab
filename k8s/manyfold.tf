@@ -35,4 +35,6 @@ module "manyfold" {
     PUID            = 1000
     PGID            = 1000
   }
+  # TODO: Needs service annotation:
+  # "nginx.ingress.kubernetes.io/proxy-body-size" = "4096m"
 }
