@@ -8,10 +8,12 @@ module "minecraft" {
   curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
   ops                = ["dzervasgr", "looselyrigorous"]
 
-  backup          = true
-  backup_interval = "6h"
-  rclone_token    = local.op_secrets.minecraft.rclone_token
-  restic_password = local.op_secrets.minecraft.restic_password
+  backup               = true
+  backup_interval      = "6h"
+  rclone_client_id     = local.op_secrets.minecraft.rclone_client_id
+  rclone_client_secret = local.op_secrets.minecraft.rclone_client_secret
+  rclone_token         = local.op_secrets.minecraft.rclone_token
+  restic_password      = local.op_secrets.minecraft.restic_password
 
   whitelist = [
     "dzervasgr",

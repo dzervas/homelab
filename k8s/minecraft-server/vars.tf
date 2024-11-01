@@ -168,6 +168,18 @@ variable "rclone_root_folder_id" {
   type    = string
 }
 
+variable "rclone_client_id" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "rclone_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
 variable "rclone_token" {
   type      = string
   sensitive = true

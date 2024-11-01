@@ -137,18 +137,13 @@ resource "helm_release" "minecraft" {
       type = ${var.rclone_type}
       scope = ${var.rclone_scope}
       root_folder_id = ${var.rclone_root_folder_id}
+      client_id = ${var.rclone_client_id}
+      client_secret = ${var.rclone_client_secret}
       token = ${var.rclone_token}
       EOT
-      resticRepository     = "/backups"
+      resticRepository     = "rclone:remote"
       resticEnvs = {
         RESTIC_PASSWORD = var.restic_password
-      }
-
-      persistence = {
-        backupDir = {
-          enabled = true
-          Size    = "10Gi"
-        }
       }
     }
   })]
