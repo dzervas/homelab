@@ -141,7 +141,7 @@ resource "helm_release" "minecraft" {
       client_secret = ${var.rclone_client_secret}
       token = ${var.rclone_token}
       EOT
-      resticRepository     = "rclone:remote"
+      resticRepository     = "rclone:remote:"
       resticEnvs = {
         RESTIC_PASSWORD = var.restic_password
       }
