@@ -8,7 +8,7 @@ module "minecraft" {
   curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
   ops                = ["dzervasgr", "looselyrigorous"]
 
-  backup          = false
+  backup          = true
   backup_interval = "6h"
   rclone_token    = local.op_secrets.minecraft.rclone_token
   restic_password = local.op_secrets.minecraft.restic_password

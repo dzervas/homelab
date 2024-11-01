@@ -1,3 +1,8 @@
+resource "random_password" "rcon_password" {
+  length  = 40
+  special = false
+}
+
 resource "helm_release" "minecraft" {
   name             = "minecraft"
   namespace        = kubernetes_namespace.minecraft.metadata[0].name
@@ -21,6 +26,8 @@ resource "helm_release" "minecraft" {
       difficulty               = var.difficulty
       overrideServerProperties = true # Allows to set custom server.properties even after initial setup
       ops                      = join(",", var.ops)
+      serviceType              = "NodePort"
+      nodePort                 = 25565
 
       # Wipe-related
       type    = var.mod_loader
@@ -37,9 +44,8 @@ resource "helm_release" "minecraft" {
 
       # Needed for RCON startup commands to work
       rcon = {
-        # Since we don't expose the service from ingress, we're safe
-        enabled               = true
-        withGeneratedPassword = true
+        enabled  = true
+        password = random_password.rcon_password.result
       }
 
       extraPorts = [{
@@ -73,6 +79,7 @@ resource "helm_release" "minecraft" {
       MAX_MEMORY                     = var.mem_max
       PATCH_DEFINITIONS              = "/patches"
       REMOVE_OLD_DATAPACKS           = "TRUE"
+      DISABLE_HEALTHCHECK            = "TRUE"
     }
 
     persistence = {
@@ -124,6 +131,7 @@ resource "helm_release" "minecraft" {
       backupMethod         = "restic"
       rcloneDestDir        = var.namespace
       resticAdditionalTags = "mc_backups ${var.namespace}"
+      rcloneRemote         = "remote"
       rcloneConfig         = <<EOT
       [remote]
       type = ${var.rclone_type}
@@ -131,9 +139,16 @@ resource "helm_release" "minecraft" {
       root_folder_id = ${var.rclone_root_folder_id}
       token = ${var.rclone_token}
       EOT
-      resticRepository     = "remote"
+      resticRepository     = "/backups"
       resticEnvs = {
         RESTIC_PASSWORD = var.restic_password
+      }
+
+      persistence = {
+        backupDir = {
+          enabled = true
+          Size    = "10Gi"
+        }
       }
     }
   })]
