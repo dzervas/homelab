@@ -145,6 +145,11 @@ resource "helm_release" "minecraft" {
       resticEnvs = {
         RESTIC_PASSWORD = var.restic_password
       }
+      extraEnv = {
+        PRE_SAVE_ALL_SCRIPT = "rcon-cli say 'Server is saving all data, expect lag...'"
+        PRE_BACKUP_SCRIPT   = "rcon-cli say 'Done, starting backup'"
+        POST_BACKUP_SCRIPT  = "rcon-cli say 'Backup done!'"
+      }
     }
   })]
 
