@@ -15,10 +15,10 @@ flannel-iface: {{ k3s_iface }}
 resolv-conf: /etc/rancher/k3s/resolv.conf
 node-name: {{ inventory_hostname }}
 
+{% if inventory_hostname not in groups.agent -%}
 # Allow minecraft as nodeport
 service-node-port-range: "25000-32767"
 
-{% if inventory_hostname not in groups.agent -%}
 # Cluster IPs
 advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
 # Encrypt secrets in etcd
