@@ -25,7 +25,8 @@ module "minecraft" {
 
     "Raffle_Daffle", # ortiz
     "Hendog2014",    # ortiz's friend
-    "kingsilicon"
+    "kingsilicon",
+    "KayItzSam",
   ]
 
   minecraft_version = "1.20.1"
