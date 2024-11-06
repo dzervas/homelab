@@ -29,8 +29,8 @@ resource "helm_release" "borgserver" {
       {
         name            = "dzervas-hass"
         restrictToPaths = ["/backup/dzervas-hass"]
-        type            = "ssh-ed25519"
-        key             = "AAAAC3NzaC1lZDI1NTE5AAAAINOirl4WE2aK9ggha350TFaZY6N7pZTvfNLIC+DEDbqi"
+        type            = "ssh-rsa"
+        key             = "AAAAB3NzaC1yc2EAAAADAQABAAABgQC5KD8jSP5+Fa9/U8lwGS5wCCl747UNKUt58XTOsK9T5ciYBLVLHKEL9NPEwWTUQMChUHN0sywF4hknhEb5+nubHpLYydUQw4UE1xYEyObMWka+rGtK4hhMIpOXR5GNVNPLE17nhA6KaBy3sD379m7ipsSKLH3j6Biy+Z9k6UZClSzfTKIG1brOoGKk2rvO5NCXMY/zg6M+4/GEjoiQvTLs1WibzeU+mPx1W0xZN8hCRfWyGmW9+UZf2/k6F3t6k1lyNj5sXCzuQxZ3GqwFuGajaEKnsZPeZNF1wLcIZESc6kQraqFYaeTEljio+HWJLruis9Iy2ptUXxLFrlJCz524QfqFYH6Pztamq2ullw1sw36Lw7+9uKz78lGyrg4q5ZTpjRKzfNPX3O72GjaWu0RPz9aslMKaKYdLKDBx8PrVyCfGDxt60fXIJofBGZh0k8cbva6Z217f0jeN/lcEiLNlYTL1gUGWm/CVu8pg+v1GTOflGqHzljO0O2+cLjMDMEc="
       }
     ]
   })]
