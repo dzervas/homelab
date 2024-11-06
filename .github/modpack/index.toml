@@ -31,6 +31,11 @@ hash = "bf8514a56af755dd22d7ef3994e0c6e33d4db963eea2688fdbe466f998e123b2"
 metafile = true
 
 [[files]]
+file = "mods/dark-mode-everywhere-fabric.pw.toml"
+hash = "fe13c35c779b5b8bce9c5e41d60a3ffdb8578e62857dab61afa71e376f901b4d"
+metafile = true
+
+[[files]]
 file = "mods/extreme_sound_muffler.pw.toml"
 hash = "9cff738b3a3cdf23415a60902a3715a91c00a85e276b7ffd62593c68827aab4a"
 metafile = true
@@ -61,6 +66,16 @@ hash = "956298b1bbab6d8bfb5074b169d8d24d04d688182edf8af885bbefc6cc1d9c27"
 metafile = true
 
 [[files]]
+file = "mods/jade-addons-fabric.pw.toml"
+hash = "254cf931c0da94dc08afde44489e7d79ef101e7e17d695a06d91a9a25d9bcb82"
+metafile = true
+
+[[files]]
+file = "mods/jade.pw.toml"
+hash = "390c9242cd4bc9eac27379a72081e5e60b6af0ba39706bb4b43dd55399c664f8"
+metafile = true
+
+[[files]]
 file = "mods/jei.pw.toml"
 hash = "88a665fe5b5b8dfd8535db068e9972d8a41af502602fc600a931520e434637ae"
 metafile = true
@@ -76,13 +91,18 @@ hash = "4821c39ddc42dec010907e83f3bac7f3c1b8996e152270dce2363066494b2046"
 metafile = true
 
 [[files]]
-file = "mods/mouse-wheelie.pw.toml"
-hash = "b71ebab572583fcca1a864236e233a84c637bf00c78f0d1240b742763c0375d8"
+file = "mods/lithium.pw.toml"
+hash = "470d30cd94b769b646f714432ba4cd01969910f6016957a6b218d2d2900d914c"
 metafile = true
 
 [[files]]
 file = "mods/ping-wheel.pw.toml"
 hash = "71ba549ed46b47d6a57556f746ea45c974ea38a93e1a85277c200a674090bec0"
+metafile = true
+
+[[files]]
+file = "mods/reeses-sodium-options.pw.toml"
+hash = "4a7d1e46795d2d83b18db85d8dbc63740a1d337e12d2b9e550378de59f2b23ab"
 metafile = true
 
 [[files]]
@@ -103,6 +123,11 @@ metafile = true
 [[files]]
 file = "mods/sodium.pw.toml"
 hash = "350cd01b8b55cea244c2b0ea7bb3c9a6ba873cea4701528c62101c63af6b027a"
+metafile = true
+
+[[files]]
+file = "mods/storagedrawers.pw.toml"
+hash = "c14a74a9dad0399765da8780b4669372b8136bd2ffb3737da7525423b01b325c"
 metafile = true
 
 [[files]]

@@ -131,6 +131,36 @@ variable "startup_commands" {
   default     = []
 }
 
+variable "connect_commands" {
+  description = "List of commands to run on player connect"
+  type        = list(string)
+  default     = []
+}
+
+variable "first_connect_commands" {
+  description = "List of commands to run on first player connect"
+  type        = list(string)
+  default     = []
+}
+
+variable "last_disconnect_commands" {
+  description = "List of commands to run on last player disconnect"
+  type        = list(string)
+  default     = []
+}
+
+variable "new_player_commands" {
+  description = "List of commands to run on when a new player joins the server"
+  type        = list(string)
+  default     = []
+}
+
+variable "new_player_items" {
+  description = "List of items to give to a new player - use a number to specify the amount (e.g. 'diamond_sword 1')"
+  type        = list(string)
+  default     = []
+}
+
 variable "patches" {
   description = "Map of patches to apply to the server - https://docker-minecraft-server.readthedocs.io/en/latest/configuration/interpolating/#patching-existing-files"
   default     = {}

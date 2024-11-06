@@ -39,6 +39,15 @@ module "minecraft" {
     "gamerule playersSleepingPercentage 1",
   ]
 
+  new_player_items = [
+    "minecraft:stone_axe",
+    "minecraft:stone_pickaxe",
+    "minecraft:crafting_table",
+    "minecraft:cooked_porkchop 8",
+    "minecraft:bow",
+    "minecraft:arrow 64",
+  ]
+
   curseforge_mods = [
     "backpacked-fabric", "framework-fabric", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
 
@@ -51,7 +60,6 @@ module "minecraft" {
     "trinkets",
     "jei",                    # Just Enough Items - Recipe viewer & search
     "ping-wheel",             # Ping with mouse 5
-    "xaeros-minimap",         # Minimap (U & Y keybinds to open)
     "convenient-mobgriefing", # Allows to disable mobGriefing but allow farmer breeding
     "universal-graves",       # Item recovery after death (corail-tombstone is broken)
     "storagedrawers",         # Storage network to easily access & sort items

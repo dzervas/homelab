@@ -64,6 +64,14 @@ resource "helm_release" "minecraft" {
     extraEnv = {
       # Startup commands (can't be done via patching)
       RCON_CMDS_STARTUP = join("\n", var.startup_commands)
+      RCON_CMDS_ON_CONNECT = join("\n", concat(var.connect_commands, [
+        "team join new @a[team=]",
+        join("\n", var.new_player_commands),
+        join("\n", [for item in var.new_player_items : "give @a[team=new] ${item}"]),
+        "team join old @a[team=new]",
+      ]))
+      RCON_CMDS_FIRST_CONNECT   = join("\n", var.first_connect_commands)
+      RCON_CMDS_LAST_DISCONNECT = join("\n", var.last_disconnect_commands)
 
       # Mod list
       CURSEFORGE_FILES = join(",", var.curseforge_mods)
