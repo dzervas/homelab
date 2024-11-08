@@ -6,7 +6,12 @@ module "minecraft" {
   icon               = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
   difficulty         = "normal"
   curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
-  ops                = ["dzervasgr", "looselyrigorous"]
+  ops                = [
+    "dzervasgr",
+    "looselyrigorous",
+    "Raffle_Daffle",
+    "Hendog2014",
+  ]
 
   backup                = true
   backup_interval       = "6h"
@@ -27,6 +32,7 @@ module "minecraft" {
     "Hendog2014",    # ortiz's friend
     "kingsilicon",
     "KayItzSam",
+    "LittleButter__",
   ]
 
   minecraft_version = "1.20.1"
@@ -53,7 +59,7 @@ module "minecraft" {
     "backpacked-fabric", "framework-fabric", # Backpacks - needs more storage (defuault 9), disable stealing and require leather instead of rabbit hide
 
     # Performance/Profiling
-    "prometheus-exporter",
+    "prometheus-exporter", "fabric-api",
   ]
   modrinth_mods = [
     # QoL/Essentials

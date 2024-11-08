@@ -87,7 +87,7 @@ resource "helm_release" "minecraft" {
       MAX_MEMORY                     = var.mem_max
       PATCH_DEFINITIONS              = "/patches"
       REMOVE_OLD_DATAPACKS           = "TRUE"
-      DISABLE_HEALTHCHECK            = "TRUE"
+      # DISABLE_HEALTHCHECK            = "TRUE"
     }
 
     persistence = {
@@ -117,7 +117,7 @@ resource "helm_release" "minecraft" {
     }]
 
     nodeSelector = {
-      "kubernetes.io/hostname" = "gr0.dzerv.art"
+      "kubernetes.io/hostname" = "frankfurt1.dzerv.art"
     }
 
     resources = {
@@ -130,8 +130,18 @@ resource "helm_release" "minecraft" {
       }
     }
 
-    livenessProbe  = { command = ["curl", "-s", "localhost:19565"] }
-    readinessProbe = { command = ["curl", "-s", "localhost:19565"] }
+    livenessProbe  = {
+      # command = ["true"]
+      initialDelaySeconds = 120
+      periodSeconds = 20
+      failureThreshold = 30
+    }
+    readinessProbe = {
+      # command = ["true"]
+      initialDelaySeconds = 120
+      periodSeconds = 20
+      failureThreshold = 30
+    }
 
     mcbackup = {
       enabled              = var.backup
