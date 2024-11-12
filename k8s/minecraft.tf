@@ -65,7 +65,8 @@ module "minecraft" {
     # QoL/Essentials
     "appleskin", # Apple Skin - Hunger preview
     "trinkets",
-    "jei",                    # Just Enough Items - Recipe viewer & search
+    "emi",                    # Recipe viewer & search
+    "jade",                   # Shows what you point at
     "ping-wheel",             # Ping with mouse 5
     "convenient-mobgriefing", # Allows to disable mobGriefing but allow farmer breeding
     "universal-graves",       # Item recovery after death (corail-tombstone is broken)
@@ -75,6 +76,9 @@ module "minecraft" {
     "create-fabric",              # Create - Mechanical contraptions
     "create-goggles",             # Combine goggles with helmets, architectury is a dep
     "create-power-loader-fabric", # Chunk loader, super hard to build one and needs rotational power
+
+    # Decoration
+    "chipped", # Tons of new deco blocks
 
     # Data packs
     # "datapack:create-structures"
