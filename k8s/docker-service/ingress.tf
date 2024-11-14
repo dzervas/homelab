@@ -2,7 +2,7 @@ resource "kubernetes_ingress_v1" "docker" {
   count = var.ingress_enabled ? 1 : 0
   metadata {
     name      = var.name
-    namespace = kubernetes_namespace.docker.metadata.0.name
+    namespace = local.namespace
     annotations = merge({
       "cert-manager.io/cluster-issuer"           = "letsencrypt"
       "nginx.ingress.kubernetes.io/ssl-redirect" = "true"

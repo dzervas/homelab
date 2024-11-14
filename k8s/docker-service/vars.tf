@@ -2,8 +2,20 @@ variable "name" {
   type = string
 }
 
+variable "namespace" {
+  type        = string
+  default     = ""
+  description = "The namespace to deploy the service in"
+}
+
+variable "create_namespace" {
+  type    = bool
+  default = true
+}
+
 variable "fqdn" {
   type        = string
+  default     = ""
   description = "The fully qualified domain name for the service"
 }
 

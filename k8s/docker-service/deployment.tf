@@ -1,9 +1,9 @@
-resource "kubernetes_deployment" "docker" {
+resource "kubernetes_deployment_v1" "docker" {
   count = var.type == "deployment" ? 1 : 0
 
   metadata {
     name      = var.name
-    namespace = kubernetes_namespace.docker.metadata[0].name
+    namespace = local.namespace
     labels = {
       managed_by = "terraform"
       service    = var.name
@@ -33,10 +33,6 @@ resource "kubernetes_deployment" "docker" {
           name  = var.name
           image = var.image
           args  = var.args
-          # env   = for k, v in var.env : {
-          #   name  = k
-          #   value = v
-          # }
 
           port {
             container_port = var.port
@@ -50,7 +46,6 @@ resource "kubernetes_deployment" "docker" {
             }
           }
 
-          # TODO: Add volumes
           dynamic "volume_mount" {
             for_each = var.config_maps
             content {
@@ -59,17 +54,21 @@ resource "kubernetes_deployment" "docker" {
               read_only  = true
             }
           }
+        }
 
-          dynamic "volume_mount" {
-            for_each = var.pvs
-            content {
-              name       = volume_mount.value.name
-              mount_path = volume_mount.key
-              read_only  = volume_mount.value.read_only
+        dynamic "volume" {
+          for_each = var.pvs
+          content {
+            name = volume.value.name
+            persistent_volume_claim {
+              claim_name = kubernetes_persistent_volume_claim_v1.docker[volume.key].metadata[0].name
+              read_only  = volume.value.read_only
             }
           }
         }
       }
     }
   }
+
+  depends_on = [kubernetes_persistent_volume_claim_v1.docker]
 }

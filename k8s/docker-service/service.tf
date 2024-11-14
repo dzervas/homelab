@@ -1,7 +1,7 @@
 resource "kubernetes_service" "docker" {
   metadata {
     name      = var.name
-    namespace = kubernetes_namespace.docker.metadata.0.name
+    namespace = local.namespace
     labels = {
       managed_by = "terraform"
       service    = var.name
@@ -9,7 +9,7 @@ resource "kubernetes_service" "docker" {
   }
 
   spec {
-    selector = var.type == "deployment" ? kubernetes_deployment.docker.0.spec[0].selector[0].match_labels : kubernetes_stateful_set.docker.0.spec.0.selector.0.match_labels
+    selector = var.type == "deployment" ? kubernetes_deployment_v1.docker.0.spec[0].selector[0].match_labels : kubernetes_stateful_set.docker.0.spec.0.selector.0.match_labels
 
     port {
       port        = var.port

@@ -3,7 +3,7 @@ resource "kubernetes_stateful_set" "docker" {
 
   metadata {
     name      = var.name
-    namespace = kubernetes_namespace.docker.metadata[0].name
+    namespace = local.namespace
     labels = {
       managed_by = "terraform"
       service    = var.name
@@ -88,7 +88,7 @@ resource "kubernetes_stateful_set" "docker" {
       content {
         metadata {
           name      = volume_claim_template.value.name
-          namespace = kubernetes_namespace.docker.metadata[0].name
+          namespace = local.namespace
           labels = {
             managed_by = "terraform"
             service    = var.name
