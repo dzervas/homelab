@@ -9,8 +9,7 @@ module "atuin" {
   type            = "deployment"
   name            = "atuin"
   fqdn            = "sh.${var.domain}"
-  ingress_enabled = true
-  auth            = "mtls"
+  ingress_enabled = false
   image           = "ghcr.io/atuinsh/atuin:18.3.0"
   args            = ["server", "start"]
   port            = 8888
