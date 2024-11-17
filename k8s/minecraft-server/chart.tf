@@ -28,6 +28,7 @@ resource "helm_release" "minecraft" {
       ops                      = join(",", var.ops)
       serviceType              = "NodePort"
       nodePort                 = 25565
+      viewDistance             = 32
 
       # Wipe-related
       type    = var.mod_loader
@@ -87,6 +88,7 @@ resource "helm_release" "minecraft" {
       MAX_MEMORY                     = var.mem_max
       PATCH_DEFINITIONS              = "/patches"
       REMOVE_OLD_DATAPACKS           = "TRUE"
+      SIMULATION_DISTANCE            = "16"
       # DISABLE_HEALTHCHECK            = "TRUE"
     }
 
@@ -117,7 +119,7 @@ resource "helm_release" "minecraft" {
     }]
 
     nodeSelector = {
-      "kubernetes.io/hostname" = "frankfurt1.dzerv.art"
+      "kubernetes.io/hostname" = "gr0.dzerv.art"
     }
 
     resources = {
