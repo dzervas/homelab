@@ -28,6 +28,7 @@ resource "helm_release" "minecraft" {
       ops                      = join(",", var.ops)
       serviceType              = "NodePort"
       nodePort                 = 25565
+      maxTickTime              = 300000 # Leave enough time for the save-all to finish
       viewDistance             = 32
 
       # Wipe-related
@@ -149,6 +150,7 @@ resource "helm_release" "minecraft" {
       enabled              = var.backup
       backupInterval       = var.backup_interval
       backupMethod         = "restic"
+      initialDelay         = "2h"
       rcloneDestDir        = var.namespace
       resticAdditionalTags = "mc_backups ${var.namespace}"
       rcloneRemote         = "remote"
@@ -166,8 +168,12 @@ resource "helm_release" "minecraft" {
         RESTIC_PASSWORD = var.restic_password
       }
       extraEnv = {
-        PRE_SAVE_ALL_SCRIPT = "rcon-cli say 'Server is saving all data, expect lag...'"
-        PRE_BACKUP_SCRIPT   = "rcon-cli say 'Done, starting backup'"
+        PRE_SAVE_ALL_SCRIPT = <<EOT
+          rcon-cli tellraw @a '[{"text":"Server will lag/time out in "},{"text":"30 seconds","bold":true,"underlined":true,"color":"yellow"},{"text":" to take backup"}]'
+          sleep 30
+          rcon-cli say 'Server saving the world to start the backup'
+        EOT
+        PRE_BACKUP_SCRIPT   = "rcon-cli say 'Done, starting backup. Lag should stop'"
         POST_BACKUP_SCRIPT  = "rcon-cli say 'Backup done!'"
       }
     }
