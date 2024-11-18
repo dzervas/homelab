@@ -28,7 +28,7 @@ resource "helm_release" "minecraft" {
       ops                      = join(",", var.ops)
       serviceType              = "NodePort"
       nodePort                 = 25565
-      maxTickTime              = 300000 # Leave enough time for the save-all to finish
+      maxTickTime              = -1 # Don't crash on slow tickrate
       viewDistance             = 32
 
       # Wipe-related
@@ -90,7 +90,7 @@ resource "helm_release" "minecraft" {
       PATCH_DEFINITIONS              = "/patches"
       REMOVE_OLD_DATAPACKS           = "TRUE"
       SIMULATION_DISTANCE            = "16"
-      # DISABLE_HEALTHCHECK            = "TRUE"
+      SYNC_CHUNK_WRITES              = "FALSE"
     }
 
     persistence = {
