@@ -71,6 +71,7 @@ module "minecraft" {
     "convenient-mobgriefing", # Allows to disable mobGriefing but allow farmer breeding
     "universal-graves",       # Item recovery after death (corail-tombstone is broken)
     "storagedrawers",         # Storage network to easily access & sort items
+    "elytra-slot",            # Be able to wear elytra with armor
 
     # Game Mods
     "create-fabric",              # Create - Mechanical contraptions
