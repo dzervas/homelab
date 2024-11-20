@@ -44,6 +44,11 @@ resource "helm_release" "minecraft" {
         }
       }
 
+      modrinth = {
+        projects           = var.modrinth_mods
+        allowedVersionType = var.modrinth_allowed_version_type
+      }
+
       # Needed for RCON startup commands to work
       rcon = {
         enabled  = true
@@ -76,28 +81,23 @@ resource "helm_release" "minecraft" {
       RCON_CMDS_LAST_DISCONNECT = join("\n", var.last_disconnect_commands)
 
       # Mod list
-      CURSEFORGE_FILES = join(",", var.curseforge_mods)
+      CURSEFORGE_FILES               = join(",", var.curseforge_mods)
+      MODRINTH_DOWNLOAD_DEPENDENCIES = "optional"
 
       DATAPACKS = join(",", var.datapack_urls)
 
-      MODRINTH_DOWNLOAD_DEPENDENCIES = "required"
-      MODRINTH_ALLOWED_VERSION_TYPE  = var.modrinth_allowed_version_type
-      MODRINTH_PROJECTS              = join(",", var.modrinth_mods)
-      ALLOW_FLIGHT                   = "TRUE"  # Disable flight kick (for tombstone mod)
-      SNOOPER_ENABLED                = "FALSE" # Disable telemetry
-      INIT_MEMORY                    = var.mem_min
-      MAX_MEMORY                     = var.mem_max
-      PATCH_DEFINITIONS              = "/patches"
-      REMOVE_OLD_DATAPACKS           = "TRUE"
-      SIMULATION_DISTANCE            = "16"
-      SYNC_CHUNK_WRITES              = "FALSE"
+      ALLOW_FLIGHT         = "TRUE"  # Disable flight kick (for tombstone mod)
+      SNOOPER_ENABLED      = "FALSE" # Disable telemetry
+      INIT_MEMORY          = var.mem_min
+      MAX_MEMORY           = var.mem_max
+      PATCH_DEFINITIONS    = "/patches"
+      REMOVE_OLD_DATAPACKS = "TRUE"
+      SIMULATION_DISTANCE  = "16"
+      SYNC_CHUNK_WRITES    = "FALSE"
     }
 
     persistence = {
-      labels = {
-        "recurring-job.longhorn.io/source"          = "enabled"
-        "recurring-job-group.longhorn.io/minecraft" = "enabled"
-      }
+      storageClass = "local-path"
       dataDir = {
         enabled = true
         Size    = "10Gi"
@@ -133,17 +133,17 @@ resource "helm_release" "minecraft" {
       }
     }
 
-    livenessProbe  = {
+    livenessProbe = {
       # command = ["true"]
       initialDelaySeconds = 120
-      periodSeconds = 20
-      failureThreshold = 30
+      periodSeconds       = 20
+      failureThreshold    = 30
     }
     readinessProbe = {
       # command = ["true"]
       initialDelaySeconds = 120
-      periodSeconds = 20
-      failureThreshold = 30
+      periodSeconds       = 20
+      failureThreshold    = 30
     }
 
     mcbackup = {

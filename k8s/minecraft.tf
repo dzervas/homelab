@@ -6,7 +6,7 @@ module "minecraft" {
   icon               = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
   difficulty         = "normal"
   curseforge_api_key = local.op_secrets.minecraft.curseforge_api_key
-  ops                = [
+  ops = [
     "dzervasgr",
     "looselyrigorous",
     "Raffle_Daffle",

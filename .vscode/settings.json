@@ -2,8 +2,23 @@
 	"ansible.python.interpreterPath": "/bin/python",
 	"editor.formatOnSave": true,
 	"cSpell.words": [
+		"binwiederhier",
 		"borgserver",
+		"CURSEFORGE",
+		"datapack",
+		"DATAPACKS",
+		"dzerv",
 		"iface",
-		"proto"
+		"kubelet",
+		"mcbackup",
+		"MODRINTH",
+		"ntfy",
+		"proto",
+		"rclone",
+		"RCON",
+		"restic",
+		"serverconfig",
+		"snipeit",
+		"tellraw"
 	]
 }
