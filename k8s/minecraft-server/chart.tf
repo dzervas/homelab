@@ -84,7 +84,7 @@ resource "helm_release" "minecraft" {
       CURSEFORGE_FILES               = join(",", var.curseforge_mods)
       MODRINTH_DOWNLOAD_DEPENDENCIES = "optional"
 
-      DATAPACKS = join(",", var.datapack_urls)
+      DATAPACKS = join(",", concat(var.datapack_urls, [for name in local.datapack_names : "/datapacks/${name}.zip"]))
 
       ALLOW_FLIGHT         = "TRUE"  # Disable flight kick (for tombstone mod)
       SNOOPER_ENABLED      = "FALSE" # Disable telemetry
@@ -94,6 +94,7 @@ resource "helm_release" "minecraft" {
       REMOVE_OLD_DATAPACKS = "TRUE"
       SIMULATION_DISTANCE  = "16"
       SYNC_CHUNK_WRITES    = "FALSE"
+      DISABLE_HEALTHCHECK  = "TRUE"
     }
 
     persistence = {
@@ -104,19 +105,36 @@ resource "helm_release" "minecraft" {
       }
     }
 
-    # Expose the patches as files
     extraVolumes = [{
-      volumeMounts = [{
-        name      = kubernetes_config_map.minecraft_patches.metadata[0].name
-        mountPath = "/patches/"
-        readOnly  = true
-      }]
-      volumes = [{
-        name = kubernetes_config_map.minecraft_patches.metadata[0].name
-        configMap = {
+      volumeMounts = [
+        # Expose the patches as files
+        {
+          name      = kubernetes_config_map.minecraft_patches.metadata[0].name
+          mountPath = "/patches/"
+          readOnly  = true
+        },
+
+        # Expose the datapacks as files
+        {
+          name      = kubernetes_config_map.datapacks.metadata[0].name
+          mountPath = "/datapacks/"
+          readOnly  = true
+        },
+      ]
+      volumes = [
+        {
           name = kubernetes_config_map.minecraft_patches.metadata[0].name
-        }
-      }]
+          configMap = {
+            name = kubernetes_config_map.minecraft_patches.metadata[0].name
+          }
+        },
+        {
+          name = kubernetes_config_map.datapacks.metadata[0].name
+          configMap = {
+            name = kubernetes_config_map.datapacks.metadata[0].name
+          }
+        },
+      ]
     }]
 
     nodeSelector = {
@@ -130,18 +148,19 @@ resource "helm_release" "minecraft" {
       }
       limits = {
         memory = var.mem_max
+        cpu    = "4.0"
       }
     }
 
     livenessProbe = {
-      # command = ["true"]
-      initialDelaySeconds = 120
+      command             = ["true"]
+      initialDelaySeconds = 1
       periodSeconds       = 20
       failureThreshold    = 30
     }
     readinessProbe = {
-      # command = ["true"]
-      initialDelaySeconds = 120
+      command             = ["true"]
+      initialDelaySeconds = 1
       periodSeconds       = 20
       failureThreshold    = 30
     }

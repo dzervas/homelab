@@ -5,3 +5,5 @@ alertmanager.yaml
 *.tfstate.backup
 .terraform*
 .envrc
+/k8s/minecraft-server/.datapacks
+*.zip

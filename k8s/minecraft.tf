@@ -1,7 +1,7 @@
 module "minecraft" {
   source             = "./minecraft-server"
-  mem_min            = "2G"
-  mem_max            = "8G"
+  mem_min            = "4G"
+  mem_max            = "12G"
   motd               = "I'm a form of art"
   icon               = "https://github.com/dzervas/dzervas/raw/main/assets/images/logo.svg"
   difficulty         = "normal"
@@ -77,6 +77,8 @@ module "minecraft" {
     "create-fabric",              # Create - Mechanical contraptions
     "create-goggles",             # Combine goggles with helmets, architectury is a dep
     "create-power-loader-fabric", # Chunk loader, super hard to build one and needs rotational power
+    "create-garnished",           # Create food stuff
+    "create-steam-n-rails",       # More train stuff
 
     # Decoration
     "chipped", # Tons of new deco blocks
@@ -93,7 +95,6 @@ module "minecraft" {
   ]
   modrinth_allowed_version_type = "beta"
   datapack_urls = [
-    "https://cdn.modrinth.com/data/8W2fvQSU/versions/iErJtT1r/backpacked_leather_recipe.zip",                     # Backpacks recipe uses leather instead of rabbit hide
     "https://cdn.modrinth.com/data/IAnP4np7/versions/GHYR6eCT/Create%20Structures%20-%20v0.1.1%20-%201.20.1.zip", # Create mod structures
   ]
 
@@ -125,8 +126,10 @@ module "minecraft" {
       pack_format = 15
       data = {
         "data/backpacked/recipes/backpack.json" = jsonencode({
-          type     = "minecraft:crafting_shaped"
-          category = "misc"
+          type              = "minecraft:crafting_shaped"
+          category          = "misc"
+          show_notification = true
+
           key = {
             H = { item = "minecraft:leather" }
             I = { item = "minecraft:iron_ingot" }
@@ -137,8 +140,25 @@ module "minecraft" {
             "SIS",
             "HHH"
           ]
-          result            = { item = "backpacked:backpack" }
-          show_notification = true
+
+          result = { item = "backpacked:backpack" }
+        })
+      }
+    }
+    "cobble_mixer" = {
+      description = "Cobblestone mixing recipe"
+      pack_format = 15
+      data = {
+        "data/create/recipes/mixing/cobble_mixer.json" = jsonencode({
+          type = "create:mixing"
+
+          heatRequirement = "none"
+          ingredients = [
+            { fluid = "minecraft:water", amount = 40500 },
+            { fluid = "minecraft:lava", amount = 40500 }
+          ]
+
+          results = [{ item = "minecraft:cobblestone", count = 64 }]
         })
       }
     }
