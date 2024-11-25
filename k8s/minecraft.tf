@@ -116,6 +116,8 @@ module "minecraft" {
       file = "/data/config/universal-graves/config.json"
       ops = [
         { "$set" = { path = "$.interactions.enable_click_to_open_gui", value = false, value-type = "bool" } },
+        { "$set" = { path = "$.protection.non_owner_protection_time", value = -1 } },
+        { "$set" = { path = "$.protection.self_destruction_time", value = -1 } },
       ]
     })
   }
