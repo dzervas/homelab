@@ -55,6 +55,11 @@ variable "env" {
   default = {}
 }
 
+variable "svc_annotations" {
+  type    = map(string)
+  default = {}
+}
+
 variable "config_maps" {
   type        = map(string)
   default     = {}
