@@ -55,7 +55,7 @@ variable "env" {
   default = {}
 }
 
-variable "svc_annotations" {
+variable "ingress_annotations" {
   type    = map(string)
   default = {}
 }

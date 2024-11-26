@@ -6,7 +6,6 @@ resource "kubernetes_service" "docker" {
       managed_by = "terraform"
       service    = var.name
     }
-    annotations = var.svc_annotations
   }
 
   spec {

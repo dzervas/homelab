@@ -13,8 +13,14 @@ module "n8n" {
   image            = "ghcr.io/n8n-io/n8n:1.68.1"
   port             = 5678
   retain_pvs       = true
-  svc_annotations = {
+  ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
+    # Allow unauthenticated access to the webhook endpoints
+    # "nginx.ingress.kubernetes.io/auth-snippet" = <<EOF
+    #   if ($request_uri ~ "^/webhook(-test)?/.*") {
+    #     return 200;
+    #   }
+    # EOF
   }
   pvs = {
     "/home/node/.n8n" = {
@@ -38,6 +44,58 @@ module "n8n" {
     # N8N_METRICS                           = true
     # TODO: S3 storage
     # N8N_EXTERNAL_STORAGE_S3_HOST = "whatever"
+  }
+}
+
+resource "kubernetes_ingress_v1" "n8n_webhooks" {
+  metadata {
+    name      = "n8n-webhooks"
+    namespace = module.n8n.namespace
+    annotations = {
+      "cert-manager.io/cluster-issuer"           = "letsencrypt"
+      "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
+    }
+    labels = {
+      managed_by = "terraform"
+      service    = "n8n"
+    }
+  }
+
+  spec {
+    ingress_class_name = "nginx"
+    rule {
+      host = "hook.${var.domain}"
+      http {
+        path {
+          path      = "/webhook/"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = "n8n"
+              port {
+                number = 5678
+              }
+            }
+          }
+        }
+        path {
+          path      = "/webhook-test/"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = "n8n"
+              port {
+                number = 5678
+              }
+            }
+          }
+        }
+      }
+    }
+    tls {
+      hosts       = ["hook.${var.domain}"]
+      secret_name = "${replace("hook.${var.domain}", ".", "-")}-webhook-cert"
+    }
   }
 }
 

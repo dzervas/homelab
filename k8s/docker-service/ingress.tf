@@ -7,6 +7,7 @@ resource "kubernetes_ingress_v1" "docker" {
       "cert-manager.io/cluster-issuer"           = "letsencrypt"
       "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
       },
+      var.ingress_annotations,
       var.auth == "mtls" ? {
         "nginx.ingress.kubernetes.io/auth-tls-verify-client" = "on"
         "nginx.ingress.kubernetes.io/auth-tls-secret"        = "cert-manager/client-ca-certificate"
