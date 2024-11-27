@@ -45,6 +45,11 @@ variable "image" {
   description = "The container image to deploy"
 }
 
+variable "command" {
+  type    = list(string)
+  default = []
+}
+
 variable "args" {
   type    = list(string)
   default = []

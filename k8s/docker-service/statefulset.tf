@@ -31,9 +31,10 @@ resource "kubernetes_stateful_set" "docker" {
 
       spec {
         container {
-          name  = var.name
-          image = var.image
-          args  = var.args
+          name    = var.name
+          image   = var.image
+          command = var.command
+          args    = var.args
 
           port {
             container_port = var.port

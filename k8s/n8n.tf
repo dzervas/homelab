@@ -15,12 +15,6 @@ module "n8n" {
   retain_pvs       = true
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
-    # Allow unauthenticated access to the webhook endpoints
-    # "nginx.ingress.kubernetes.io/auth-snippet" = <<EOF
-    #   if ($request_uri ~ "^/webhook(-test)?/.*") {
-    #     return 200;
-    #   }
-    # EOF
   }
   pvs = {
     "/home/node/.n8n" = {
@@ -39,6 +33,7 @@ module "n8n" {
     N8N_EDITOR_BASE_URL                   = "auto.${var.domain}"
     WEBHOOK_URL                           = "hook.${var.domain}"
     N8N_ENCRYPTION_KEY                    = random_password.n8n_encryption_key.result
+    N8N_PROXY_HOPS                        = 1
 
     # TODO: Add prometheus metrics
     # N8N_METRICS                           = true
