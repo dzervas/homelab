@@ -15,7 +15,10 @@ resource "helm_release" "ingress_nginx" {
       watchIngressWithoutClass    = true
       enableAnnotationValidations = true
       allowSnippetAnnotations     = true
-      ingressClassResource        = { default = true }
+      # hostPort                    = { enabled = true }
+      # hostNetwork                 = true
+      # dnsPolicy                   = "ClusterFirstWithHostNet" # Recommended for hostNetwork
+      ingressClassResource = { default = true }
       metrics = {
         enabled        = true
         serviceMonitor = { enabled = true }
@@ -24,10 +27,12 @@ resource "helm_release" "ingress_nginx" {
         "prometheus.io/scrape" = "true"
         "prometheus.io/port"   = "10254"
       }
+      service = {
+        externalTrafficPolicy = "Local"
+      }
     }
     tcp = {
       2222 = "borgserver/borgserver-service:2222"
-      # 25565 = "minecraft/minecraft-minecraft:25565"
     }
   })]
 }

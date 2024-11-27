@@ -14,7 +14,9 @@ module "n8n" {
   port             = 5678
   retain_pvs       = true
   ingress_annotations = {
-    "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
+    "nginx.ingress.kubernetes.io/proxy-body-size"        = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
+    "nginx.ingress.kubernetes.io/satisfy"                = "any"
+    "nginx.ingress.kubernetes.io/whitelist-source-range" = "10.11.12.0/24,10.9.8.0/24"
   }
   pvs = {
     "/home/node/.n8n" = {
