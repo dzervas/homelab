@@ -7,7 +7,7 @@ resource "helm_release" "ingress_nginx" {
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   # For upgrading: https://github.com/kubernetes/ingress-nginx/releases
-  version = "4.10.1"
+  version = "4.11.3"
 
   values = [yamlencode({
     controller = {
@@ -29,6 +29,17 @@ resource "helm_release" "ingress_nginx" {
       }
       service = {
         externalTrafficPolicy = "Local"
+      }
+
+      # ConfigMap data
+      config = {
+        # use-proxy-protocol = "true"
+        # real-ip-header     = "proxy_protocol"
+        enable-real-ip             = "true"
+        proxy-real-ip-cidr         = "10.42.0.0/16"
+        compute-full-forwarded-for = "true"
+        use-forwarded-headers      = "false"
+        real-ip-header             = "proxy_protocol"
       }
     }
     tcp = {

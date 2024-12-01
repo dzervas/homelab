@@ -10,7 +10,7 @@ module "n8n" {
   create_namespace = true
   ingress_enabled  = true
   auth             = "mtls"
-  image            = "ghcr.io/n8n-io/n8n:1.68.1"
+  image            = "ghcr.io/n8n-io/n8n:1.69.2"
   port             = 5678
   retain_pvs       = true
   ingress_annotations = {
@@ -46,6 +46,7 @@ module "n8n" {
     WEBHOOK_URL                           = "hook.${var.domain}"
     N8N_ENCRYPTION_KEY                    = random_password.n8n_encryption_key.result
     N8N_PROXY_HOPS                        = 1 # Allows X-Forwarded-For header
+    N8N_PORT                              = "5678"
 
     # TODO: Add prometheus metrics
     # N8N_METRICS                           = true
