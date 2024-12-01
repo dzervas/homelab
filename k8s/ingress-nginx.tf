@@ -19,6 +19,12 @@ resource "helm_release" "ingress_nginx" {
       watchIngressWithoutClass = true
       ingressClassResource     = { default = true }
 
+      kind        = "DaemonSet"
+      hostNetwork = true
+      hostPort    = { enabled = true }
+      # No LB, so no use ClusterIP with host network
+      service = { type = "ClusterIP" }
+
       metrics = {
         enabled        = true
         serviceMonitor = { enabled = true }
@@ -26,11 +32,6 @@ resource "helm_release" "ingress_nginx" {
       podAnnotations = {
         "prometheus.io/scrape" = "true"
         "prometheus.io/port"   = "10254"
-      }
-
-      service = {
-        # View the real client IPs
-        externalTrafficPolicy = "Local"
       }
     }
     tcp = {
