@@ -14,9 +14,19 @@ module "n8n" {
   port             = 5678
   retain_pvs       = true
   ingress_annotations = {
-    "nginx.ingress.kubernetes.io/proxy-body-size"        = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
-    "nginx.ingress.kubernetes.io/satisfy"                = "any"
-    "nginx.ingress.kubernetes.io/whitelist-source-range" = "10.11.12.0/24,10.9.8.0/24"
+    "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
+    # "nginx.ingress.kubernetes.io/satisfy"                = "any"
+    # "nginx.ingress.kubernetes.io/whitelist-source-range" = "10.11.12.0/24,10.9.8.0/24"
+    # "nginx.ingress.kubernetes.io/use-proxy-protocol"     = "true"
+
+    # "nginx.ingress.kubernetes.io/configuration-snippet" = <<EOF
+    #   geo $auth_tls {
+    #     default on;
+    #     10.11.12.0/24 off;
+    #     10.9.8.0/24 off;
+    #   }
+    #   ssl_verify_client $auth_tls;
+    # EOF
   }
   pvs = {
     "/home/node/.n8n" = {
@@ -35,7 +45,7 @@ module "n8n" {
     N8N_EDITOR_BASE_URL                   = "auto.${var.domain}"
     WEBHOOK_URL                           = "hook.${var.domain}"
     N8N_ENCRYPTION_KEY                    = random_password.n8n_encryption_key.result
-    N8N_PROXY_HOPS                        = 1
+    N8N_PROXY_HOPS                        = 1 # Allows X-Forwarded-For header
 
     # TODO: Add prometheus metrics
     # N8N_METRICS                           = true

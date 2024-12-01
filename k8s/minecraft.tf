@@ -120,6 +120,12 @@ module "minecraft" {
         { "$set" = { path = "$.protection.self_destruction_time", value = -1 } },
       ]
     })
+    "storagedrawers.json" = jsonencode({
+      file = "/data/config/storagedrawers-common.toml"
+      ops = [
+        { "$set" = { path = "$.General.debugTrace", value = false, value-type = "bool" } },
+      ]
+    })
   }
 
   datapacks = {
