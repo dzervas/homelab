@@ -11,14 +11,14 @@ resource "helm_release" "ingress_nginx" {
 
   values = [yamlencode({
     controller = {
-      replicaCount                = 2
-      watchIngressWithoutClass    = true
-      enableAnnotationValidations = true
+      replicaCount = 2
+
       allowSnippetAnnotations     = true
-      # hostPort                    = { enabled = true }
-      # hostNetwork                 = true
-      # dnsPolicy                   = "ClusterFirstWithHostNet" # Recommended for hostNetwork
-      ingressClassResource = { default = true }
+      enableAnnotationValidations = true
+
+      watchIngressWithoutClass = true
+      ingressClassResource     = { default = true }
+
       metrics = {
         enabled        = true
         serviceMonitor = { enabled = true }
@@ -27,19 +27,10 @@ resource "helm_release" "ingress_nginx" {
         "prometheus.io/scrape" = "true"
         "prometheus.io/port"   = "10254"
       }
-      service = {
-        externalTrafficPolicy = "Local"
-      }
 
-      # ConfigMap data
-      config = {
-        # use-proxy-protocol = "true"
-        # real-ip-header     = "proxy_protocol"
-        enable-real-ip             = "true"
-        proxy-real-ip-cidr         = "10.42.0.0/16"
-        compute-full-forwarded-for = "true"
-        use-forwarded-headers      = "false"
-        real-ip-header             = "proxy_protocol"
+      service = {
+        # View the real client IPs
+        externalTrafficPolicy = "Local"
       }
     }
     tcp = {

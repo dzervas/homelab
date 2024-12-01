@@ -24,6 +24,7 @@ advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
 secrets-encryption: true
 # Disable some default k3s services
 disable:
+  - servicelb
   - traefik
   - metrics-server
 # Master node certificate SANs
