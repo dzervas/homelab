@@ -60,6 +60,16 @@ variable "env" {
   default = {}
 }
 
+variable "vpn_bypass_auth" {
+  type    = bool
+  default = false
+}
+
+variable "vpn_cidrs" {
+  type    = list(string)
+  default = []
+}
+
 variable "ingress_annotations" {
   type    = map(string)
   default = {}

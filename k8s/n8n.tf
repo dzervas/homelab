@@ -10,23 +10,13 @@ module "n8n" {
   create_namespace = true
   ingress_enabled  = true
   auth             = "mtls"
+  vpn_bypass_auth  = false
+  vpn_cidrs        = var.vpn_cidrs
   image            = "ghcr.io/n8n-io/n8n:1.69.2"
   port             = 5678
   retain_pvs       = true
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
-    # "nginx.ingress.kubernetes.io/satisfy"                = "any"
-    # "nginx.ingress.kubernetes.io/whitelist-source-range" = "10.11.12.0/24,10.9.8.0/24"
-    # "nginx.ingress.kubernetes.io/use-proxy-protocol"     = "true"
-
-    # "nginx.ingress.kubernetes.io/configuration-snippet" = <<EOF
-    #   geo $auth_tls {
-    #     default on;
-    #     10.11.12.0/24 off;
-    #     10.9.8.0/24 off;
-    #   }
-    #   ssl_verify_client $auth_tls;
-    # EOF
   }
   pvs = {
     "/home/node/.n8n" = {

@@ -29,7 +29,7 @@ resource "helm_release" "audiobookshelf" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "audiobookshelf"
-  version    = "0.2.1"
+  version    = "0.2.4"
   values = [yamlencode({
     ingress = module.audiobookshelf_ingress.host_obj
     persistence = {
