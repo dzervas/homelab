@@ -7,11 +7,11 @@ module "oci_instances_arm" {
   }
 
   fqdn                  = "${split("-", var.region)[1]}${count.index}.${var.domain}"
-  apex_record           = true
+  apex_record           = false
   wildcard_record       = true
   region                = var.region
   availability_domain   = var.availability_domain
-  compartment_ocid      = local.oci_main.compartment_ocid
+  compartment_ocid      = local.op_secrets.oci_main.compartment_ocid
   shape                 = "VM.Standard.A1.Flex"
   cpus                  = 4
   ram_gbs               = 24
@@ -37,11 +37,11 @@ module "oci_instances_arm_alt" {
   }
 
   fqdn                  = "${split("-", var.region)[1]}${count.index + length(module.oci_instances_arm)}.${var.domain}"
-  apex_record           = true
+  apex_record           = false
   wildcard_record       = true
   region                = var.region_alt
   availability_domain   = var.availability_domain_alt
-  compartment_ocid      = local.oci_alt.compartment_ocid
+  compartment_ocid      = local.op_secrets.oci_alt.compartment_ocid
   shape                 = "VM.Standard.A1.Flex"
   cpus                  = 4
   ram_gbs               = 24

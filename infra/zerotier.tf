@@ -1,3 +1,7 @@
+locals {
+  vpn_ips = flatten([module.oci_instances_arm[*].vpn_ips, module.oci_instances_arm_alt[*].vpn_ips])
+}
+
 resource "zerotier_network" "homelab" {
   name        = "HomeLab"
   description = "Managed by Terraform"
@@ -15,6 +19,13 @@ resource "zerotier_network" "homelab" {
   enable_broadcast = true
   private          = true
   flow_rules       = "accept;"
+
+  dns {
+    domain = var.domain
+    # TODO: Add the rest of the k8s masters as nameservers
+    # servers = concat(["10.9.8.100"], local.vpn_ips)
+    servers = ["10.9.8.100"]
+  }
 }
 
 output "zerotier_identities" {

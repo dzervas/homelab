@@ -4,7 +4,7 @@ module "oci_network_main" {
     oci = oci
   }
 
-  compartment_ocid = local.oci_main.compartment_ocid
+  compartment_ocid = local.op_secrets.oci_main.compartment_ocid
 }
 
 module "oci_network_alt" {
@@ -13,5 +13,5 @@ module "oci_network_alt" {
     oci = oci.alt
   }
 
-  compartment_ocid = local.oci_alt.compartment_ocid
+  compartment_ocid = local.op_secrets.oci_alt.compartment_ocid
 }

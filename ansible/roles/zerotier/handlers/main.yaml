@@ -3,3 +3,8 @@
   service:
     name: zerotier-one
     state: restarted
+
+- name: Restart DNSMasq
+  service:
+    name: dnsmasq
+    state: restarted

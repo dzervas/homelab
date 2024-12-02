@@ -10,3 +10,7 @@ output "zerotier_identity" {
   value     = { public = zerotier_identity.instance.public_key, private = zerotier_identity.instance.private_key }
   sensitive = true
 }
+
+output "vpn_ips" {
+  value = zerotier_member.instance.ipv4_assignments
+}
