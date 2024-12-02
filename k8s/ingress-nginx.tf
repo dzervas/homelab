@@ -39,14 +39,18 @@ resource "helm_release" "ingress_nginx" {
         "prometheus.io/port"   = "10254"
       }
 
-      # config = {
-      #   http-snippet = <<EOF
-      #     geo $vpn_client {
-      #       default 0;
-      #       ${join("\n", local.list_vpn_cidrs)}
-      #     }
-      #   EOF
-      # }
+      config = {
+        http-snippet = <<EOF
+          geo $vpn_client {
+            default 0;
+            ${join("\n", local.list_vpn_cidrs)}
+          }
+        EOF
+      }
+
+      nodeSelector = {
+        "node-role.kubernetes.io/master" = "true"
+      }
     }
     tcp = {
       2222 = "borgserver/borgserver-service:2222"

@@ -10,7 +10,7 @@ module "n8n" {
   create_namespace = true
   ingress_enabled  = true
   auth             = "mtls"
-  vpn_bypass_auth  = false
+  vpn_bypass_auth  = true
   vpn_cidrs        = var.vpn_cidrs
   image            = "ghcr.io/n8n-io/n8n:1.69.2"
   port             = 5678

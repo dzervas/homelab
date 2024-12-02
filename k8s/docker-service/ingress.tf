@@ -20,32 +20,22 @@ locals {
 
   list_vpn_cidrs = [for cidr in var.vpn_cidrs : "${cidr} 1;"]
   vpn_annotations = {
-    # "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
-    #   map $remote_addr $vpn_client {
-    #     default 0;
-    #     ${join("\n", local.list_vpn_cidrs)}
-    #   }
-    # EOF
     # In the case of VPN bypass, we optionally ask for a client cert
     # If it was given and verified, we allow access
     # If not, check if the IP is in the VPN CIDR
     # If it is, allow access, otherwise deny
-    # "nginx.ingress.kubernetes.io/configuration-snippet" = <<EOF
-    #   map $remote_addr $vpn_client {
-    #     default 0;
-    #     ${join("\n", local.list_vpn_cidrs)}
-    #   }
-    #   if ( $ssl_client_verify != SUCCESS ) {
-    #     set $auth_tests "non_mtls";
-    #   }
-    #   if ( $vpn_client != 1 ) {
-    #     set $auth_tests "$${auth_tests}_non_vpn";
-    #   }
+    "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
+      if ( $ssl_client_verify != SUCCESS ) {
+        set $auth_tests "non_mtls";
+      }
+      if ( $vpn_client != 1 ) {
+        set $auth_tests "$${auth_tests}_non_vpn";
+      }
 
-    #   if ( $auth_tests = "non_mtls_non_vpn" ) {
-    #     return 403;
-    #   }
-    # EOF
+      if ( $auth_tests = "non_mtls_non_vpn" ) {
+        return 403;
+      }
+    EOF
   }
 }
 
