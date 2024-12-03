@@ -116,8 +116,8 @@ module "minecraft" {
       file = "/data/config/universal-graves/config.json"
       ops = [
         { "$set" = { path = "$.interactions.enable_click_to_open_gui", value = false, value-type = "bool" } },
-        { "$set" = { path = "$.protection.non_owner_protection_time", value = -1 } },
-        { "$set" = { path = "$.protection.self_destruction_time", value = -1 } },
+        { "$set" = { path = "$.protection.non_owner_protection_time", value = 604800 } }, # 1 week
+        { "$set" = { path = "$.protection.self_destruction_time", value = 604800 } },
       ]
     })
     "storagedrawers.json" = jsonencode({
@@ -167,6 +167,25 @@ module "minecraft" {
           ]
 
           results = [{ item = "minecraft:cobblestone", count = 64 }]
+        })
+      }
+    }
+    "more_wrench_pickups" = {
+      description = "More wrench pickups"
+      pack_format = 15
+      data = {
+        "data/create/tags/blocks/wrench_pickup.json" = jsonencode({
+          replace = false
+          values = [
+            "storagedrawers:controller",
+            "storagedrawers:controller_slave",
+            "storagedrawers:compacting_drawers_2",
+            "storagedrawers:compacting_drawers_3",
+            "storagedrawers:compacting_half_drawers_2",
+            "storagedrawers:compacting_half_drawers_3",
+            "#storagedrawers:full_drawers",
+            "#storagedrawers:half_drawers",
+          ]
         })
       }
     }
