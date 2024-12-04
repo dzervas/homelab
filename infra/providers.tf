@@ -16,25 +16,23 @@ terraform {
   }
 
   required_providers {
+    azuread = {
+      source = "hashicorp/azuread"
+    }
     cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.13"
+      source = "cloudflare/cloudflare"
     }
     oci = {
-      source  = "oracle/oci"
-      version = "~> 5.0"
+      source = "oracle/oci"
     }
     onepassword = {
-      source  = "1Password/onepassword"
-      version = "2.1.0"
+      source = "1Password/onepassword"
     }
     template = {
-      source  = "hashicorp/template"
-      version = "~> 2.2"
+      source = "hashicorp/template"
     }
     zerotier = {
-      source  = "zerotier/zerotier"
-      version = "~> 1.4"
+      source = "zerotier/zerotier"
     }
   }
 }
@@ -73,4 +71,9 @@ provider "cloudflare" {
 
 provider "zerotier" {
   zerotier_central_token = local.op_secrets.zerotier.central_token
+}
+
+provider "azuread" {
+  # Requires `az login` to be run
+  tenant_id = local.op_secrets.azuread.tenant_id
 }

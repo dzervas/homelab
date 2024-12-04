@@ -17,20 +17,19 @@ terraform {
 
   required_providers {
     kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "2.31"
+      source = "hashicorp/kubernetes"
     }
     helm = {
-      source  = "hashicorp/helm"
-      version = "2.14"
+      source = "hashicorp/helm"
     }
     onepassword = {
-      source  = "1Password/onepassword"
-      version = "2.1.0"
+      source = "1Password/onepassword"
     }
     random = {
-      source  = "hashicorp/random"
-      version = "3"
+      source = "hashicorp/random"
+    }
+    toml = {
+      source = "Tobotimus/toml"
     }
   }
 }
@@ -50,6 +49,8 @@ provider "helm" {
 provider "random" {}
 
 provider "onepassword" {}
+
+provider "toml" {}
 
 data "onepassword_item" "homelab" {
   vault = var.op_vault

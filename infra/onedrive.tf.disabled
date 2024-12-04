@@ -1,0 +1,52 @@
+data "azuread_client_config" "current" {}
+data "azuread_application_published_app_ids" "well_known" {}
+
+# Built-in roles
+resource "azuread_service_principal" "msgraph" {
+  client_id    = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+  use_existing = true
+}
+
+resource "azuread_application" "rclone-s3" {
+  display_name     = "RClone S3"
+  description      = "RClone S3 Application"
+  sign_in_audience = "AzureADMyOrg"
+  owners           = [data.azuread_client_config.current.object_id]
+
+  web {
+    redirect_uris = ["http://localhost:53682/"]
+  }
+}
+
+resource "azuread_application_password" "rclone-s3" {
+  display_name      = "RClone S3 Password"
+  application_id    = azuread_application.rclone-s3.object_id
+  end_date_relative = "17520h" # 24 months
+}
+
+resource "azuread_service_principal" "rclone-s3" {
+  client_id = azuread_application.rclone-s3.client_id
+  owners    = [data.azuread_client_config.current.object_id]
+}
+
+resource "azuread_app_role_assignment" "rclone_permissions" {
+  for_each = toset([
+    "Files.ReadWrite.AppFolder",
+    "User.Read",
+    "Sites.Read.All",
+    "offline_access",
+  ])
+
+  app_role_id         = azuread_service_principal.msgraph.app_role_ids[each.key]
+  principal_object_id = azuread_service_principal.rclone-s3.object_id
+  resource_object_id  = azuread_service_principal.msgraph.object_id
+}
+
+# output "client_id" {
+#   value = azuread_application.rclone_onedrive.application_id
+# }
+
+# output "client_secret" {
+#   value = azuread_application_password.rclone_secret.value
+#   sensitive = true
+# }
