@@ -13,16 +13,6 @@ module "atuin" {
   image           = "ghcr.io/atuinsh/atuin:18.3.0"
   args            = ["server", "start"]
   port            = 8888
-  retain_pvs      = false
-  pvs = {
-    "/config" = {
-      name         = "config"
-      read_only    = false
-      access_modes = ["ReadWriteOnce"]
-      size         = "256Mi"
-      retain       = false
-    }
-  }
 
   env = {
     ATUIN_HOST              = "0.0.0.0"

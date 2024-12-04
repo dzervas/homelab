@@ -49,7 +49,7 @@ resource "kubernetes_stateful_set" "docker" {
           }
 
           dynamic "volume_mount" {
-            for_each = var.config_maps
+            for_each = merge(var.config_maps, var.secrets)
             content {
               name       = volume_mount.value
               mount_path = volume_mount.key
@@ -73,6 +73,16 @@ resource "kubernetes_stateful_set" "docker" {
             name = volume.value
             config_map {
               name = volume.value
+            }
+          }
+        }
+
+        dynamic "volume" {
+          for_each = var.secrets
+          content {
+            name = volume.value
+            secret {
+              secret_name = volume.value
             }
           }
         }

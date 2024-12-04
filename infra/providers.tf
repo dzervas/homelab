@@ -16,9 +16,6 @@ terraform {
   }
 
   required_providers {
-    azuread = {
-      source = "hashicorp/azuread"
-    }
     cloudflare = {
       source = "cloudflare/cloudflare"
     }
@@ -71,9 +68,4 @@ provider "cloudflare" {
 
 provider "zerotier" {
   zerotier_central_token = local.op_secrets.zerotier.central_token
-}
-
-provider "azuread" {
-  # Requires `az login` to be run
-  tenant_id = local.op_secrets.azuread.tenant_id
 }

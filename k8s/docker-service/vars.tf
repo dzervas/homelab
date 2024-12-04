@@ -81,6 +81,12 @@ variable "config_maps" {
   description = "A map of config maps to mount in the container in the format { container_path = config_map_name }"
 }
 
+variable "secrets" {
+  type        = map(string)
+  default     = {}
+  description = "A map of secrets to mount in the container in the format { container_path = secret_name }"
+}
+
 variable "pvs" {
   description = "A map of persistent volumes to mount in the container"
   default     = {}
