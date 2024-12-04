@@ -183,36 +183,14 @@ variable "backup_interval" {
   type        = string
 }
 
-variable "rclone_type" {
-  default = "drive"
+variable "rclone_values" {
+  default = {}
+  type    = map(any)
+}
+
+variable "rclone_path" {
+  default = ""
   type    = string
-}
-
-variable "rclone_scope" {
-  default = "drive.appfolder"
-  type    = string
-}
-
-variable "rclone_root_folder_id" {
-  default = "appDataFolder"
-  type    = string
-}
-
-variable "rclone_client_id" {
-  type      = string
-  default   = ""
-  sensitive = true
-}
-
-variable "rclone_client_secret" {
-  type      = string
-  default   = ""
-  sensitive = true
-}
-
-variable "rclone_token" {
-  type      = string
-  sensitive = true
 }
 
 variable "restic_password" {

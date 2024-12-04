@@ -28,9 +28,6 @@ terraform {
     random = {
       source = "hashicorp/random"
     }
-    toml = {
-      source = "Tobotimus/toml"
-    }
   }
 }
 
@@ -49,8 +46,6 @@ provider "helm" {
 provider "random" {}
 
 provider "onepassword" {}
-
-provider "toml" {}
 
 data "onepassword_item" "homelab" {
   vault = var.op_vault

@@ -1,3 +1,7 @@
+locals {
+  rclone_config = join("\n", [for key, value in var.rclone_values : "${key} = ${value}"])
+}
+
 resource "random_password" "rcon_password" {
   length  = 40
   special = false
@@ -175,14 +179,9 @@ resource "helm_release" "minecraft" {
       rcloneRemote         = "remote"
       rcloneConfig         = <<EOT
       [remote]
-      type = ${var.rclone_type}
-      scope = ${var.rclone_scope}
-      root_folder_id = ${var.rclone_root_folder_id}
-      client_id = ${var.rclone_client_id}
-      client_secret = ${var.rclone_client_secret}
-      token = ${var.rclone_token}
+      ${local.rclone_config}
       EOT
-      resticRepository     = "rclone:remote:"
+      resticRepository     = "rclone:remote:${var.rclone_path}"
       resticEnvs = {
         RESTIC_PASSWORD = var.restic_password
       }
