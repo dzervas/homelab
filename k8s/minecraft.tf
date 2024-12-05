@@ -43,6 +43,7 @@ module "minecraft" {
     "Hendog2014",    # ortiz's friend
     "kingsilicon",
     "KayItzSam",
+    "Aelus_",
   ]
 
   minecraft_version = "1.20.1"
