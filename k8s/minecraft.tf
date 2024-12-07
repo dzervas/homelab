@@ -39,7 +39,6 @@ module "minecraft" {
     "Hendog2014",    # ortiz's friend
     "kingsilicon",
     "KayItzSam",
-    "Aelus_",
   ]
 
   minecraft_version = "1.20.1"
@@ -109,7 +108,7 @@ module "minecraft" {
     "backpacked-common.json" = jsonencode({
       file = "/data/config/backpacked-common.toml"
       ops = [
-        { "$set" = { path = "$.common.backpackInventorySize", value = 3 } },
+        { "$set" = { path = "$.common.backpackInventorySize", value = 6 } },
       ]
     })
     "backpacked-server.json" = jsonencode({
@@ -192,6 +191,7 @@ module "minecraft" {
             "storagedrawers:compacting_half_drawers_3",
             "#storagedrawers:full_drawers",
             "#storagedrawers:half_drawers",
+            "#storagedrawers:trim",
           ]
         })
       }
