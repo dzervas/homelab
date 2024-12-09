@@ -196,6 +196,20 @@ module "minecraft" {
         })
       }
     }
+    "xp_packing" = {
+      description = "Recipe for experience nuggets"
+      pack_format = 15
+      data = {
+        "data/create/recipes/compacting/xp_nuggets.json" = jsonencode({
+          type = "create:compacting"
+
+          heatRequirement = "superheated"
+          ingredients     = [{ item = "minecraft:infested_stone" }]
+
+          results = [{ "item" : "create:experience_nugget", "count" : 1, "chance" : 0.1 }]
+        })
+      }
+    }
   }
 
   # Client side:
