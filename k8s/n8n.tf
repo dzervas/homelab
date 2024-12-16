@@ -37,6 +37,7 @@ module "n8n" {
     N8N_ENCRYPTION_KEY                    = random_password.n8n_encryption_key.result
     N8N_PROXY_HOPS                        = 1 # Allows X-Forwarded-For header
     N8N_PORT                              = "5678"
+    N8N_DEFAULT_BINARY_DATA_MODE          = "filesystem"
 
     EXECUTIONS_DATA_PRUNE           = true
     EXECUTIONS_DATA_MAX_AGE         = 168 # 1 week

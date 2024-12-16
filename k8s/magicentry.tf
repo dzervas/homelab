@@ -40,9 +40,13 @@ resource "helm_release" "magicentry" {
 
     config = {
       title          = "DZerv.Art Auth Service"
-      request_enable = true # Defaults to CI Notify
-      request_data   = "to={email}&subject={title} Login&body=Click the link to login: <a href=\"{magic_link}\">Login</a>&type=text/html"
-      external_url   = "https://auth.dzerv.art"
+      request_enable = false
+      smtp_enable    = true
+      smtp_url       = "smtp://noreply%40dzerv.art:${local.op_secrets.magicentry.mail_pass}@smtp.office365.com:587/?tls=required"
+      smtp_from      = "DZerv.Art Auth Service <noreply@dzerv.art>"
+      smtp_body      = "Click the link to login: <a href=\"{magic_link}\">Login</a>"
+
+      external_url = "https://auth.dzerv.art"
 
       oidc_enable = true
       oidc_clients = [
