@@ -38,6 +38,11 @@ module "n8n" {
     N8N_PROXY_HOPS                        = 1 # Allows X-Forwarded-For header
     N8N_PORT                              = "5678"
 
+    EXECUTIONS_DATA_PRUNE           = true
+    EXECUTIONS_DATA_MAX_AGE         = 168 # 1 week
+    EXECUTIONS_DATA_PRUNE_MAX_COUNT = 50000
+    DB_SQLITE_VACUUM_ON_STARTUP     = true
+
     # TODO: Add prometheus metrics
     # N8N_METRICS                           = true
     # TODO: S3 storage
