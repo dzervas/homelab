@@ -12,7 +12,7 @@ module "n8n" {
   auth             = "mtls"
   vpn_bypass_auth  = true
   vpn_cidrs        = var.vpn_cidrs
-  image            = "ghcr.io/n8n-io/n8n:1.69.2"
+  image            = "ghcr.io/n8n-io/n8n:1.71.3"
   port             = 5678
   retain_pvs       = true
   ingress_annotations = {
@@ -64,26 +64,17 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
     rule {
       host = "hook.${var.domain}"
       http {
-        path {
-          path      = "/webhook/"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = "n8n"
-              port {
-                number = 5678
-              }
-            }
-          }
-        }
-        path {
-          path      = "/webhook-test/"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = "n8n"
-              port {
-                number = 5678
+        dynamic "path" {
+          for_each = ["/webhook/", "/webhook-test/", "/webhook-waiting/"]
+          content {
+            path      = path.value
+            path_type = "Prefix"
+            backend {
+              service {
+                name = "n8n"
+                port {
+                  number = 5678
+                }
               }
             }
           }
