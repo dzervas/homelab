@@ -3,13 +3,13 @@ module "rclone" {
 
   type            = "deployment"
   name            = "rclone"
-  fqdn            = "s3.${var.domain}"
   ingress_enabled = false
+  fqdn            = "s3.${var.domain}"
   auth            = "mtls"
   image           = "rclone/rclone:1"
   port            = 8080
   secrets = {
-    "/config/rclone" = kubernetes_secret_v1.rclone.metadata.0.name
+    "/config/rclone" = "${kubernetes_secret_v1.rclone.metadata.0.name}:rw"
   }
   # TODO: Add auth
   args = ["serve", "s3", "remote:/rclone/s3", "--addr", "0.0.0.0:8080"]
@@ -28,7 +28,7 @@ resource "kubernetes_secret_v1" "rclone" {
     client_id            = ${local.op_secrets.rclone.client_id}
     client_secret        = ${local.op_secrets.rclone.client_secret}
     drive_type           = business
-    access_scopes        = Files.ReadWrite.AppFolder Sites.Read.All offline_access
+    access_scopes        = Files.ReadWrite.AppFolder User.Read offline_access
     no_versions          = true
     hard_delete          = true
     av_override          = true

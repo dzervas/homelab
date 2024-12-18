@@ -30,6 +30,8 @@ resource "kubernetes_stateful_set" "docker" {
       }
 
       spec {
+        node_selector = var.node_selector
+
         container {
           name    = var.name
           image   = var.image
@@ -51,9 +53,9 @@ resource "kubernetes_stateful_set" "docker" {
           dynamic "volume_mount" {
             for_each = merge(var.config_maps, var.secrets)
             content {
-              name       = volume_mount.value
+              name       = split(":", volume_mount.value)[0]
               mount_path = volume_mount.key
-              read_only  = true
+              read_only  = !endswith(volume_mount.value, ":rw")
             }
           }
 
@@ -70,9 +72,9 @@ resource "kubernetes_stateful_set" "docker" {
         dynamic "volume" {
           for_each = var.config_maps
           content {
-            name = volume.value
+            name = split(":", volume.value)[0]
             config_map {
-              name = volume.value
+              name = split(":", volume.value)[0]
             }
           }
         }
@@ -80,9 +82,9 @@ resource "kubernetes_stateful_set" "docker" {
         dynamic "volume" {
           for_each = var.secrets
           content {
-            name = volume.value
+            name = split(":", volume.value)[0]
             secret {
-              secret_name = volume.value
+              secret_name = split(":", volume.value)[0]
             }
           }
         }

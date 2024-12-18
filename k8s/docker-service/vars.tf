@@ -40,6 +40,12 @@ variable "replicas" {
   default = 1
 }
 
+variable "node_selector" {
+  type        = map(string)
+  default     = {}
+  description = "A map of node labels to match for the service"
+}
+
 variable "image" {
   type        = string
   description = "The container image to deploy"
