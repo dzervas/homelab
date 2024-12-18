@@ -52,8 +52,14 @@ module "n8n" {
 
     # TODO: Add prometheus metrics
     # N8N_METRICS                           = true
-    # TODO: S3 storage
-    # N8N_EXTERNAL_STORAGE_S3_HOST = "whatever"
+    # TODO: Requires https
+    # N8N_EXTERNAL_STORAGE_S3_HOST          = "rclone.rclone.svc.cluster.local:8080"
+    # N8N_EXTERNAL_STORAGE_S3_BUCKET_NAME   = "n8n"
+    # N8N_EXTERNAL_STORAGE_S3_BUCKET_REGION = "auto"
+    # N8N_EXTERNAL_STORAGE_S3_ACCESS_KEY    = random_password.rclone_access_key.result
+    # N8N_EXTERNAL_STORAGE_S3_ACCESS_SECRET = random_password.rclone_secret_key.result
+    # N8N_AVAILABLE_BINARY_DATA_MODES       = "filesystem,s3"
+    # N8N_DEFAULT_BINARY_DATA_MODE          = "s3"
   }
 }
 

@@ -1,18 +1,27 @@
+resource "random_password" "rclone_access_key" {
+  length           = 32
+  special          = false
+  override_special = "_%@"
+}
+
+resource "random_password" "rclone_secret_key" {
+  length = 32
+}
+
 module "rclone" {
   source = "./docker-service"
 
   type            = "deployment"
   name            = "rclone"
   ingress_enabled = false
-  fqdn            = "s3.${var.domain}"
-  auth            = "mtls"
-  image           = "rclone/rclone:1"
-  port            = 8080
+  # fqdn            = "s3.${var.domain}"
+  # auth            = "mtls"
+  image = "rclone/rclone:1"
+  port  = 8080
   secrets = {
     "/config/rclone" = "${kubernetes_secret_v1.rclone.metadata.0.name}:rw"
   }
-  # TODO: Add auth
-  args = ["serve", "s3", "remote:/rclone/s3", "--addr", "0.0.0.0:8080"]
+  args = ["serve", "s3", "remote:/rclone/s3", "--addr", "0.0.0.0:8080", "--auth-key", "${random_password.rclone_access_key.result},${random_password.rclone_secret_key.result}"]
 }
 
 resource "kubernetes_secret_v1" "rclone" {
