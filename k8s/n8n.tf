@@ -2,6 +2,11 @@ resource "random_password" "n8n_encryption_key" {
   length = 40
 }
 
+resource "random_password" "n8n_db_password" {
+  length  = 40
+  special = false
+}
+
 # To benchmark:
 # kubectl port-forward svc/n8n --address 0.0.0.0 8181:5678
 # podman run --rm -it ghcr.io/n8n-io/n8n-benchmark:latest run --n8nBaseUrl=http://host.docker.internal:8181 --n8nUserEmail=dzervas@dzervas.gr --n8nUserPassword=$N8N_PASS --vus=5 --duration=5m
@@ -17,7 +22,7 @@ module "n8n" {
   auth             = "mtls"
   vpn_bypass_auth  = true
   vpn_cidrs        = var.vpn_cidrs
-  node_selector    = { "kubernetes.io/hostname" = "gr0.dzerv.art" }
+  node_selector    = { "kubernetes.io/arch" = "arm64" }
   image            = "ghcr.io/n8n-io/n8n:1.71.3"
   port             = 5678
   retain_pvs       = true
@@ -115,3 +120,32 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
 #   - name: data
 #     mountPath: /mnt/data
 # Should be required only once to fix the permissions on the persistent volume.
+
+module "n8n_db" {
+  source = "./docker-service"
+
+  type             = "statefulset"
+  name             = "n8n-db"
+  namespace        = module.n8n.namespace
+  create_namespace = false
+  ingress_enabled  = false
+  image            = "postgres:14"
+  port             = 5432
+  retain_pvs       = true
+  pvs = {
+    "/var/lib/postgresql" = {
+      name         = "data"
+      read_only    = false
+      access_modes = ["ReadWriteOnce"]
+      size         = "1Gi"
+      retain       = true
+    }
+  }
+
+  env = {
+    POSTGRES_USER     = "n8n"
+    POSTGRES_DB       = "n8n"
+    POSTGRES_PASSWORD = random_password.n8n_db_password.result
+    TZ                = var.timezone
+  }
+}
