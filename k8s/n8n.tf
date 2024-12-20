@@ -110,6 +110,7 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
 }
 
 # Required to manually edit the statefulset to add above the "containers" key:
+# k edit statefulset.apps/n8n -n n8n
 # initContainers:
 # - name: init-permissions
 #   image: busybox

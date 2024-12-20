@@ -17,11 +17,16 @@ module "rclone" {
   # fqdn            = "s3.${var.domain}"
   # auth            = "mtls"
   image = "rclone/rclone:1"
-  port  = 8080
+  port  = 80
   secrets = {
     "/config/rclone" = "${kubernetes_secret_v1.rclone.metadata.0.name}:rw"
   }
-  args = ["serve", "s3", "remote:/rclone/s3", "--addr", "0.0.0.0:8080", "--auth-key", "${random_password.rclone_access_key.result},${random_password.rclone_secret_key.result}"]
+  args = [
+    "serve", "s3", "remote:/rclone/s3",
+    "--vfs-cache-mode", "full",
+    "--addr", "0.0.0.0:80",
+    "--auth-key", "${random_password.rclone_access_key.result},${random_password.rclone_secret_key.result}"
+  ]
 }
 
 resource "kubernetes_secret_v1" "rclone" {

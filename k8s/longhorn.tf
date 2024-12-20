@@ -42,7 +42,7 @@ resource "helm_release" "longhorn" {
     }
 
     defaultSettings = {
-      backupTarget                 = "AWS"
+      backupTarget                 = "s3://longhorn@us-east-1/backups"
       backupTargetCredentialSecret = "longhorn-s3"
     }
 
@@ -59,7 +59,7 @@ resource "kubernetes_secret_v1" "longhorn_s3" {
     namespace = kubernetes_namespace.longhorn-system.metadata.0.name
   }
   data = {
-    AWS_ENDPOINTS         = "http://rclone.rclone.svc.cluster.local:8080/longhorn"
+    AWS_ENDPOINTS         = "http://rclone.rclone.svc.cluster.local"
     AWS_ACCESS_KEY_ID     = random_password.rclone_access_key.result
     AWS_SECRET_ACCESS_KEY = random_password.rclone_secret_key.result
   }
