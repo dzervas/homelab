@@ -18,7 +18,7 @@ resource "helm_release" "longhorn" {
   namespace  = kubernetes_namespace.longhorn-system.metadata.0.name
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  version    = "1.7.1"
+  version    = "1.7.2"
   timeout    = 1800 # Fucking gr1
   values = [yamlencode({
     persistence = {
@@ -41,9 +41,26 @@ resource "helm_release" "longhorn" {
       tlsSecret = "storage-${replace(var.domain, ".", "-")}-cert"
     }
 
+    defaultSettings = {
+      backupTarget                 = "AWS"
+      backupTargetCredentialSecret = "longhorn-s3"
+    }
+
     csi = {
       # See https://github.com/longhorn/longhorn/issues/1861
       kubeletRootDir = "/var/lib/kubelet/"
     }
   })]
+}
+
+resource "kubernetes_secret_v1" "longhorn_s3" {
+  metadata {
+    name      = "longhorn-s3"
+    namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+  }
+  data = {
+    AWS_ENDPOINTS         = "http://rclone.rclone.svc.cluster.local:8080/longhorn"
+    AWS_ACCESS_KEY_ID     = random_password.rclone_access_key.result
+    AWS_SECRET_ACCESS_KEY = random_password.rclone_secret_key.result
+  }
 }
