@@ -1,3 +1,14 @@
+# Required to manually edit the statefulset to add above the "containers" key:
+# k edit statefulset.apps/n8n -n n8n
+# initContainers:
+# - name: init-permissions
+#   image: busybox
+#   command: ["sh", "-c", "chown 1000:1000 /mnt/data"]
+#   volumeMounts:
+#   - name: data
+#     mountPath: /mnt/data
+# Should be required only once to fix the permissions on the persistent volume.
+
 # To benchmark:
 # kubectl port-forward svc/n8n --address 0.0.0.0 8181:5678
 # podman run --rm -it ghcr.io/n8n-io/n8n-benchmark:latest run --n8nBaseUrl=http://host.docker.internal:8181 --n8nUserEmail=dzervas@dzervas.gr --n8nUserPassword=$N8N_PASS --vus=5 --duration=5m
@@ -109,13 +120,43 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
   }
 }
 
-# Required to manually edit the statefulset to add above the "containers" key:
-# k edit statefulset.apps/n8n -n n8n
-# initContainers:
-# - name: init-permissions
-#   image: busybox
-#   command: ["sh", "-c", "chown 1000:1000 /mnt/data"]
-#   volumeMounts:
-#   - name: data
-#     mountPath: /mnt/data
-# Should be required only once to fix the permissions on the persistent volume.
+resource "kubernetes_manifest" "n8n_backup" {
+  manifest = {
+    apiVersion = "longhorn.io/v1beta1"
+    kind       = "RecurringJob"
+    metadata = {
+      name      = "n8n-backups"
+      namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+    }
+    spec = {
+      cron        = "0 */6 * * *"
+      task        = "backup"
+      retain      = 120
+      concurrency = 1
+    }
+  }
+}
+
+data "kubernetes_persistent_volume_claim" "n8n_backup" {
+  metadata {
+    namespace = module.n8n.namespace
+    name      = "backups-n8n-0"
+    labels = {
+      managed_by = "terraform"
+      service    = "n8n"
+    }
+  }
+}
+
+resource "kubernetes_labels" "n8n_backup" {
+  api_version = "v1"
+  kind        = "PersistentVolumeClaim"
+  metadata {
+    name      = data.kubernetes_persistent_volume_claim.n8n_backup.metadata.0.name
+    namespace = data.kubernetes_persistent_volume_claim.n8n_backup.metadata.0.namespace
+  }
+  labels = {
+    "recurring-job.longhorn.io/source"      = "enabled"
+    "recurring-job.longhorn.io/n8n-backups" = "enabled"
+  }
+}

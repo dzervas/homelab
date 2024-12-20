@@ -42,8 +42,11 @@ resource "helm_release" "longhorn" {
     }
 
     defaultSettings = {
-      backupTarget                 = "s3://longhorn@us-east-1/backups"
-      backupTargetCredentialSecret = "longhorn-s3"
+      backupTarget                      = "s3://longhorn@us-east-1/backups"
+      backupTargetCredentialSecret      = "longhorn-s3"
+      orphanAutoDeletion                = true
+      replicaAutoBalance                = "best-effort"
+      storageMinimalAvailablePercentage = 10
     }
 
     csi = {
