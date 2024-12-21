@@ -100,8 +100,9 @@ module "n8n-browserless" {
   ingress_enabled  = false
   image            = "ghcr.io/browserless/chromium"
   port             = 3000
-  node_selector    = { "kubernetes.io/arch" = "arm64" }
+  node_selector    = { "kubernetes.io/arch" = "amd64" }
   env = {
+    ENABLE_GET = true # Required for some stuff in the n8n node
     TOKEN      = random_password.n8n_browserless_token.result
     PROXY_HOST = "n8n-browserless.${module.n8n.namespace}.svc.cluster.local"
     PROXY_PORT = "3000"
