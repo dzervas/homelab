@@ -52,8 +52,8 @@ module "n8n" {
     GENERIC_TIMEZONE                      = var.timezone
     N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = true
     DB_SQLITE_VACUUM_ON_STARTUP           = true
-    N8N_EDITOR_BASE_URL                   = "auto.${var.domain}"
-    WEBHOOK_URL                           = "hook.${var.domain}"
+    N8N_EDITOR_BASE_URL                   = "https://auto.${var.domain}"
+    WEBHOOK_URL                           = "https://hook.${var.domain}"
     N8N_ENCRYPTION_KEY                    = local.op_secrets.n8n.encryption_key
     N8N_PROXY_HOPS                        = 1 # Allows X-Forwarded-For header
     N8N_PORT                              = "5678"
