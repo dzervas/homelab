@@ -59,6 +59,7 @@ module "n8n" {
     N8N_PORT                              = "5678"
     N8N_DEFAULT_BINARY_DATA_MODE          = "filesystem"
 
+    EXECUTIONS_TIMEOUT              = 600
     EXECUTIONS_DATA_PRUNE           = true
     EXECUTIONS_DATA_MAX_AGE         = 168 # 1 week
     EXECUTIONS_DATA_PRUNE_MAX_COUNT = 50000
@@ -74,6 +75,34 @@ module "n8n" {
     # N8N_EXTERNAL_STORAGE_S3_ACCESS_SECRET = random_password.rclone_secret_key.result
     # N8N_AVAILABLE_BINARY_DATA_MODES       = "filesystem,s3"
     # N8N_DEFAULT_BINARY_DATA_MODE          = "s3"
+
+    CREDENTIAL_OVERWRITE_DATA = jsonencode({
+      "browserlessApi" = {
+        "url"   = "http://n8n-browserless:3000",
+        "token" = random_password.n8n_browserless_token.result
+      }
+    })
+  }
+}
+
+resource "random_password" "n8n_browserless_token" {
+  length  = 32
+  special = false
+}
+
+module "n8n-browserless" {
+  source = "./docker-service"
+
+  type             = "deployment"
+  name             = "n8n-browserless"
+  namespace        = "n8n"
+  create_namespace = false
+  ingress_enabled  = false
+  image            = "ghcr.io/browserless/chromium"
+  port             = 3000
+  node_selector    = { "kubernetes.io/arch" = "arm64" }
+  env = {
+    TOKEN = random_password.n8n_browserless_token.result
   }
 }
 
