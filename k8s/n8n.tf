@@ -25,7 +25,7 @@ module "n8n" {
   vpn_bypass_auth  = true
   vpn_cidrs        = var.vpn_cidrs
   node_selector    = { "kubernetes.io/arch" = "arm64" }
-  image            = "ghcr.io/n8n-io/n8n:1.71.3"
+  image            = "ghcr.io/dzervas/n8n:1.72.1"
   port             = 5678
   retain_pvs       = true
   ingress_annotations = {
