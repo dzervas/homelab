@@ -78,7 +78,7 @@ module "n8n" {
 
     CREDENTIAL_OVERWRITE_DATA = jsonencode({
       "browserlessApi" = {
-        "url"   = "http://n8n-browserless:3000",
+        "url"   = "http://n8n-browserless.${module.n8n.namespace}.svc.cluster.local:3000",
         "token" = random_password.n8n_browserless_token.result
       }
     })
@@ -95,14 +95,17 @@ module "n8n-browserless" {
 
   type             = "deployment"
   name             = "n8n-browserless"
-  namespace        = "n8n"
+  namespace        = module.n8n.namespace
   create_namespace = false
   ingress_enabled  = false
   image            = "ghcr.io/browserless/chromium"
   port             = 3000
   node_selector    = { "kubernetes.io/arch" = "arm64" }
   env = {
-    TOKEN = random_password.n8n_browserless_token.result
+    TOKEN      = random_password.n8n_browserless_token.result
+    PROXY_HOST = "n8n-browserless.${module.n8n.namespace}.svc.cluster.local"
+    PROXY_PORT = "3000"
+    PROXY_SSL  = false
   }
 }
 
