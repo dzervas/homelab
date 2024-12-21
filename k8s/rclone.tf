@@ -19,13 +19,18 @@ module "rclone" {
   image = "rclone/rclone:1"
   port  = 80
   secrets = {
-    "/config/rclone" = "${kubernetes_secret_v1.rclone.metadata.0.name}:rw"
+    "/secret" = "${kubernetes_secret_v1.rclone.metadata.0.name}:rw"
   }
+  command = ["sh", "-c"]
   args = [
-    "serve", "s3", "remote:/rclone/s3",
-    "--vfs-cache-mode", "full",
-    "--addr", "0.0.0.0:80",
-    "--auth-key", "${random_password.rclone_access_key.result},${random_password.rclone_secret_key.result}"
+    <<EOF
+    mkdir -p /config/rclone && \
+    cp /secret/rclone.conf /config/rclone/rclone.conf && \
+    rclone serve s3 remote:/rclone/s3 \
+    --vfs-cache-mode full \
+    --addr 0.0.0.0:80 \
+    --auth-key "${random_password.rclone_access_key.result}${random_password.rclone_secret_key.result}"
+    EOF
   ]
 }
 

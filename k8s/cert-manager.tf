@@ -7,6 +7,10 @@ locals {
     "*.staging.blogaki.io",
   ]
   cert_duration = "87658h0m0s" # 10 years
+
+  guests = {
+    psof = [module.n8n.fqdn]
+  }
 }
 
 resource "helm_release" "cert_manager" {
@@ -201,5 +205,40 @@ resource "kubernetes_manifest" "cm_letsencrypt_issuer" {
         ]
       }
     }
+  }
+}
+
+resource "kubernetes_manifest" "guests_certificates" {
+  for_each = local.guests
+
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "client-guest-${each.key}"
+      namespace = helm_release.cert_manager.namespace
+      labels = {
+        managed_by = "terraform"
+      }
+    }
+    spec = {
+      secretName = "client-guest-${each.key}-certificate"
+      dnsNames   = each.value
+      duration   = kubernetes_manifest.cm_client_ca.object.spec.duration
+      privateKey = {
+        algorithm = kubernetes_manifest.cm_client_ca.object.spec.privateKey.algorithm
+        size      = kubernetes_manifest.cm_client_ca.object.spec.privateKey.size
+      }
+      usages = [
+        "server auth",
+        "client auth",
+      ]
+
+      issuerRef = {
+        name = kubernetes_manifest.cm_client_ca.object.metadata.name
+        kind = "Issuer"
+      }
+    }
+
   }
 }
