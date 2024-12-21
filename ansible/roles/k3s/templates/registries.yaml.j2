@@ -1,0 +1,9 @@
+mirrors:
+  ghcr:
+    endpoint:
+      - "https://ghcr.io"
+configs:
+  "ghcr.io":
+    auth:
+      username: {{ hostvars['localhost'].ghcr_username }}
+      password: {{ hostvars['localhost'].ghcr_token }}

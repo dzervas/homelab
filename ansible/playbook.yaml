@@ -28,6 +28,22 @@
         - zerotier_identity is defined
         - zerotier_identity
 
+- name: Fetch OnePassword secrets
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - k3s
+    - k3s-registry
+  tasks:
+    - name: Set OnePassword vault
+      set_fact:
+        op_vault: "{{ lookup('env', 'TF_VAR_op_vault') }}"
+
+    - name: Set OnePassword secrets as facts
+      set_fact:
+        ghcr_username: "{{ lookup('community.general.onepassword', 'homelab-ansible', field='ghcr_username', vault=op_vault) }}"
+        ghcr_token: "{{  lookup('community.general.onepassword', 'homelab-ansible', field='ghcr_token', vault=op_vault)  }}"
+
 - hosts: all
   gather_facts: true
   vars:
