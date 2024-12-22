@@ -102,11 +102,13 @@ module "n8n-browserless" {
   port             = 3000
   node_selector    = { "kubernetes.io/arch" = "amd64" }
   env = {
-    ENABLE_GET = true # Required for some stuff in the n8n node
+    ALLOW_GET  = true # Required for some stuff in the n8n node
     TOKEN      = random_password.n8n_browserless_token.result
     PROXY_HOST = "n8n-browserless.${module.n8n.namespace}.svc.cluster.local"
     PROXY_PORT = "3000"
     PROXY_SSL  = false
+    CONCURRENT = 5
+    QUEUED     = 10
   }
 }
 
