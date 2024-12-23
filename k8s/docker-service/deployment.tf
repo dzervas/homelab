@@ -101,5 +101,5 @@ resource "kubernetes_deployment_v1" "docker" {
     }
   }
 
-  depends_on = [kubernetes_persistent_volume_claim_v1.docker]
+  depends_on = [kubernetes_namespace.docker, kubernetes_persistent_volume_claim_v1.docker]
 }

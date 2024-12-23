@@ -119,4 +119,6 @@ resource "kubernetes_stateful_set" "docker" {
       }
     }
   }
+
+  depends_on = [kubernetes_namespace.docker]
 }
