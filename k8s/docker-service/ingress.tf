@@ -24,7 +24,12 @@ locals {
     # If it was given and verified, we allow access
     # If not, check if the IP is in the VPN CIDR
     # If it is, allow access, otherwise deny
+    # Also always allow letsencrypt challenges
     "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
+      if ($uri ^~ /\.well-known/acme-challenge ) {
+        return 200;
+      }
+
       if ( $ssl_client_verify != SUCCESS ) {
         set $auth_tests "non_mtls";
       }

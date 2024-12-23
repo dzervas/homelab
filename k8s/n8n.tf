@@ -22,12 +22,12 @@ module "n8n" {
   create_namespace = true
   ingress_enabled  = true
   auth             = "mtls"
-  vpn_bypass_auth  = true
-  vpn_cidrs        = var.vpn_cidrs
-  node_selector    = { "kubernetes.io/arch" = "arm64" }
-  image            = "ghcr.io/dzervas/n8n:latest"
-  port             = 5678
-  retain_pvs       = true
+  # vpn_bypass_auth  = true
+  # vpn_cidrs        = var.vpn_cidrs
+  node_selector = { "kubernetes.io/arch" = "arm64" }
+  image         = "ghcr.io/dzervas/n8n:latest"
+  port          = 5678
+  retain_pvs    = true
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
   }

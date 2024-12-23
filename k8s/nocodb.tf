@@ -16,12 +16,12 @@ module "nocodb" {
   create_namespace = true
   ingress_enabled  = true
   auth             = "mtls"
-  vpn_bypass_auth  = true
-  vpn_cidrs        = var.vpn_cidrs
-  node_selector    = { "kubernetes.io/arch" = "arm64" }
-  image            = "nocodb/nocodb:latest"
-  port             = 8080
-  retain_pvs       = true
+  #   vpn_bypass_auth  = true
+  #   vpn_cidrs        = var.vpn_cidrs
+  node_selector = { "kubernetes.io/arch" = "arm64" }
+  image         = "nocodb/nocodb:latest"
+  port          = 8080
+  retain_pvs    = true
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "1m" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
   }
