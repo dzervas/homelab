@@ -97,10 +97,21 @@ module "n8n-browserless" {
   name             = "n8n-browserless"
   namespace        = module.n8n.namespace
   create_namespace = false
-  ingress_enabled  = false
-  image            = "ghcr.io/browserless/chromium"
-  port             = 3000
-  node_selector    = { "kubernetes.io/arch" = "amd64" }
+  fqdn             = "browser.${var.domain}"
+  ingress_enabled  = true
+  ingress_annotations = {
+    "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
+      location = /debugger {
+        if ($is_args = "") {
+          return 301 /debugger/?token=${random_password.n8n_browserless_token.result};
+        }
+      }
+    EOF
+  }
+  auth          = "mtls"
+  image         = "ghcr.io/browserless/chromium"
+  port          = 3000
+  node_selector = { "kubernetes.io/arch" = "amd64" }
   env = {
     ALLOW_GET  = true # Required for some stuff in the n8n node
     TOKEN      = random_password.n8n_browserless_token.result
