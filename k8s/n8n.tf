@@ -51,7 +51,6 @@ module "n8n" {
     TZ                                    = var.timezone
     GENERIC_TIMEZONE                      = var.timezone
     N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = true
-    DB_SQLITE_VACUUM_ON_STARTUP           = true
     N8N_EDITOR_BASE_URL                   = "https://auto.${var.domain}"
     WEBHOOK_URL                           = "https://hook.${var.domain}"
     N8N_ENCRYPTION_KEY                    = local.op_secrets.n8n.encryption_key
@@ -63,7 +62,7 @@ module "n8n" {
     EXECUTIONS_DATA_PRUNE           = true
     EXECUTIONS_DATA_MAX_AGE         = 168 # 1 week
     EXECUTIONS_DATA_PRUNE_MAX_COUNT = 50000
-    DB_SQLITE_VACUUM_ON_STARTUP     = true
+    # DB_SQLITE_VACUUM_ON_STARTUP     = true # Makes startup painfully slow
 
     # TODO: Add prometheus metrics
     # N8N_METRICS                           = true
@@ -76,10 +75,17 @@ module "n8n" {
     # N8N_AVAILABLE_BINARY_DATA_MODES       = "filesystem,s3"
     # N8N_DEFAULT_BINARY_DATA_MODE          = "s3"
 
+    GLOBAL_VARS = jsonencode({
+      browserless_host     = "n8n-browserless"
+      browserless_port     = "3000"
+      browserless_token    = random_password.n8n_browserless_token.result
+      browserless_endpoint = "ws://n8n-browserless:3000/?token=${random_password.n8n_browserless_token.result}"
+    })
+
     CREDENTIAL_OVERWRITE_DATA = jsonencode({
-      "browserlessApi" = {
-        "url"   = "http://n8n-browserless.${module.n8n.namespace}.svc.cluster.local:3000",
-        "token" = random_password.n8n_browserless_token.result
+      browserlessApi = {
+        url   = "http://n8n-browserless:3000",
+        token = random_password.n8n_browserless_token.result
       }
     })
   }
