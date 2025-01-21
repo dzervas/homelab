@@ -32,6 +32,7 @@ output "host_list" {
 
 output "host_obj" {
   value = merge(local.partial, {
+    enabled   = true
     className = "nginx"
     hosts = [{
       host = var.fqdn
