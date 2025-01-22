@@ -31,10 +31,11 @@ resource "kubernetes_deployment_v1" "docker" {
       spec {
         node_selector = var.node_selector
         container {
-          name    = var.name
-          image   = var.image
-          command = var.command
-          args    = var.args
+          name              = var.name
+          image             = var.image
+          command           = var.command
+          args              = var.args
+          image_pull_policy = (!strcontains(var.image, ":") || endswith(var.image, ":latest")) ? "Always" : "IfNotPresent"
 
           port {
             container_port = var.port

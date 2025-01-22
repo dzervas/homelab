@@ -16,7 +16,7 @@ module "files" {
   ingress_enabled  = true
   fqdn             = "files.${var.domain}"
   auth             = "mtls"
-  image            = "machines/filestash:latest"
+  image            = "ghcr.io/dzervas/filestash"
   port             = 8334
 
   pvs = {
