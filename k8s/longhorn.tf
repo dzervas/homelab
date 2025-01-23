@@ -11,6 +11,10 @@ resource "kubernetes_namespace" "longhorn-system" {
       managed_by                                   = "terraform"
     }
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "helm_release" "longhorn" {
@@ -18,7 +22,7 @@ resource "helm_release" "longhorn" {
   namespace  = kubernetes_namespace.longhorn-system.metadata.0.name
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  version    = "1.7.2"
+  version    = "1.8.0"
   timeout    = 1800 # Fucking gr1
   values = [yamlencode({
     persistence = {
@@ -54,6 +58,10 @@ resource "helm_release" "longhorn" {
       kubeletRootDir = "/var/lib/kubelet/"
     }
   })]
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "kubernetes_secret_v1" "longhorn_s3" {
