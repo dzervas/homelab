@@ -57,6 +57,15 @@ resource "helm_release" "longhorn" {
       # See https://github.com/longhorn/longhorn/issues/1861
       kubeletRootDir = "/var/lib/kubelet/"
     }
+
+    global = {
+      tolerations = [{
+        key      = "longhorn"
+        operator = "Equal"
+        value    = "true"
+        effect   = "NoSchedule"
+      }]
+    }
   })]
 
   lifecycle {
