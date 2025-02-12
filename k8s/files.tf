@@ -18,6 +18,10 @@ module "files" {
   auth             = "none"
   image            = "ghcr.io/dzervas/filestash"
   port             = 8334
+  node_selector = { "kubernetes.io/arch" = "amd64" }
+  ingress_annotations = {
+    "nginx.ingress.kubernetes.io/proxy-body-size" = "10g" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
+  }
 
   pvs = {
     "/app/data" = {
