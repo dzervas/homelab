@@ -1,7 +1,9 @@
-# containers:
+# Required to manually edit the statefulset to add above the "containers" key:
+# k edit deployment.apps/filestash -n files
+# initContainers:
 # - name: init-permissions
 #   image: busybox
-#   command: ["sh", "-c", "mkdir -p /mnt/data/state && chown 1000:1000 /mnt/data/state"]
+#   command: ["sh", "-c", "mkdir -p /mnt/data/{state, cache} && chown 1000:1000 -R /mnt/data"]
 #   volumeMounts:
 #   - name: filestash-data
 #     mountPath: /mnt/data
@@ -18,7 +20,7 @@ module "files" {
   auth             = "none"
   image            = "ghcr.io/dzervas/filestash"
   port             = 8334
-  node_selector = { "kubernetes.io/arch" = "amd64" }
+  node_selector    = { "kubernetes.io/arch" = "amd64" }
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "10g" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
   }
@@ -28,7 +30,7 @@ module "files" {
       name         = "filestash-data"
       read_only    = false
       access_modes = ["ReadWriteOnce"]
-      size         = "1Gi"
+      size         = "25Gi" # Does quite a bit of caching
       retain       = true
     }
   }
