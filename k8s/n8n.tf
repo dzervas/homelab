@@ -134,8 +134,9 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
     name      = "n8n-webhooks"
     namespace = module.n8n.namespace
     annotations = {
-      "cert-manager.io/cluster-issuer"           = "letsencrypt"
-      "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
+      "cert-manager.io/cluster-issuer"              = "letsencrypt"
+      "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
+      "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
     }
     labels = {
       managed_by = "terraform"

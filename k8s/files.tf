@@ -37,6 +37,7 @@ module "files" {
 
   env = {
     APPLICATION_URL = "https://files.${var.domain}"
+    TZ              = var.timezone
   }
 }
 

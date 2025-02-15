@@ -26,11 +26,6 @@ resource "zerotier_network" "homelab" {
     # servers = concat(["10.9.8.100"], local.vpn_ips)
     servers = ["10.9.8.100"]
   }
-
-  dns {
-    domain = "hass.${var.domain}"
-    servers = ["10.9.8.10"]
-  }
 }
 
 output "zerotier_identities" {
