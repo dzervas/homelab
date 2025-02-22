@@ -57,3 +57,53 @@ resource "helm_release" "ingress_nginx" {
     }
   })]
 }
+
+resource "kubernetes_network_policy_v1" "ingress-nginx-pod-ingress" {
+  metadata {
+    name      = "ingress-nginx-pod-ingress"
+    namespace = helm_release.ingress_nginx.namespace
+  }
+
+  spec {
+    policy_types = ["Ingress"]
+    pod_selector {
+      match_labels = {
+        enable-ingress = "true"
+      }
+    }
+    ingress {
+      from {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/name" = "ingress-nginx"
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_network_policy_v1" "ingress-nginx-pod-" {
+  metadata {
+    name      = "ingress-nginx-pod-egress"
+    namespace = helm_release.ingress_nginx.namespace
+  }
+
+  spec {
+    policy_types = ["Egress"]
+    pod_selector {
+      match_labels = {
+        "app.kubernetes.io/name" = "ingress-nginx"
+      }
+    }
+    egress {
+      to {
+        pod_selector {
+          match_labels = {
+            enable-ingress = "true"
+          }
+        }
+      }
+    }
+  }
+}

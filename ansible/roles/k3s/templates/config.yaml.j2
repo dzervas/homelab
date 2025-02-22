@@ -8,7 +8,11 @@ server: "https://{{ hostvars[groups.master[0]].k3s_ip }}:6443"
 # IP settings
 node-ip: {{ hostvars[inventory_hostname].k3s_ip }}
 node-external-ip: {{ hostvars[inventory_hostname].address }}
+
 flannel-iface: {{ k3s_iface }}
+# Disable flannel
+#flannel-backend: none
+#disable-network-policy: true
 
 # DNS settings
 resolv-conf: /etc/rancher/k3s/resolv.conf

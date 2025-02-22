@@ -1,5 +1,6 @@
 ---
 - import_tasks: download.yaml
+- import_tasks: cilium-cli.yaml
 - import_tasks: multipathd.yaml
 - import_tasks: config.yaml
 
