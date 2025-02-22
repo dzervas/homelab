@@ -75,3 +75,23 @@ resource "kubernetes_secret_v1" "rclone" {
     EOF
   }
 }
+
+resource "kubernetes_network_policy_v1" "rclone_ingress" {
+  metadata {
+    name      = "allow-rclone-ingress"
+    namespace = module.rclone.namespace
+  }
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        pod_selector {
+          match_labels = {
+            "rclone/enable" = "true"
+          }
+        }
+      }
+    }
+  }
+}

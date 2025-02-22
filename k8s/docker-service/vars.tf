@@ -124,3 +124,18 @@ variable "auth" {
     error_message = "Invalid auth type. Must be one of none, mtls or oauth"
   }
 }
+
+variable "pod_labels" {
+  type    = map(string)
+  default = {}
+}
+
+variable "magicentry_access" {
+  type    = bool
+  default = false
+}
+
+variable "rclone_access" {
+  type    = bool
+  default = false
+}

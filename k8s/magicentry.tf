@@ -91,3 +91,23 @@ resource "helm_release" "magicentry" {
     }
   })]
 }
+
+resource "kubernetes_network_policy_v1" "magicentry_ingress" {
+  metadata {
+    name      = "allow-magicentry-ingress"
+    namespace = "auth"
+  }
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        pod_selector {
+          match_labels = {
+            "magicentry.rs/enable" = "true"
+          }
+        }
+      }
+    }
+  }
+}

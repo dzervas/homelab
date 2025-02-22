@@ -16,6 +16,7 @@ module "nocodb" {
   create_namespace = true
   ingress_enabled  = true
   auth             = "mtls"
+  rclone_access    = true
   #   vpn_bypass_auth  = true
   #   vpn_cidrs        = var.vpn_cidrs
   node_selector = { "kubernetes.io/arch" = "arm64" }
@@ -53,5 +54,25 @@ module "nocodb" {
     # LITESTREAM_RETENTION        = "720" # 30 days
     # LITESTREAM_AGE_PUBLIC_KEY   = data.onepassword_item.nocodb_age_key.public_key
     # LITESTREAM_AGE_SECRET_KEY   = data.onepassword_item.nocodb_age_key.private_key
+  }
+}
+
+resource "kubernetes_network_policy_v1" "nocodb_ingress" {
+  metadata {
+    name      = "nocodb-ingress"
+    namespace = module.nocodb.namespace
+  }
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "n8n"
+          }
+        }
+      }
+    }
   }
 }

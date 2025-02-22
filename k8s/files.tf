@@ -11,16 +11,17 @@
 module "files" {
   source = "./docker-service"
 
-  type             = "deployment"
-  name             = "filestash"
-  namespace        = module.rclone_files.namespace
-  create_namespace = false
-  ingress_enabled  = true
-  fqdn             = "files.${var.domain}"
-  auth             = "none"
-  image            = "ghcr.io/dzervas/filestash"
-  port             = 8334
-  node_selector    = { "kubernetes.io/arch" = "amd64" }
+  type              = "deployment"
+  name              = "filestash"
+  namespace         = module.rclone_files.namespace
+  create_namespace  = false
+  ingress_enabled   = true
+  fqdn              = "files.${var.domain}"
+  auth              = "none"
+  magicentry_access = true
+  image             = "ghcr.io/dzervas/filestash"
+  port              = 8334
+  node_selector     = { "kubernetes.io/arch" = "amd64" }
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "10g" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
   }
@@ -36,7 +37,7 @@ module "files" {
   }
 
   env = {
-    APPLICATION_URL = "https://files.${var.domain}"
+    APPLICATION_URL = "files.${var.domain}"
     TZ              = var.timezone
   }
 }

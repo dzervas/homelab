@@ -43,8 +43,9 @@ resource "helm_release" "audiobookshelf" {
         size       = "100Gi"
         volumeName = "pvc-5e0c0003-1d57-4939-8cc7-ca8eb3932942"
       }
-      config   = { volumeName = "pvc-617d3ebd-694e-46fb-b58d-8f32c2bd1446" }
-      metadata = { volumeName = "pvc-9ad70fb5-9d33-4883-8401-8e7297b46798" }
+      config    = { volumeName = "pvc-617d3ebd-694e-46fb-b58d-8f32c2bd1446" }
+      metadata  = { volumeName = "pvc-9ad70fb5-9d33-4883-8401-8e7297b46798" }
+      podLabels = { "magicentry.rs/enable" = "true" }
     }
   })]
 }

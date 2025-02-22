@@ -22,10 +22,15 @@ resource "kubernetes_deployment_v1" "docker" {
 
     template {
       metadata {
-        labels = {
-          managed_by = "terraform"
-          service    = var.name
-        }
+        labels = merge(
+          {
+            managed_by = "terraform"
+            service    = var.name
+          },
+          var.magicentry_access ? { "magicentry.rs/enable" = "true" } : {},
+          var.rclone_access ? { "rclone/enable" = "true" } : {},
+          var.pod_labels
+        )
       }
 
       spec {
