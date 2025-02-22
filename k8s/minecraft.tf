@@ -240,3 +240,25 @@ module "minecraft" {
   # mclink - patreon-based subscription whitelisting
   # open-parties-and-claims - create-compatible claims
 }
+
+resource "kubernetes_network_policy_v1" "minecraft-ingress" {
+  metadata {
+    name      = "minecraft-ingress"
+    namespace = "minecraft"
+  }
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        port     = "25565"
+        protocol = "TCP"
+      }
+    }
+  }
+}

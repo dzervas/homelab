@@ -66,6 +66,10 @@ resource "helm_release" "longhorn" {
         effect   = "NoSchedule"
       }]
     }
+
+    networkPolicies = {
+      enabled = true
+    }
   })]
 
   lifecycle {

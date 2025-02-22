@@ -23,12 +23,13 @@ resource "helm_release" "ingress_nginx" {
       watchIngressWithoutClass = true
       ingressClassResource     = { default = true }
 
-      kind        = "DaemonSet"
-      hostNetwork = true
-      hostPort    = { enabled = true }
-      dnsPolicy   = "ClusterFirstWithHostNet" # Use cluster DNS, even in host network
+      kind     = "DaemonSet"
+      hostPort = { enabled = true }
       # No LB, so no use ClusterIP with host network
       service = { type = "ClusterIP" }
+
+      # hostNetwork = true
+      # dnsPolicy   = "ClusterFirstWithHostNet" # Use cluster DNS, even in host network
 
       metrics = {
         enabled        = true
@@ -68,10 +69,8 @@ resource "kubernetes_network_policy_v1" "ingress-nginx_ingress" {
     policy_types = ["Ingress"]
     ingress {
       from {
-        pod_selector {}
-      }
-      from {
         namespace_selector {}
+        pod_selector {}
       }
       from {
         ip_block {
