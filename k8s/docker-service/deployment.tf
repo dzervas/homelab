@@ -35,12 +35,45 @@ resource "kubernetes_deployment_v1" "docker" {
 
       spec {
         node_selector = var.node_selector
+        dynamic "init_container" {
+          for_each = var.init_containers
+          content {
+            name              = init_container.value.name
+            image             = init_container.value.image
+            command           = lookup(init_container.value, "command", [])
+            args              = lookup(init_container.value, "args", [])
+            image_pull_policy = (var.image_pull_policy || !strcontains(init_container.value.image, ":") || endswith(init_container.value.image, ":latest")) ? "Always" : "IfNotPresent"
+            dynamic "env" {
+              for_each = merge(lookup(init_container.value, "env", {}), var.env)
+              content {
+                name  = env.key
+                value = env.value
+              }
+            }
+            dynamic "volume_mount" {
+              for_each = merge(var.config_maps, var.secrets)
+              content {
+                name       = split(":", volume_mount.value)[0]
+                mount_path = volume_mount.key
+                read_only  = !endswith(volume_mount.value, ":rw")
+              }
+            }
+            dynamic "volume_mount" {
+              for_each = var.pvs
+              content {
+                name       = volume_mount.value.name
+                mount_path = volume_mount.key
+                read_only  = volume_mount.value.read_only
+              }
+            }
+          }
+        }
         container {
           name              = var.name
           image             = var.image
           command           = var.command
           args              = var.args
-          image_pull_policy = (!strcontains(var.image, ":") || endswith(var.image, ":latest")) ? "Always" : "IfNotPresent"
+          image_pull_policy = (var.image_pull_policy || !strcontains(var.image, ":") || endswith(var.image, ":latest")) ? "Always" : "IfNotPresent"
 
           port {
             container_port = var.port

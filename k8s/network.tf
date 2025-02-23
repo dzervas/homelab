@@ -1,7 +1,7 @@
 data "kubernetes_all_namespaces" "all" {}
 
 resource "kubernetes_network_policy_v1" "default_ingress" {
-  for_each = { for i, ns in data.kubernetes_all_namespaces.all.namespaces : i => ns if !contains(["kube-system", "ingress"], ns) }
+  for_each = { for ns in data.kubernetes_all_namespaces.all.namespaces : ns => ns if !contains(["kube-system", "ingress"], ns) }
   metadata {
     name      = "default-ingress"
     namespace = each.value

@@ -51,6 +51,12 @@ variable "image" {
   description = "The container image to deploy"
 }
 
+variable "image_pull_policy" {
+  type        = bool
+  default     = false
+  description = "The container image to deploy"
+}
+
 variable "command" {
   type    = list(string)
   default = []
@@ -138,4 +144,15 @@ variable "magicentry_access" {
 variable "rclone_access" {
   type    = bool
   default = false
+}
+
+variable "init_containers" {
+  type = list(object({
+    name    = string
+    image   = string
+    command = optional(list(string))
+    args    = optional(list(string))
+    env     = optional(map(string))
+  }))
+  default = []
 }
