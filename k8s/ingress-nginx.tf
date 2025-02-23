@@ -29,6 +29,7 @@ resource "helm_release" "ingress_nginx" {
     controller = {
       replicaCount = 2
 
+      # TODO: Eliminate this
       allowSnippetAnnotations     = true
       enableAnnotationValidations = true
 

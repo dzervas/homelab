@@ -27,14 +27,15 @@ module "atuin" {
 module "atuin_db" {
   source = "./docker-service"
 
-  type             = "statefulset"
-  name             = "atuin-db"
-  namespace        = module.atuin.namespace
-  create_namespace = false
-  ingress_enabled  = false
-  image            = "postgres:14"
-  port             = 5432
-  retain_pvs       = true
+  type                    = "statefulset"
+  name                    = "atuin-db"
+  namespace               = module.atuin.namespace
+  create_namespace        = false
+  ingress_enabled         = false
+  image                   = "postgres:14"
+  port                    = 5432
+  enable_security_context = false
+  retain_pvs              = true
   pvs = {
     "/var/lib/postgresql" = {
       name         = "data"

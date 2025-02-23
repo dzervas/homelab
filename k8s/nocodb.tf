@@ -10,13 +10,14 @@ data "onepassword_item" "nocodb_age_key" {
 module "nocodb" {
   source = "./docker-service"
 
-  type             = "statefulset"
-  name             = "nocodb"
-  fqdn             = "db.${var.domain}"
-  create_namespace = true
-  ingress_enabled  = true
-  auth             = "mtls"
-  rclone_access    = true
+  type                    = "statefulset"
+  name                    = "nocodb"
+  fqdn                    = "db.${var.domain}"
+  create_namespace        = true
+  ingress_enabled         = true
+  auth                    = "mtls"
+  enable_security_context = false
+  rclone_access           = true
   #   vpn_bypass_auth  = true
   #   vpn_cidrs        = var.vpn_cidrs
   node_selector = { "kubernetes.io/arch" = "arm64" }
