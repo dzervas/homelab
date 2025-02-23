@@ -2,10 +2,22 @@ locals {
   list_vpn_cidrs = [for cidr in var.vpn_cidrs : "${cidr} 1;"]
 }
 
+resource "kubernetes_namespace_v1" "ingress" {
+  metadata {
+    name = "ingress"
+    labels = {
+      # Required due to hostPort
+      "pod-security.kubernetes.io/enforce"         = "privileged"
+      "pod-security.kubernetes.io/enforce-version" = "latest"
+      managed_by                                   = "terraform"
+    }
+  }
+}
+
 resource "helm_release" "ingress_nginx" {
   name             = "ingress-nginx"
-  namespace        = "ingress"
-  create_namespace = true
+  namespace        = kubernetes_namespace_v1.ingress.metadata[0].name
+  create_namespace = false
   atomic           = true
 
   repository = "https://kubernetes.github.io/ingress-nginx"
