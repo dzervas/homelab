@@ -13,7 +13,7 @@ resource "helm_release" "descheduler" {
   repository = "https://kubernetes-sigs.github.io/descheduler"
   chart      = "descheduler"
   # For upgrading: https://github.com/kubernetes-sigs/descheduler/releases
-  version = "0.30.1"
+  version = "0.32.2"
 
   values = [yamlencode({
     serviceMonitor = {
