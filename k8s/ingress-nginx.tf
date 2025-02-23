@@ -53,9 +53,6 @@ resource "helm_release" "ingress_nginx" {
         "node-role.kubernetes.io/master" = "true"
       }
     }
-    tcp = {
-      2222 = "borgserver/borgserver-service:2222"
-    }
   })]
 }
 
