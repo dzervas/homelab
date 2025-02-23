@@ -104,6 +104,23 @@ resource "kubernetes_deployment_v1" "docker" {
               read_only  = volume_mount.value.read_only
             }
           }
+
+          dynamic "security_context" {
+            for_each = var.enable_security_context ? [1] : []
+            content {
+              allow_privilege_escalation = false
+              privileged                 = false
+              run_as_non_root            = true
+              run_as_user                = var.run_as_user
+              run_as_group               = var.run_as_user
+              capabilities {
+                drop = ["ALL"]
+              }
+              seccomp_profile {
+                type = "RuntimeDefault"
+              }
+            }
+          }
         }
 
         dynamic "volume" {

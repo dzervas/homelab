@@ -14,7 +14,7 @@ locals {
       },
       var.mtls_enabled ? {
         "nginx.ingress.kubernetes.io/auth-tls-verify-client" = "on"
-        "nginx.ingress.kubernetes.io/auth-tls-secret"        = "cert-manager/client-ca-certificate"
+        "nginx.ingress.kubernetes.io/auth-tls-secret"        = "${var.namespace}/client-ca"
         "nginx.ingress.kubernetes.io/auth-tls-verify-depth"  = "1"
       } : {},
     var.additional_annotations)

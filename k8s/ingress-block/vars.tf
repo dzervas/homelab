@@ -14,3 +14,7 @@ variable "mtls_enabled" {
   description = "Enable mTLS authentication for the ingress block"
   default     = true
 }
+
+variable "namespace" {
+  type = string
+}

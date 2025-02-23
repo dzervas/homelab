@@ -1,6 +1,6 @@
 locals {
   mtls_annotations = {
-    "nginx.ingress.kubernetes.io/auth-tls-secret"        = "cert-manager/client-ca-certificate"
+    "nginx.ingress.kubernetes.io/auth-tls-secret"        = "${local.namespace}/client-ca"
     "nginx.ingress.kubernetes.io/auth-tls-verify-depth"  = "1"
     "nginx.ingress.kubernetes.io/auth-tls-verify-client" = var.vpn_bypass_auth ? "optional" : "on"
   }

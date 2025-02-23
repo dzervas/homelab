@@ -1,6 +1,7 @@
 module "audiobookshelf_ingress" {
   source = "./ingress-block"
 
+  namespace    = "audiobookshelf"
   fqdn         = "audiobooks.${var.domain}"
   mtls_enabled = false
   additional_annotations = {

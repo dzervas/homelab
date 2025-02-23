@@ -156,3 +156,13 @@ variable "init_containers" {
   }))
   default = []
 }
+
+variable "enable_security_context" {
+  type    = bool
+  default = true
+}
+
+variable "run_as_user" {
+  type    = number
+  default = 1000
+}

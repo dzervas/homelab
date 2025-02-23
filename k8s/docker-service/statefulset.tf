@@ -106,6 +106,20 @@ resource "kubernetes_stateful_set" "docker" {
               read_only  = volume_mount.value.read_only
             }
           }
+
+          dynamic "security_context" {
+            for_each = var.enable_security_context ? [1] : []
+            content {
+              allow_privilege_escalation = false
+              run_as_non_root            = true
+              capabilities {
+                drop = ["ALL"]
+              }
+              seccomp_profile {
+                type = "RuntimeDefault"
+              }
+            }
+          }
         }
 
         dynamic "volume" {

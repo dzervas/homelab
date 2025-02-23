@@ -35,6 +35,8 @@ resource "helm_release" "ingress_nginx" {
       watchIngressWithoutClass = true
       ingressClassResource     = { default = true }
 
+      networkPolicy = { enabled = true }
+
       kind     = "DaemonSet"
       hostPort = { enabled = true }
       # No LB, so no use ClusterIP with host network
@@ -52,40 +54,18 @@ resource "helm_release" "ingress_nginx" {
         "prometheus.io/port"   = "10254"
       }
 
-      config = {
-        http-snippet = <<EOF
-          geo $vpn_client {
-            default 0;
-            ${join("\n", local.list_vpn_cidrs)}
-          }
-        EOF
-      }
+      # config = {
+      #   http-snippet = <<EOF
+      #     geo $vpn_client {
+      #       default 0;
+      #       ${join("\n", local.list_vpn_cidrs)}
+      #     }
+      #   EOF
+      # }
 
-      nodeSelector = {
-        "node-role.kubernetes.io/master" = "true"
-      }
+      # nodeSelector = {
+      #   "node-role.kubernetes.io/master" = "true"
+      # }
     }
   })]
-}
-
-resource "kubernetes_network_policy_v1" "ingress-nginx_ingress" {
-  metadata {
-    name      = "ingress-nginx-ingress"
-    namespace = "ingress"
-  }
-  spec {
-    pod_selector {}
-    policy_types = ["Ingress"]
-    ingress {
-      from {
-        namespace_selector {}
-        pod_selector {}
-      }
-      from {
-        ip_block {
-          cidr = "0.0.0.0/0"
-        }
-      }
-    }
-  }
 }

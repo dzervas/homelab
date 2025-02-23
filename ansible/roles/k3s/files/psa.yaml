@@ -7,7 +7,7 @@ plugins:
       apiVersion: pod-security.admission.config.k8s.io/v1beta1
       kind: PodSecurityConfiguration
       defaults:
-        enforce: "restricted"
+        enforce: "baseline"
         enforce-version: "latest"
         audit: "restricted"
         audit-version: "latest"
@@ -16,7 +16,7 @@ plugins:
       exemptions:
         usernames: []
         runtimeClasses: []
-        namespaces: [kube-system, cis-operator-system]
+        namespaces: [kube-system, ingress]
   - name: EventRateLimit
     configuration:
       apiVersion: eventratelimit.admission.k8s.io/v1alpha1

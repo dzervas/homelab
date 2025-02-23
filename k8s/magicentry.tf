@@ -7,6 +7,7 @@ locals {
 module "magicentry_ingress" {
   source = "./ingress-block"
 
+  namespace    = "auth"
   fqdn         = "auth.${var.domain}"
   mtls_enabled = false
   additional_annotations = {

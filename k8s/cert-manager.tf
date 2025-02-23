@@ -30,6 +30,11 @@ resource "helm_release" "cert_manager" {
     prometheus = {
       servicemonitor = { enabled = true }
     }
+    webhook = {
+      networkPolicy = {
+        enabled = true
+      }
+    }
   })]
 }
 
@@ -241,5 +246,23 @@ resource "kubernetes_manifest" "guests_certificates" {
       }
     }
 
+  }
+}
+
+data "kubernetes_secret" "cm_client_ca" {
+  metadata {
+    name      = "client-ca-certificate"
+    namespace = helm_release.cert_manager.namespace
+  }
+}
+
+resource "kubernetes_secret_v1" "client_ca_everywhere" {
+  for_each = { for ns in data.kubernetes_all_namespaces.all.namespaces : ns => ns if !contains(["kube-system", "ingress", "cert-manager"], ns) }
+  metadata {
+    name      = "client-ca"
+    namespace = each.value
+  }
+  data = {
+    "ca.crt" = data.kubernetes_secret.cm_client_ca.data["ca.crt"]
   }
 }

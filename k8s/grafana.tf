@@ -14,7 +14,8 @@ resource "kubernetes_namespace" "grafana" {
 module "grafana_ingress" {
   source = "./ingress-block"
 
-  fqdn = local.grafana_fqdn
+  namespace = kubernetes_namespace.grafana.metadata.0.name
+  fqdn      = local.grafana_fqdn
   additional_annotations = {
     "nginx.ingress.kubernetes.io/auth-snippet"                          = "proxy_set_header X-WEBAUTH-USER admin;"
     "nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream" = "true"

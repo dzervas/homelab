@@ -37,7 +37,7 @@ resource "helm_release" "longhorn" {
         "cert-manager.io/cluster-issuer"                     = "letsencrypt"
         "nginx.ingress.kubernetes.io/ssl-redirect"           = true
         "nginx.ingress.kubernetes.io/auth-tls-verify-client" = "on"
-        "nginx.ingress.kubernetes.io/auth-tls-secret"        = "cert-manager/client-ca-certificate"
+        "nginx.ingress.kubernetes.io/auth-tls-secret"        = "${kubernetes_namespace.longhorn-system.metadata.0.name}/client-ca"
         "nginx.ingress.kubernetes.io/auth-tls-verify-depth"  = 1
       }
       host      = "storage.${var.domain}"
