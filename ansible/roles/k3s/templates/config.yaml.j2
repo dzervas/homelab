@@ -22,6 +22,24 @@ node-name: {{ inventory_hostname }}
 # Allow minecraft as nodeport
 service-node-port-range: "25000-32767"
 
+# Hardening stuff
+protect-kernel-defaults: true
+secrets-encryption: true
+kube-apiserver-arg:
+  - enable-admission-plugins=NodeRestriction,EventRateLimit
+  # From https://docs.k3s.io/security/hardening-guide#pod-security
+  - admission-control-config-file=/var/lib/rancher/k3s/server/psa.yaml
+#  - audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log
+#  - audit-policy-file=/var/lib/rancher/k3s/server/audit.yaml
+#  - audit-log-maxage=30
+#  - audit-log-maxbackup=10
+#  - audit-log-maxsize=100
+kube-controller-manager-arg:
+  - terminated-pod-gc-threshold=10
+kubelet-arg:
+  - streaming-connection-idle-timeout=5m
+  - tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+
 # Cluster IPs
 advertise-address: {{ hostvars[inventory_hostname].k3s_ip }}
 # Encrypt secrets in etcd

@@ -29,11 +29,16 @@
     reload: yes
   loop:
     # IPv4 forwarding - needed for k3s
-    - { name: 'net.ipv4.ip_forward', value: '1' }
+    - { name: "net.ipv4.ip_forward", value: "1" }
     # Raise the maximum number of open files
-    - { name: 'fs.inotify.max_queued_events', value: '32768' }
-    - { name: 'fs.inotify.max_user_instances', value: '512' }
-    - { name: 'fs.inotify.max_user_watches', value: '524288' }
+    - { name: "fs.inotify.max_queued_events", value: "32768" }
+    - { name: "fs.inotify.max_user_instances", value: "512" }
+    - { name: "fs.inotify.max_user_watches", value: "524288" }
     # Cause who needs IPv6
-    - { name: 'net.ipv6.conf.all.disable_ipv6', value: '1' }
-    - { name: 'net.ipv6.conf.default.disable_ipv6', value: '1' }
+    - { name: "net.ipv6.conf.all.disable_ipv6", value: "1" }
+    - { name: "net.ipv6.conf.default.disable_ipv6", value: "1" }
+    # k3s hardening: https://docs.k3s.io/security/hardening-guide#ensure-protect-kernel-defaults-is-set
+    - { name: "vm.panic_on_oom", value: "0" }
+    - { name: "vm.overcommit_memory", value: "1" }
+    - { name: "kernel.panic", value: "10" }
+    - { name: "kernel.panic_on_oops", value: "1" }

@@ -11,13 +11,20 @@
     dest: /etc/rancher/k3s/resolv.conf
   notify: Restart k3s service
 
+# From https://docs.k3s.io/security/hardening-guide#pod-security
+- name: Add pod security admissions
+  copy:
+    src: psa.yaml
+    dest: /var/lib/rancher/k3s/server/psa.yaml
+  notify: Restart k3s service
+
 - name: Update k3s config.yaml
   template:
     src: config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
     owner: root
     group: root
-    mode: '0600'
+    mode: "0600"
   notify: Restart k3s service
 
 - name: K3s config check
