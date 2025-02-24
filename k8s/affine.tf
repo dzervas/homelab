@@ -6,15 +6,16 @@ resource "random_password" "affine_db_password" {
 module "affine" {
   source = "./docker-service"
 
-  type              = "deployment"
-  name              = "affine"
-  ingress_enabled   = true
-  auth              = "mtls"
-  fqdn              = "notes.${var.domain}"
-  image             = "ghcr.io/toeverything/affine-graphql:stable"
-  image_pull_policy = true
-  port              = 3010
-  retain_pvs        = true
+  type                    = "deployment"
+  name                    = "affine"
+  ingress_enabled         = true
+  auth                    = "mtls"
+  fqdn                    = "notes.${var.domain}"
+  image                   = "ghcr.io/toeverything/affine-graphql:stable"
+  image_pull_policy       = true
+  port                    = 3010
+  retain_pvs              = true
+  enable_security_context = false
   pvs = {
     "/root/.affine" = {
       name         = "data"
@@ -44,13 +45,14 @@ module "affine" {
 module "affine_redis" {
   source = "./docker-service"
 
-  type             = "deployment"
-  name             = "affine-redis"
-  namespace        = module.affine.namespace
-  create_namespace = false
-  ingress_enabled  = false
-  image            = "redis"
-  port             = 6379
+  type                    = "deployment"
+  name                    = "affine-redis"
+  namespace               = module.affine.namespace
+  create_namespace        = false
+  ingress_enabled         = false
+  image                   = "redis"
+  port                    = 6379
+  enable_security_context = false
   env = {
     TZ = var.timezone
   }
@@ -60,14 +62,15 @@ module "affine_redis" {
 module "affine_db" {
   source = "./docker-service"
 
-  type             = "statefulset"
-  name             = "affine-db"
-  namespace        = module.affine.namespace
-  create_namespace = false
-  ingress_enabled  = false
-  image            = "postgres:16"
-  port             = 5432
-  retain_pvs       = true
+  type                    = "statefulset"
+  name                    = "affine-db"
+  namespace               = module.affine.namespace
+  create_namespace        = false
+  ingress_enabled         = false
+  image                   = "postgres:16"
+  port                    = 5432
+  retain_pvs              = true
+  enable_security_context = false
   pvs = {
     "/var/lib/postgresql" = {
       name         = "data"
