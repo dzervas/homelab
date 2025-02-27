@@ -8,7 +8,6 @@ module "atuin" {
 
   type            = "deployment"
   name            = "atuin"
-  fqdn            = "sh.${var.domain}"
   ingress_enabled = false
   image           = "ghcr.io/atuinsh/atuin"
   args            = ["server", "start"]
@@ -19,7 +18,7 @@ module "atuin" {
     ATUIN_PORT              = "8888"
     ATUIN_OPEN_REGISTRATION = "false"
     ATUIN_DB_URI            = "postgres://atuin:${random_password.atuin_db_password.result}@atuin-db/atuin"
-    RUST_LOG                = "info,atuin_server=debug"
+    RUST_LOG                = "info" # "info,atuin_server=debug"
     TZ                      = var.timezone
   }
 }
@@ -51,5 +50,41 @@ module "atuin_db" {
     POSTGRES_DB       = "atuin"
     POSTGRES_PASSWORD = random_password.atuin_db_password.result
     TZ                = var.timezone
+  }
+}
+
+resource "kubernetes_manifest" "atuin_secrets" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "atuin-secrets-op"
+      namespace = module.atuin.namespace
+    }
+    spec = {
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      target = {
+        name = "atuin-secrets-op"
+      }
+      data = [
+        {
+          secretKey = "POSTGRES_PASSWORD"
+          remoteRef = {
+            key      = "atuin"
+            property = "postgres-password"
+          }
+        },
+        {
+          secretKey = "ATUIN_DB_PASSWORD"
+          remoteRef = {
+            key      = "atuin"
+            property = "postgres-password"
+          }
+        }
+      ]
+    }
   }
 }

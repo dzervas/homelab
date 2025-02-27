@@ -20,23 +20,31 @@ resource "kubernetes_namespace_v1" "_1password" {
 # Requires Connect credentials:
 # 1password.com > developer tools > Infrastructure Secrets Management > Other > Create a Connect server
 # Save the token and the 1password-credentials.json file to `operator-token` and `operator-credentials` in 1password (from the webui)
-# kubectl create secret generic connect-credentials -n 1password --from-literal=token=(op read op://secrets/operator-token/credential) --from-literal=1password-credentials.json=(op read op://secrets/operator-credentials/1password-credentials.json) --dry-run=client -o yaml
+# kubectl create secret generic connect-credentials -n 1password --from-literal=1password-credentials.json=(op read op://secrets/operator-credentials/1password-credentials.json | base64 -w 0) --dry-run=client -o yaml
+# kubectl create secret generic connect-token -n 1password --from-literal=token=(op read op://secrets/operator-token/credential) --dry-run=client -o yaml
 
 resource "helm_release" "_1password" {
-  name       = "1password"
-  namespace  = kubernetes_namespace_v1._1password.metadata.0.name
-  repository = "https://1password.github.io/connect-helm-charts/"
-  chart      = "connect"
+  name             = "1password"
+  namespace        = kubernetes_namespace_v1._1password.metadata.0.name
+  create_namespace = false
+  repository       = "https://1password.github.io/connect-helm-charts/"
+  chart            = "connect"
   # For updates: https://github.com/1Password/connect-helm-charts/releases
   version = "1.17.0"
   values = [yamlencode({
     connect = {
       credentialsName = "connect-credentials"
+      serviceType     = "ClusterIP"
+      api = {
+        serviceMonitor = {
+          enabled = true
+        }
+      }
     }
     operator = {
       create = true
       token = {
-        name = "connect-credentials"
+        name = "connect-token"
       }
     }
   })]
