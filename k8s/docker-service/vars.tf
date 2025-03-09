@@ -72,6 +72,14 @@ variable "env" {
   default = {}
 }
 
+variable "env_secrets" {
+  type = map(object({
+    secret = string
+    key    = string
+  }))
+  default = {}
+}
+
 variable "vpn_bypass_auth" {
   type    = bool
   default = false

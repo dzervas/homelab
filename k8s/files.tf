@@ -81,13 +81,14 @@ output "rclone_files_webdav_creds" {
 module "rclone_files" {
   source = "./docker-service"
 
-  type             = "deployment"
-  name             = "rclone-files"
-  namespace        = "files"
-  create_namespace = true
-  ingress_enabled  = false
-  image            = "rclone/rclone:1"
-  port             = 80
+  type                    = "deployment"
+  name                    = "rclone-files"
+  namespace               = "files"
+  create_namespace        = true
+  ingress_enabled         = false
+  image                   = "rclone/rclone:1"
+  port                    = 80
+  enable_security_context = false
   secrets = {
     "/secret" = "${kubernetes_secret_v1.rclone_files.metadata.0.name}"
   }

@@ -87,6 +87,19 @@ resource "kubernetes_deployment_v1" "docker" {
             }
           }
 
+          dynamic "env" {
+            for_each = var.env_secrets
+            content {
+              name = env.key
+              value_from {
+                secret_key_ref {
+                  name = env.value.secret
+                  key  = env.value.key
+                }
+              }
+            }
+          }
+
           dynamic "volume_mount" {
             for_each = merge(var.config_maps, var.secrets)
             content {
