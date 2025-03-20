@@ -103,12 +103,17 @@ resource "kubernetes_network_policy_v1" "magicentry_ingress" {
     policy_types = ["Ingress"]
     ingress {
       from {
+        namespace_selector {}
         pod_selector {
           match_labels = {
             "magicentry.rs/enable" = "true"
           }
         }
       }
+      # ports {
+      #   protocol = "TCP"
+      #   port     = 8080
+      # }
     }
   }
 }
