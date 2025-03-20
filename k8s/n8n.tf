@@ -36,7 +36,7 @@ module "n8n" {
       name         = "data"
       read_only    = false
       access_modes = ["ReadWriteOnce"]
-      size         = "10Gi"
+      size         = "25Gi"
       retain       = true
     }
     "/home/node/backups" = {

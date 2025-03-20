@@ -26,13 +26,6 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
           }
         }
       }
-
-      # Allow ingress-nginx which is in host network mode
-      # from {
-      #   ip_block {
-      #     cidr = "10.42.0.1/32"
-      #   }
-      # }
     }
   }
 }

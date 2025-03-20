@@ -43,9 +43,9 @@ module "rclone" {
   command = ["sh", "-c"]
   args = [
     <<EOF
-    mkdir -p /config/rclone && \
-    cp /secret/rclone.conf /config/rclone/rclone.conf && \
+    cp /secret/rclone.conf /tmp/rclone.conf && \
     rclone serve s3 remote: \
+    --config /tmp/rclone.conf \
     --vfs-cache-mode full \
     --addr 0.0.0.0:80 \
     --auth-key "${random_password.rclone_access_key.result}${random_password.rclone_secret_key.result}"

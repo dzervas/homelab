@@ -16,7 +16,7 @@ plugins:
       exemptions:
         usernames: []
         runtimeClasses: []
-        namespaces: [kube-system, ingress]
+        namespaces: [kube-system, ingress, grafana]
   - name: EventRateLimit
     configuration:
       apiVersion: eventratelimit.admission.k8s.io/v1alpha1

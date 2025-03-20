@@ -68,6 +68,18 @@ resource "kubernetes_deployment_v1" "docker" {
             }
           }
         }
+        dynamic "security_context" {
+          for_each = var.enable_security_context ? [1] : []
+          content {
+            run_as_non_root = true
+            run_as_user     = var.run_as_user
+            run_as_group    = var.run_as_user
+            fs_group        = var.run_as_user
+            seccomp_profile {
+              type = "RuntimeDefault"
+            }
+          }
+        }
         container {
           name              = var.name
           image             = var.image

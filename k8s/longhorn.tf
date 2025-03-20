@@ -22,7 +22,7 @@ resource "helm_release" "longhorn" {
   namespace  = kubernetes_namespace.longhorn-system.metadata.0.name
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  version    = "1.8.0"
+  version    = "1.8.1"
   timeout    = 1800 # Fucking gr1
   values = [yamlencode({
     persistence = {

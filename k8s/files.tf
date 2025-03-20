@@ -42,24 +42,6 @@ module "files" {
   }
 }
 
-# resource "random_password" "rclone_files_access_key" {
-#   length  = 32
-#   special = false
-# }
-
-# resource "random_password" "rclone_files_secret_key" {
-#   length  = 32
-#   special = false
-# }
-
-# output "rclone_files_s3_keys" {
-#   value = {
-#     access_key = random_password.rclone_files_access_key.result
-#     secret_key = random_password.rclone_files_secret_key.result
-#   }
-#   sensitive = true
-# }
-
 resource "random_password" "rclone_files_user" {
   length  = 32
   special = false

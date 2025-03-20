@@ -77,7 +77,7 @@ resource "kubernetes_manifest" "atuin_secrets" {
       namespace = module.atuin.namespace
     }
     spec = {
-      itemPath = "vaults/k8s-secrets/atuin"
+      itemPath = "vaults/k8s-secrets/items/atuin"
     }
   }
 }
