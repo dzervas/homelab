@@ -38,6 +38,23 @@ module "affine" {
     REDIS_SERVER_HOST          = "affine-redis"
     DATABASE_URL               = "postgresql://affine:${random_password.affine_db_password.result}@affine-db:5432/affine"
     AFFINE_SERVER_EXTERNAL_URL = "https://notes.${var.domain}"
+    MAILER_HOST                = "smtp-hve.office365.com"
+    MAILER_PORT                = 587
+  }
+
+  env_secrets = {
+    MAILER_USER = {
+      secret = "affine-secrets-op"
+      key    = "smtp-user"
+    }
+    MAILER_SENDER = {
+      secret = "affine-secrets-op"
+      key    = "smtp-user"
+    }
+    MAILER_PASSWORD = {
+      secret = "affine-secrets-op"
+      key    = "smtp-password"
+    }
   }
 }
 
@@ -86,5 +103,19 @@ module "affine_db" {
     POSTGRES_DB       = "affine"
     POSTGRES_PASSWORD = random_password.affine_db_password.result
     TZ                = var.timezone
+  }
+}
+
+resource "kubernetes_manifest" "affine_secrets" {
+  manifest = {
+    apiVersion = "onepassword.com/v1"
+    kind       = "OnePasswordItem"
+    metadata = {
+      name      = "affine-secrets-op"
+      namespace = module.affine.namespace
+    }
+    spec = {
+      itemPath = "vaults/k8s-secrets/items/affine"
+    }
   }
 }
