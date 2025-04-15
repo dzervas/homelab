@@ -34,12 +34,16 @@ module "affine" {
   }]
 
   env = {
-    TZ                         = var.timezone
-    REDIS_SERVER_HOST          = "affine-redis"
-    DATABASE_URL               = "postgresql://affine:${random_password.affine_db_password.result}@affine-db:5432/affine"
     AFFINE_SERVER_EXTERNAL_URL = "https://notes.${var.domain}"
-    MAILER_HOST                = "smtp-hve.office365.com"
-    MAILER_PORT                = 587
+    AFFINE_SERVER_HTTPS        = "true"
+
+    REDIS_SERVER_HOST = "affine-redis"
+    DATABASE_URL      = "postgresql://affine:${random_password.affine_db_password.result}@affine-db:5432/affine"
+
+    MAILER_HOST = "smtp-hve.office365.com"
+    MAILER_PORT = 587
+
+    TZ = var.timezone
   }
 
   env_secrets = {
@@ -57,24 +61,6 @@ module "affine" {
     }
   }
 }
-
-
-module "affine_redis" {
-  source = "./docker-service"
-
-  type                    = "deployment"
-  name                    = "affine-redis"
-  namespace               = module.affine.namespace
-  create_namespace        = false
-  ingress_enabled         = false
-  image                   = "redis"
-  port                    = 6379
-  enable_security_context = false
-  env = {
-    TZ = var.timezone
-  }
-}
-
 
 module "affine_db" {
   source = "./docker-service"
@@ -103,6 +89,22 @@ module "affine_db" {
     POSTGRES_DB       = "affine"
     POSTGRES_PASSWORD = random_password.affine_db_password.result
     TZ                = var.timezone
+  }
+}
+
+module "affine_redis" {
+  source = "./docker-service"
+
+  type                    = "deployment"
+  name                    = "affine-redis"
+  namespace               = module.affine.namespace
+  create_namespace        = false
+  ingress_enabled         = false
+  image                   = "redis"
+  port                    = 6379
+  enable_security_context = false
+  env = {
+    TZ = var.timezone
   }
 }
 
