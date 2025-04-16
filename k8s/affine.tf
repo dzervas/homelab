@@ -14,8 +14,10 @@ module "affine" {
   image                   = "ghcr.io/toeverything/affine-graphql:stable"
   image_pull_policy       = true
   port                    = 3010
+  magicentry_access       = true
   retain_pvs              = true
   enable_security_context = false
+
   pvs = {
     "/root/.affine" = {
       name         = "data"
@@ -53,7 +55,7 @@ module "affine" {
     }
     MAILER_SENDER = {
       secret = "affine-secrets-op"
-      key    = "smtp-user"
+      key    = "smtp-sender"
     }
     MAILER_PASSWORD = {
       secret = "affine-secrets-op"

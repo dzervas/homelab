@@ -30,7 +30,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.4.15"
+  version    = "0.4.21"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -73,6 +73,12 @@ resource "helm_release" "magicentry" {
           secret        = local.op_secrets.magicentry.files_secret
           redirect_uris = ["https://files.dzerv.art/api/session/auth/"]
           realms        = ["files", "public"]
+        },
+        {
+          id            = local.op_secrets.magicentry.notes_id
+          secret        = local.op_secrets.magicentry.notes_secret
+          redirect_uris = ["https://notes.dzerv.art/oauth/callback"]
+          realms        = ["notes", "public"]
         },
       ]
       users = [

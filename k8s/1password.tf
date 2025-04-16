@@ -2,11 +2,11 @@ resource "kubernetes_namespace_v1" "_1password" {
   metadata {
     name = "1password"
     labels = {
-      "pod-security.kubernetes.io/enforce"         = "privileged"
+      "pod-security.kubernetes.io/enforce"         = "restricted"
       "pod-security.kubernetes.io/enforce-version" = "latest"
-      "pod-security.kubernetes.io/audit"           = "privileged"
+      "pod-security.kubernetes.io/audit"           = "restricted"
       "pod-security.kubernetes.io/audit-version"   = "latest"
-      "pod-security.kubernetes.io/warn"            = "privileged"
+      "pod-security.kubernetes.io/warn"            = "restricted"
       "pod-security.kubernetes.io/warn-version"    = "latest"
       managed_by                                   = "terraform"
     }
