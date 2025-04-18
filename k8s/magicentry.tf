@@ -30,7 +30,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.4.21"
+  version    = "0.5.2"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -38,6 +38,12 @@ resource "helm_release" "magicentry" {
       storageClass = "longhorn"
       size         = "1Gi"
     }
+
+    # image = {
+    #   repository  = "ghcr.io/dzervas/magicentry"
+    #   tag         = "kube-main"
+    #   pull_policy = "Always"
+    # }
 
     config = {
       title          = "DZerv.Art Auth Service"
@@ -54,6 +60,7 @@ resource "helm_release" "magicentry" {
         {
           id            = local.op_secrets.magicentry.audiobooks_id
           secret        = local.op_secrets.magicentry.audiobooks_secret
+          origins       = ["https://audiobooks.dzerv.art"]
           redirect_uris = ["https://audiobooks.dzerv.art/auth/openid/callback"]
           realms        = ["audiobooks", "public"]
         },
