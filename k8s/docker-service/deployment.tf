@@ -43,6 +43,20 @@ resource "kubernetes_deployment_v1" "docker" {
             command           = lookup(init_container.value, "command", [])
             args              = lookup(init_container.value, "args", [])
             image_pull_policy = (var.image_pull_policy || !strcontains(init_container.value.image, ":") || endswith(init_container.value.image, ":latest")) ? "Always" : "IfNotPresent"
+
+            dynamic "env" {
+              for_each = var.env_secrets
+              content {
+                name = env.key
+                value_from {
+                  secret_key_ref {
+                    name = env.value.secret
+                    key  = env.value.key
+                  }
+                }
+              }
+            }
+
             dynamic "env" {
               for_each = merge(lookup(init_container.value, "env", {}), var.env)
               content {

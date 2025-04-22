@@ -1,8 +1,3 @@
-resource "random_password" "affine_db_password" {
-  length  = 40
-  special = false
-}
-
 module "affine" {
   source = "./docker-service"
 
@@ -40,7 +35,7 @@ module "affine" {
     AFFINE_SERVER_HTTPS        = "true"
 
     REDIS_SERVER_HOST = "affine-redis"
-    DATABASE_URL      = "postgresql://affine:${random_password.affine_db_password.result}@affine-db:5432/affine"
+    DATABASE_URL      = "postgresql://affine:$(DATABASE_PASSWORD)@affine-db:5432/affine"
 
     MAILER_HOST = "smtp-hve.office365.com"
     MAILER_PORT = 587
@@ -60,6 +55,10 @@ module "affine" {
     MAILER_PASSWORD = {
       secret = "affine-secrets-op"
       key    = "smtp-password"
+    }
+    DATABASE_PASSWORD = {
+      secret = "affine-secrets-op"
+      key    = "postgres-password"
     }
   }
 }
@@ -87,10 +86,17 @@ module "affine_db" {
   }
 
   env = {
-    POSTGRES_USER     = "affine"
-    POSTGRES_DB       = "affine"
-    POSTGRES_PASSWORD = random_password.affine_db_password.result
-    TZ                = var.timezone
+    POSTGRES_USER           = "affine"
+    POSTGRES_DB             = "affine"
+    DATABASE_ALREADY_EXISTS = "1" # Do not re-create the db if the password gets changed
+    TZ                      = var.timezone
+  }
+
+  env_secrets = {
+    POSTGRES_PASSWORD = {
+      secret = "affine-secrets-op"
+      key    = "postgres-password"
+    }
   }
 }
 
