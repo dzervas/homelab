@@ -1,8 +1,3 @@
-resource "random_password" "atuin_db_password" {
-  length  = 40
-  special = false
-}
-
 module "atuin" {
   source = "./docker-service"
 
@@ -17,8 +12,7 @@ module "atuin" {
     ATUIN_HOST              = "0.0.0.0"
     ATUIN_PORT              = "8888"
     ATUIN_OPEN_REGISTRATION = "false"
-    # ATUIN_DB_URI            = "postgres://atuin:${random_password.atuin_db_password.result}@atuin-db/atuin"
-    ATUIN_DB_URI = "postgres://atuin:$ATUIN_DB_PASSWORD@atuin-db/atuin"
+    ATUIN_DB_URI = "postgres://atuin:$(ATUIN_DB_PASSWORD)@atuin-db/atuin"
     RUST_LOG     = "info" # "info,atuin_server=debug"
     TZ           = var.timezone
   }
@@ -56,7 +50,6 @@ module "atuin_db" {
   env = {
     POSTGRES_USER = "atuin"
     POSTGRES_DB   = "atuin"
-    # POSTGRES_PASSWORD = random_password.atuin_db_password.result
     TZ = var.timezone
   }
 
@@ -81,39 +74,3 @@ resource "kubernetes_manifest" "atuin_secrets" {
     }
   }
 }
-
-# resource "kubernetes_manifest" "atuin_secrets" {
-#   manifest = {
-#     apiVersion = "external-secrets.io/v1beta1"
-#     kind       = "ExternalSecret"
-#     metadata = {
-#       name      = "atuin-secrets-op"
-#       namespace = module.atuin.namespace
-#     }
-#     spec = {
-#       secretStoreRef = {
-#         name = "1password"
-#         kind = "ClusterSecretStore"
-#       }
-#       target = {
-#         name = "atuin-secrets-op"
-#       }
-#       data = [
-#         {
-#           secretKey = "POSTGRES_PASSWORD"
-#           remoteRef = {
-#             key      = "atuin"
-#             property = "postgres-password"
-#           }
-#         },
-#         {
-#           secretKey = "ATUIN_DB_PASSWORD"
-#           remoteRef = {
-#             key      = "atuin"
-#             property = "postgres-password"
-#           }
-#         }
-#       ]
-#     }
-#   }
-# }

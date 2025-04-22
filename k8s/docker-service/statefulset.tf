@@ -94,14 +94,6 @@ resource "kubernetes_stateful_set" "docker" {
           }
 
           dynamic "env" {
-            for_each = var.env
-            content {
-              name  = env.key
-              value = env.value
-            }
-          }
-
-          dynamic "env" {
             for_each = var.env_secrets
             content {
               name = env.key
@@ -111,6 +103,14 @@ resource "kubernetes_stateful_set" "docker" {
                   key  = env.value.key
                 }
               }
+            }
+          }
+
+          dynamic "env" {
+            for_each = var.env
+            content {
+              name  = env.key
+              value = env.value
             }
           }
 

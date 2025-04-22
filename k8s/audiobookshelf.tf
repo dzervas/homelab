@@ -6,6 +6,7 @@ module "audiobookshelf_ingress" {
   mtls_enabled = false
   additional_annotations = {
     "cert-manager.io/cluster-issuer"              = "letsencrypt"
+    "magicentry.rs/name"                          = "Audiobookshelf"
     "magicentry.rs/realms"                        = "audiobooks,public"
     "magicentry.rs/auth-url"                      = "true"
     "magicentry.rs/manage-ingress-nginx"          = "true"

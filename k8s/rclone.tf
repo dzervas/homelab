@@ -47,6 +47,7 @@ module "rclone" {
     rclone serve s3 remote: \
     --config /tmp/rclone.conf \
     --vfs-cache-mode full \
+    --cache-dir /tmp/.cache
     --addr 0.0.0.0:80 \
     --auth-key "${random_password.rclone_access_key.result}${random_password.rclone_secret_key.result}"
     EOF
