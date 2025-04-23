@@ -61,17 +61,15 @@ module "rclone_files" {
   ingress_enabled         = false
   image                   = "rclone/rclone:1"
   port                    = 80
-  enable_security_context = false
   secrets = {
     "/secret" = "${kubernetes_secret_v1.rclone_files.metadata.0.name}"
   }
   command = ["sh", "-c"]
   args = [
     <<EOF
-    mkdir -p /config/rclone && \
-    cp /secret/rclone.conf /config/rclone/rclone.conf && \
-    rclone config update remote password=$(rclone obscure $RCLONE_CRYPT_PASSWORD) && \
-    rclone config update remote password2=$(rclone obscure $RCLONE_CRYPT_SALT) && \
+    cp /secret/rclone.conf /tmp/rclone.conf && \
+    rclone config update remote password=$(rclone obscure $CRYPT_PASSWORD) && \
+    rclone config update remote password2=$(rclone obscure $CRYPT_SALT) && \
     rclone serve webdav remote: \
     --vfs-cache-mode full \
     --addr 0.0.0.0:80 \
@@ -81,6 +79,7 @@ module "rclone_files" {
   ]
 
   env_secrets = {
+    # WebDAV server credentials
     RCLONE_USER = {
       secret = "files-secrets-op"
       key    = "rclone-user"
@@ -89,14 +88,42 @@ module "rclone_files" {
       secret = "files-secrets-op"
       key    = "rclone-pass"
     }
-    RCLONE_CRYPT_PASSWORD = {
+
+    # Crypt remote
+    CRYPT_PASSWORD = {
       secret = "files-secrets-op"
       key    = "rclone-crypt-password"
     }
-    RCLONE_CRYPT_SALT = {
+    CRYPT_SALT = {
       secret = "files-secrets-op"
       key    = "rclone-crypt-salt"
     }
+
+    # OneDrive remote
+    RCLONE_ONEDRIVE_TENANT = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-tenant"
+    }
+    RCLONE_ONEDRIVE_CLIENT_ID = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-client-id"
+    }
+    RCLONE_ONEDRIVE_CLIENT_SECRET = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-client-secret"
+    }
+    RCLONE_ONEDRIVE_TOKEN = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-token"
+    }
+    RCLONE_ONEDRIVE_DRIVE_ID = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-drive-id"
+    }
+  }
+
+  env = {
+    RCLONE_CONFIG             = "/tmp/rclone.conf"
   }
 }
 
@@ -127,6 +154,20 @@ resource "kubernetes_manifest" "files_secrets" {
     }
     spec = {
       itemPath = "vaults/k8s-secrets/items/files"
+    }
+  }
+}
+
+resource "kubernetes_manifest" "files_secrets_rclone" {
+  manifest = {
+    apiVersion = "onepassword.com/v1"
+    kind       = "OnePasswordItem"
+    metadata = {
+      name      = "rclone-secrets-op"
+      namespace = module.files.namespace
+    }
+    spec = {
+      itemPath = "vaults/k8s-secrets/items/rclone"
     }
   }
 }

@@ -2,18 +2,12 @@ locals {
   main_remote = <<EOF
   [remote_raw]
   type                 = onedrive
-  client_id            = ${local.op_secrets.rclone.client_id}
-  client_secret        = ${local.op_secrets.rclone.client_secret}
   drive_type           = business
   access_scopes        = Files.ReadWrite.AppFolder User.Read offline_access
   no_versions          = true
   hard_delete          = true
   av_override          = true
   metadata_permissions = read,write
-  auth_url             = https://login.microsoftonline.com/${local.op_secrets.rclone.tenancy_id}/oauth2/v2.0/authorize
-  token_url            = https://login.microsoftonline.com/${local.op_secrets.rclone.tenancy_id}/oauth2/v2.0/token
-  token                = ${local.op_secrets.rclone.token}
-  drive_id             = ${local.op_secrets.rclone.drive_id}
   EOF
 }
 
@@ -44,18 +38,65 @@ module "rclone" {
   args = [
     <<EOF
     cp /secret/rclone.conf /tmp/rclone.conf && \
+    rclone config update remote password=$(rclone obscure $CRYPT_PASSWORD) && \
+    rclone config update remote password2=$(rclone obscure $CRYPT_SALT) && \
     rclone serve s3 remote: \
-    --config /tmp/rclone.conf \
     --vfs-cache-mode full \
     --cache-dir /tmp/.cache
     --addr 0.0.0.0:80 \
-    --auth-key "${random_password.rclone_access_key.result}${random_password.rclone_secret_key.result}"
+    --auth-key "$RCLONE_ACCESS_ID,$RCLONE_SECRET_KEY"
     EOF
   ]
-}
 
-data "external" "crypt_password" {
-  program = ["bash", "-c", "echo {\\\"password\\\": \\\"$(rclone obscure ${local.op_secrets.rclone.crypt_password})\\\", \\\"password2\\\": \\\"$(rclone obscure ${local.op_secrets.rclone.crypt_salt})\\\"}"]
+  env_secrets = {
+    # S3 server credentials
+    RCLONE_ACCESS_ID = {
+      secret = "rclone-s3-op"
+      key    = "access-id"
+    }
+    RCLONE_SECRET_KEY = {
+      secret = "rclone-s3-op"
+      key    = "secret-key"
+    }
+
+    # Crypt remote
+    CRYPT_PASSWORD = {
+      secret = "rclone-secrets-op"
+      key    = "crypt-password"
+    }
+    CRYPT_SALT = {
+      secret = "rclone-secrets-op"
+      key    = "crypt-salt"
+    }
+
+    # OneDrive remote
+    RCLONE_ONEDRIVE_TENANT = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-tenant"
+    }
+    RCLONE_ONEDRIVE_CLIENT_ID = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-client-id"
+    }
+    RCLONE_ONEDRIVE_CLIENT_SECRET = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-client-secret"
+    }
+    RCLONE_ONEDRIVE_TOKEN = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-token"
+    }
+    RCLONE_ONEDRIVE_DRIVE_ID = {
+      secret = "rclone-secrets-op"
+      key    = "onedrive-drive-id"
+    }
+  }
+
+  env = {
+    RCLONE_CONFIG             = "/tmp/rclone.conf"
+    RCLONE_ONEDRIVE_AUTH_URL  = "https://login.microsoftonline.com/$(RCLONE_ONEDRIVE_TENANT)/oauth2/v2.0/authorize"
+    RCLONE_ONEDRIVE_TOKEN_URL = "https://login.microsoftonline.com/$(RCLONE_ONEDRIVE_TENANT)/oauth2/v2.0/token"
+  }
 }
 
 resource "kubernetes_secret_v1" "rclone" {
@@ -71,9 +112,35 @@ resource "kubernetes_secret_v1" "rclone" {
     type = crypt
     remote = remote_raw:rclone/s3
     filename_encoding = base32768
-    password = ${data.external.crypt_password.result.password}
-    password2 = ${data.external.crypt_password.result.password2}
     EOF
+  }
+}
+
+resource "kubernetes_manifest" "rclone_secrets" {
+  manifest = {
+    apiVersion = "onepassword.com/v1"
+    kind       = "OnePasswordItem"
+    metadata = {
+      name      = "rclone-secrets-op"
+      namespace = module.rclone.namespace
+    }
+    spec = {
+      itemPath = "vaults/k8s-secrets/items/rclone"
+    }
+  }
+}
+
+resource "kubernetes_manifest" "rclone_s3_secrets" {
+  manifest = {
+    apiVersion = "onepassword.com/v1"
+    kind       = "OnePasswordItem"
+    metadata = {
+      name      = "rclone-s3-op"
+      namespace = module.rclone.namespace
+    }
+    spec = {
+      itemPath = "vaults/k8s-secrets/items/rclone-s3"
+    }
   }
 }
 
