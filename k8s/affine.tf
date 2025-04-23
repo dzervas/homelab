@@ -88,7 +88,6 @@ module "affine_db" {
   env = {
     POSTGRES_USER           = "affine"
     POSTGRES_DB             = "affine"
-    DATABASE_ALREADY_EXISTS = "1" # Do not re-create the db if the password gets changed
     TZ                      = var.timezone
   }
 

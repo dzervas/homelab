@@ -55,6 +55,9 @@ resource "helm_release" "magicentry" {
 
       external_url = "https://auth.dzerv.art"
 
+      auth_url_user_header = "X-Remote-User"
+      auth_url_realms_header = "X-Remote-Group"
+
       oidc_enable = true
       oidc_clients = [
         {
@@ -76,15 +79,21 @@ resource "helm_release" "magicentry" {
           realms  = ["cook"]
         },
         {
+          // TODO: Just use proxy headers
           id            = local.op_secrets.magicentry.files_id
           secret        = local.op_secrets.magicentry.files_secret
-          redirect_uris = ["https://files.dzerv.art/api/session/auth/"]
+          redirect_uris = [
+            "https://files.dzerv.art/api/session/auth/",
+            "https://files.dzerv.art/",
+          ]
+          origins       = ["https://files.dzerv.art"]
           realms        = ["files", "public"]
         },
         {
           id            = local.op_secrets.magicentry.notes_id
           secret        = local.op_secrets.magicentry.notes_secret
           redirect_uris = ["https://notes.dzerv.art/oauth/callback"]
+          origins       = ["https://notes.dzerv.art"]
           realms        = ["notes", "public"]
         },
       ]
@@ -123,9 +132,22 @@ resource "kubernetes_network_policy_v1" "magicentry_ingress" {
           }
         }
       }
+      # Allow traffic from the ingress controller for auth-url
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "ingress"
+          }
+        }
+        pod_selector {
+          match_labels = {
+            "magicentry.rs/enable" = "true"
+          }
+        }
+      }
       # ports {
-      #   protocol = "TCP"
-      #   port     = 8080
+        # protocol = "TCP"
+        # port     = 8080
       # }
     }
   }

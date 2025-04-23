@@ -24,7 +24,16 @@ module "files" {
   node_selector     = { "kubernetes.io/arch" = "amd64" }
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "10g" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
+    # "nginx.ingress.kubernetes.io/auth-url"        = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
+    # "nginx.ingress.kubernetes.io/auth-signin"     = "https://auth.dzerv.art/login"
   }
+
+  init_containers = [{
+    name    = "init-permissions"
+    image   = "busybox"
+    command = ["sh", "-c"]
+    args    = ["mkdir -p /app/data/state /app/data/cache && chown 1000:1000 -R /app/data"]
+  }]
 
   pvs = {
     "/app/data" = {
@@ -40,24 +49,6 @@ module "files" {
     APPLICATION_URL = "files.${var.domain}"
     TZ              = var.timezone
   }
-}
-
-resource "random_password" "rclone_files_user" {
-  length  = 32
-  special = false
-}
-
-resource "random_password" "rclone_files_pass" {
-  length  = 32
-  special = false
-}
-
-output "rclone_files_webdav_creds" {
-  value = {
-    user = random_password.rclone_files_user.result
-    pass = random_password.rclone_files_pass.result
-  }
-  sensitive = true
 }
 
 module "rclone_files" {
@@ -79,18 +70,34 @@ module "rclone_files" {
     <<EOF
     mkdir -p /config/rclone && \
     cp /secret/rclone.conf /config/rclone/rclone.conf && \
+    rclone config update remote password=$(rclone obscure $RCLONE_CRYPT_PASSWORD) && \
+    rclone config update remote password2=$(rclone obscure $RCLONE_CRYPT_SALT) && \
     rclone serve webdav remote: \
     --vfs-cache-mode full \
     --addr 0.0.0.0:80 \
-    --user "${random_password.rclone_files_user.result}" \
-    --pass "${random_password.rclone_files_pass.result}"
+    --user $RCLONE_USER \
+    --pass $RCLONE_PASS
     EOF
-    # --auth-key "${random_password.rclone_files_access_key.result}${random_password.rclone_files_secret_key.result}"
   ]
-}
 
-data "external" "crypt_files_password" {
-  program = ["bash", "-c", "echo {\\\"password\\\": \\\"$(rclone obscure ${local.op_secrets.rclone.crypt_files_password})\\\", \\\"password2\\\": \\\"$(rclone obscure ${local.op_secrets.rclone.crypt_files_salt})\\\"}"]
+  env_secrets = {
+    RCLONE_USER = {
+      secret = "files-secrets-op"
+      key    = "rclone-user"
+    }
+    RCLONE_PASS = {
+      secret = "files-secrets-op"
+      key    = "rclone-pass"
+    }
+    RCLONE_CRYPT_PASSWORD = {
+      secret = "files-secrets-op"
+      key    = "rclone-crypt-password"
+    }
+    RCLONE_CRYPT_SALT = {
+      secret = "files-secrets-op"
+      key    = "rclone-crypt-salt"
+    }
+  }
 }
 
 resource "kubernetes_secret_v1" "rclone_files" {
@@ -106,8 +113,20 @@ resource "kubernetes_secret_v1" "rclone_files" {
     type = crypt
     remote = remote_raw:rclone/files
     filename_encoding = base32768
-    password = ${data.external.crypt_files_password.result.password}
-    password2 = ${data.external.crypt_files_password.result.password2}
     EOF
+  }
+}
+
+resource "kubernetes_manifest" "files_secrets" {
+  manifest = {
+    apiVersion = "onepassword.com/v1"
+    kind       = "OnePasswordItem"
+    metadata = {
+      name      = "files-secrets-op"
+      namespace = module.files.namespace
+    }
+    spec = {
+      itemPath = "vaults/k8s-secrets/items/files"
+    }
   }
 }
