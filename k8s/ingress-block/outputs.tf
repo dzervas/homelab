@@ -43,3 +43,7 @@ output "host_obj" {
     }]
   })
 }
+
+output "fqdn" {
+  value = var.fqdn
+}
