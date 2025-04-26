@@ -1,9 +1,11 @@
 locals {
+  uid = 33 # www-data for apache is 33 and 82 for nginx
   security_context = {
-    runAsUser    = 82 # www-data for apache is 33 and 82 for nginx
-    runAsGroup   = 82
-    runAsNonRoot = true
-    fsGroup      = 82
+    runAsUser                = local.uid
+    runAsGroup               = local.uid
+    runAsNonRoot             = true
+    fsGroup                  = local.uid
+    allowPrivilegeEscalation = false
     seccompProfile = {
       type = "RuntimeDefault"
     }
@@ -26,8 +28,6 @@ module "nextcloud_ingress" {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "10g"
     # "nginx.ingress.kubernetes.io/auth-url"        = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
     # "nginx.ingress.kubernetes.io/auth-signin"     = "https://auth.dzerv.art/login"
-    # "nginx.ingress.kubernetes.io/auth-url"    = "http://10.11.12.50:8181/auth-url/status"
-    # "nginx.ingress.kubernetes.io/auth-signin" = "http://localhost:8181/login"
   }
 }
 
@@ -35,36 +35,19 @@ resource "helm_release" "nextcloud" {
   name             = "nextcloud"
   namespace        = "nextcloud"
   create_namespace = true
-  # atomic           = true
+  atomic           = true
 
   repository = "https://nextcloud.github.io/helm/"
   chart      = "nextcloud"
   values = [yamlencode({
-    ingress   = module.nextcloud_ingress.host_obj
-    podLabels = { "magicentry.rs/enable" = "true" }
-
-    image = { flavor = "fpm" }
+    ingress = module.nextcloud_ingress.host_obj
+    podLabels = {
+      "magicentry.rs/enable" = "true"
+      "rclone/enable"        = "true"
+    }
 
     nextcloud = {
       host = module.nextcloud_ingress.fqdn
-      # containerPort = 8080
-
-      nginx = { enabled = true }
-
-      # extraInitContainers = [{
-      #   name  = "chmod-data"
-      #   image = "busybox"
-      #   command = [
-      #     "sh",
-      #     "-c",
-      #     "mkdir -p /data/nextcloud && chmod -R 0700 /data/nextcloud && chown -R 1000:1000 /data/nextcloud",
-      #   ]
-      #   volumeMounts = [{
-      #     name      = kubernetes_persistent_volume_claim_v1.nextcloud.metadata[0].name
-      #     mountPath = "/data"
-      #   }]
-      #   securityContext = local.security_context
-      # }]
 
       configs = {
         // Insists on rolling the permissions back to 777, so don't check
@@ -72,8 +55,8 @@ resource "helm_release" "nextcloud" {
           <?php
             $CONFIG = array(
               "check_data_directory_permissions" => false, # https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/
-              "log_type" => "errorlog",
-              "loglevel" => 0, # 0 = debug, 1 = info, 2 = warning, 3 = error, 4 = fatal
+              "log_type" => "file", # Defaults to `/var/www/html/data/nextcloud.log`
+              "loglevel" => 2, # 0 = debug, 1 = info, 2 = warning, 3 = error, 4 = fatal
             );
         EOF
       }
@@ -99,24 +82,16 @@ resource "helm_release" "nextcloud" {
         }
       }
 
-      # extraVolumeMounts = [{
-      #   name      = kubernetes_persistent_volume_claim_v1.nextcloud.metadata[0].name
-      #   mountPath = "/data"
-      # }]
-      # extraVolumes = [{
-      #   name = kubernetes_persistent_volume_claim_v1.nextcloud.metadata[0].name
-      #   persistanceVolumeClaim = {
-      #     claimName = kubernetes_persistent_volume_claim_v1.nextcloud.metadata[0].name
-      #   }
-      # }]
-      # dataDir = "/data"
-
       objectStore = {
         s3 = {
           enabled      = true
           ssl          = false
           usePathStyle = true
           autoCreate   = true
+          prefix       = ""
+
+          host = "rclone.rclone.svc.cluster.local"
+          port = 80
 
           existingSecret = "rclone-s3-op"
           secretKeys = {

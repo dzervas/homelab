@@ -35,14 +35,15 @@ module "rclone" {
     "/secret" = "${kubernetes_secret_v1.rclone.metadata.0.name}"
   }
   command = ["sh", "-c"]
+  # VFS Cache results in a horrible performance drop for round-trip write-read operations
+  # --vfs-cache-mode full \
   args = [
     <<EOF
     cp /secret/rclone.conf /tmp/rclone.conf && \
     rclone config update remote password=$(rclone obscure $CRYPT_PASSWORD) && \
     rclone config update remote password2=$(rclone obscure $CRYPT_SALT) && \
     rclone serve s3 remote: \
-    --vfs-cache-mode full \
-    --cache-dir /tmp/.cache
+    --cache-dir /tmp/.cache \
     --addr 0.0.0.0:80 \
     --auth-key "$RCLONE_ACCESS_ID,$RCLONE_SECRET_KEY"
     EOF
@@ -154,6 +155,7 @@ resource "kubernetes_network_policy_v1" "rclone_ingress" {
     policy_types = ["Ingress"]
     ingress {
       from {
+        namespace_selector {}
         pod_selector {
           match_labels = {
             "rclone/enable" = "true"
