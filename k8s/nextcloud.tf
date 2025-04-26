@@ -15,22 +15,13 @@ locals {
 module "nextcloud_ingress" {
   source = "./ingress-block"
 
-  namespace = "nextcloud"
-  fqdn      = "files.${var.domain}"
-  # mtls_enabled = true
+  namespace    = "nextcloud"
+  fqdn         = "files.${var.domain}"
+  mtls_enabled = true
   additional_annotations = {
-    "cert-manager.io/cluster-issuer"                  = "letsencrypt"
-    "magicentry.rs/name"                              = "NextCloud"
-    "magicentry.rs/realms"                            = "files,public"
-    "magicentry.rs/auth-url"                          = "true"
-    "magicentry.rs/manage-ingress-nginx"              = "true"
-    "nginx.ingress.kubernetes.io/ssl-redirect"        = "true"
-    "nginx.ingress.kubernetes.io/proxy-body-size"     = "10g"
-    "nginx.ingress.kubernetes.io/auth-url"            = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
-    "nginx.ingress.kubernetes.io/auth-signin"         = "https://auth.dzerv.art/login"
-    "nginx.ingress.kubernetes.io/auth-cache-duration" = "200 202 10m, 401 1m"
-    "nginx.ingress.kubernetes.io/auth-cache-key"      = "$remote_user$http_authorization"
-
+    "cert-manager.io/cluster-issuer"              = "letsencrypt"
+    "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
+    "nginx.ingress.kubernetes.io/proxy-body-size" = "10g"
   }
 }
 
@@ -45,8 +36,10 @@ resource "helm_release" "nextcloud" {
   values = [yamlencode({
     ingress = module.nextcloud_ingress.host_obj
     podLabels = {
-      "magicentry.rs/enable" = "true"
-      "rclone/enable"        = "true"
+      "rclone/enable" = "true"
+    }
+    phpClientHttpsFix = {
+      enabled = true
     }
 
     nextcloud = {
@@ -58,6 +51,8 @@ resource "helm_release" "nextcloud" {
           <?php
             $CONFIG = array(
               "check_data_directory_permissions" => false, # https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/
+              "trusted_proxies" => ["10.43.0.0/16"],
+              "trusted_domains" => ["${module.nextcloud_ingress.fqdn}"],
               "log_type" => "file", # Defaults to `/var/www/html/data/nextcloud.log`
               "loglevel" => 2, # 0 = debug, 1 = info, 2 = warning, 3 = error, 4 = fatal
             );
@@ -106,10 +101,6 @@ resource "helm_release" "nextcloud" {
         }
       }
 
-      defaultConfigs = {
-        "imaginary.config.php" = true
-      }
-
       podSecurityContext = local.security_context
     }
 
@@ -120,14 +111,9 @@ resource "helm_release" "nextcloud" {
       }
     }
 
-    cronJob = {
+    cronjob = {
       enabled         = true
       securityContext = local.security_context
-    }
-
-    imaginary = {
-      enabled            = true
-      podSecurityContext = local.security_context
     }
 
     # metrics = {
@@ -169,23 +155,3 @@ resource "kubernetes_manifest" "nextcloud_s3" {
     }
   }
 }
-
-# resource "kubernetes_persistent_volume_claim_v1" "nextcloud" {
-#   metadata {
-#     name      = "nextcloud-data"
-#     namespace = "nextcloud"
-#     labels = {
-#       managed_by = "terraform"
-#       service    = "nextcloud"
-#     }
-#   }
-
-#   spec {
-#     access_modes = ["ReadWriteOnce"]
-#     resources {
-#       requests = {
-#         storage = "10Gi"
-#       }
-#     }
-#   }
-# }
