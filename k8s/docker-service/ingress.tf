@@ -2,45 +2,15 @@ locals {
   mtls_annotations = {
     "nginx.ingress.kubernetes.io/auth-tls-secret"        = "${local.namespace}/client-ca"
     "nginx.ingress.kubernetes.io/auth-tls-verify-depth"  = "1"
-    "nginx.ingress.kubernetes.io/auth-tls-verify-client" = var.vpn_bypass_auth ? "optional" : "on"
+    "nginx.ingress.kubernetes.io/auth-tls-verify-client" = "on"
   }
   oauth_annotations = {
-    "magicentry.rs/realms"                       = var.name
-    "magicentry.rs/auth-url"                     = "true"
-    "magicentry.rs/manage-ingress-nginx"         = "true"
-    "nginx.ingress.kubernetes.io/auth-url"       = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
-    "nginx.ingress.kubernetes.io/auth-signin"    = "https://auth.dzerv.art/login"
-    "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
-      location = /__magicentry_auth_code {
-        add_header Set-Cookie "code=$arg_code; Path=/; HttpOnly; Secure; Max-Age=60; SameSite=Lax";
-        return 302 /;
-      }
-    EOF
-  }
-
-  list_vpn_cidrs = [for cidr in var.vpn_cidrs : "${cidr} 1;"]
-  vpn_annotations = {
-    # In the case of VPN bypass, we optionally ask for a client cert
-    # If it was given and verified, we allow access
-    # If not, check if the IP is in the VPN CIDR
-    # If it is, allow access, otherwise deny
-    # Also always allow letsencrypt challenges
-    "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
-      if ($uri ^~ /\.well-known/acme-challenge ) {
-        return 200;
-      }
-
-      if ( $ssl_client_verify != SUCCESS ) {
-        set $auth_tests "non_mtls";
-      }
-      if ( $vpn_client != 1 ) {
-        set $auth_tests "$${auth_tests}_non_vpn";
-      }
-
-      if ( $auth_tests = "non_mtls_non_vpn" ) {
-        return 403;
-      }
-    EOF
+    "magicentry.rs/name"                      = var.name
+    "magicentry.rs/realms"                    = var.name
+    "magicentry.rs/auth-url"                  = "true"
+    "magicentry.rs/manage-ingress-nginx"      = "true"
+    "nginx.ingress.kubernetes.io/auth-url"    = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
+    "nginx.ingress.kubernetes.io/auth-signin" = "https://auth.dzerv.art/login"
   }
 }
 
@@ -61,7 +31,6 @@ resource "kubernetes_ingress_v1" "docker" {
         "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
       },
       var.ingress_annotations,
-      var.vpn_bypass_auth ? local.vpn_annotations : {},
       var.auth == "mtls" ? local.mtls_annotations :
       var.auth == "oauth" ? local.oauth_annotations : {}
     )

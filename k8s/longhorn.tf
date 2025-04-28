@@ -77,14 +77,47 @@ resource "helm_release" "longhorn" {
   }
 }
 
-resource "kubernetes_secret_v1" "longhorn_s3" {
-  metadata {
-    name      = "longhorn-s3"
-    namespace = kubernetes_namespace.longhorn-system.metadata.0.name
-  }
-  data = {
-    AWS_ENDPOINTS         = "http://rclone.rclone.svc.cluster.local"
-    AWS_ACCESS_KEY_ID     = random_password.rclone_access_key.result
-    AWS_SECRET_ACCESS_KEY = random_password.rclone_secret_key.result
+resource "kubernetes_manifest" "longhorn_s3" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "longhorn-s3"
+      namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+    }
+    spec = {
+      refreshInterval = "10m"
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      target = {
+        name           = "longhorn-s3"
+        creationPolicy = "Owner"
+        template = {
+          data = {
+            AWS_ENDPOINTS         = "http://rclone.rclone.svc.cluster.local"
+            AWS_ACCESS_KEY_ID     = "{{ .access }}"
+            AWS_SECRET_ACCESS_KEY = "{{ .secret }}"
+          }
+        }
+      }
+      data = [
+        {
+          secretKey = "access"
+          remoteRef = {
+            key      = "rclone-s3"
+            property = "access-id"
+          }
+        },
+        {
+          secretKey = "secret"
+          remoteRef = {
+            key      = "rclone-s3"
+            property = "secret-key"
+          }
+        }
+      ]
+    }
   }
 }

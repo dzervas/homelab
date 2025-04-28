@@ -39,12 +39,10 @@ module "nocodb" {
   env = {
     TZ                     = var.timezone
     NC_PUBLIC_URL          = "https://db.${var.domain}"
-    NC_S3_ENDPOINT         = "rclone.rclone.svc.cluster.local:8080"
+    NC_S3_ENDPOINT         = "rclone.rclone.svc.cluster.local"
     NC_S3_BUCKET_NAME      = "nocodb"
     NC_S3_REGION           = "auto"
     NC_S3_FORCE_PATH_STYLE = true
-    NC_S3_ACCESS_KEY       = random_password.rclone_access_key.result
-    NC_S3_ACCESS_SECRET    = random_password.rclone_secret_key.result
     # TODO: Backup to S3
     # LITESTREAM_S3_ENDPOINT      = "rclone.rclone.svc.cluster.local:8080"
     # LITESTREAM_S3_BUCKET_NAME   = "nocodb"
@@ -55,6 +53,31 @@ module "nocodb" {
     # LITESTREAM_RETENTION        = "720" # 30 days
     # LITESTREAM_AGE_PUBLIC_KEY   = data.onepassword_item.nocodb_age_key.public_key
     # LITESTREAM_AGE_SECRET_KEY   = data.onepassword_item.nocodb_age_key.private_key
+  }
+
+  env_secrets = {
+    NC_S3_ACCESS_KEY = {
+      secret = "rclone-s3-op"
+      key    = "access-id"
+    }
+    NC_S3_ACCESS_SECRET = {
+      secret = "rclone-s3-op"
+      key    = "secret-key"
+    }
+  }
+}
+
+resource "kubernetes_manifest" "nocodb_s3" {
+  manifest = {
+    apiVersion = "onepassword.com/v1"
+    kind       = "OnePasswordItem"
+    metadata = {
+      name      = "rclone-s3-op"
+      namespace = module.nocodb.namespace
+    }
+    spec = {
+      itemPath = "vaults/k8s-secrets/items/rclone-s3"
+    }
   }
 }
 

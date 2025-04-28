@@ -11,16 +11,6 @@ locals {
   EOF
 }
 
-resource "random_password" "rclone_access_key" {
-  length           = 32
-  special          = false
-  override_special = "_%@"
-}
-
-resource "random_password" "rclone_secret_key" {
-  length = 32
-}
-
 module "rclone" {
   source = "./docker-service"
 
@@ -36,7 +26,6 @@ module "rclone" {
   }
   command = ["sh", "-c"]
   # VFS Cache results in a horrible performance drop for round-trip write-read operations
-  # --vfs-cache-mode full \
   args = [
     <<EOF
     cp /secret/rclone.conf /tmp/rclone.conf && \
@@ -44,6 +33,7 @@ module "rclone" {
     rclone config update remote password2=$(rclone obscure $CRYPT_SALT) && \
     rclone serve s3 remote: \
     --cache-dir /tmp/.cache \
+    --vfs-cache-mode full \
     --addr 0.0.0.0:80 \
     --auth-key "$RCLONE_ACCESS_ID,$RCLONE_SECRET_KEY"
     EOF
@@ -154,6 +144,13 @@ resource "kubernetes_network_policy_v1" "rclone_ingress" {
     pod_selector {}
     policy_types = ["Ingress"]
     ingress {
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "longhorn-system"
+          }
+        }
+      }
       from {
         namespace_selector {}
         pod_selector {
