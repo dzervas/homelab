@@ -51,6 +51,9 @@ resource "helm_release" "appflowy" {
     }
     minio = { enabled = false }
     postgresql = {
+      primary = {
+        nodeSelector = { "kubernetes.io/arch" = "amd64" }
+      }
       auth = { existingSecret = "appflowy-secrets-op" }
     }
   })]
@@ -65,7 +68,7 @@ resource "kubernetes_manifest" "appflowy_secrets" {
       namespace = "appflowy"
     }
     spec = {
-      itemPath = "vaults/k8s-secrets/items/atuin"
+      itemPath = "vaults/k8s-secrets/items/appflowy"
     }
   }
 }
