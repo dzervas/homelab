@@ -38,3 +38,33 @@ resource "kubernetes_manifest" "radicale_secrets" {
     }
   }
 }
+
+resource "kubernetes_manifest" "radicale_backup" {
+  manifest = {
+    apiVersion = "longhorn.io/v1beta1"
+    kind       = "RecurringJob"
+    metadata = {
+      name      = "radicale-backups"
+      namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+    }
+    spec = {
+      cron        = "0 0 * * *"
+      task        = "backup"
+      retain      = 30
+      concurrency = 1
+    }
+  }
+}
+
+resource "kubernetes_labels" "radicale_backup" {
+  api_version = "v1"
+  kind        = "PersistentVolumeClaim"
+  metadata {
+    name      = "originals-radicale-0"
+    namespace = module.radicale.namespace
+  }
+  labels = {
+    "recurring-job.longhorn.io/source"      = "enabled"
+    "recurring-job.longhorn.io/radicale-backups" = "enabled"
+  }
+}

@@ -152,6 +152,14 @@ resource "kubernetes_network_policy_v1" "rclone_ingress" {
         }
       }
       from {
+        namespace_selector {
+          match_labels = {
+            # TODO: Add as pod label
+            "kubernetes.io/metadata.name" = "appflowy"
+          }
+        }
+      }
+      from {
         namespace_selector {}
         pod_selector {
           match_labels = {
