@@ -58,3 +58,28 @@ resource "kubernetes_labels" "memos_backup" {
     "recurring-job.longhorn.io/memos-backups" = "enabled"
   }
 }
+
+resource "kubernetes_network_policy_v1" "memos_n8n" {
+  metadata {
+    name      = "allow-memos-n8n"
+    namespace = module.memos.namespace
+  }
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "n8n"
+          }
+        }
+        pod_selector {
+          match_labels = {
+            "service" = "n8n"
+          }
+        }
+      }
+    }
+  }
+}
