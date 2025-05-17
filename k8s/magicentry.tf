@@ -123,6 +123,7 @@ resource "kubernetes_network_policy_v1" "magicentry_ingress" {
   spec {
     pod_selector {}
     policy_types = ["Ingress"]
+
     ingress {
       from {
         namespace_selector {}

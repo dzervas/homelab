@@ -25,7 +25,8 @@ module "memos" {
   }
 
   env = {
-    TZ = var.timezone
+    TZ         = var.timezone
+    MEMOS_PORT = 5230
   }
 }
 
@@ -67,6 +68,7 @@ resource "kubernetes_network_policy_v1" "memos_n8n" {
   spec {
     pod_selector {}
     policy_types = ["Ingress"]
+
     ingress {
       from {
         namespace_selector {

@@ -7,7 +7,9 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
     namespace = each.value
   }
   spec {
+    # Applies to all pods
     pod_selector {}
+    # Traffic TO the pods
     policy_types = ["Ingress"]
 
     ingress {
@@ -27,5 +29,33 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
         }
       }
     }
+
+    # egress {
+      # # Allow intra-namespace traffic
+      # to {
+        # pod_selector {}
+      # }
+
+      # # Allow internet
+      # to {
+        # ip_block {
+          # cidr = "0.0.0.0/0"
+        # }
+      # }
+
+      # # Allow kube-dns access
+      # to {
+        # namespace_selector {
+          # match_labels = {
+            # "kubernetes.io/metadata.name" = "kube-system"
+          # }
+        # }
+        # pod_selector {
+          # match_labels = {
+            # "k8s-app" = "kube-dns"
+          # }
+        # }
+      # }
+    # }
   }
 }
