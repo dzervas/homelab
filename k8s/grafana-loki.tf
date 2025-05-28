@@ -29,6 +29,15 @@ resource "helm_release" "loki" {
           }
         ]
       }
+
+      limits_config = {
+        retention_period = "90d"
+      }
+      compactor = {
+        retention_enabled = true
+        retention_delete_delay = "2h"
+        delete_request_store = "filesystem"
+      }
     }
     deploymentMode = "SingleBinary"
     singleBinary = {
