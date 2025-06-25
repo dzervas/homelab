@@ -48,11 +48,12 @@ resource "helm_release" "ingress_nginx" {
 
       metrics = {
         enabled        = true
-        serviceMonitor = { enabled = true }
-      }
-      podAnnotations = {
-        "prometheus.io/scrape" = "true"
-        "prometheus.io/port"   = "10254"
+        serviceMonitor = {
+          enabled = true
+          annotations = {
+            "prometheus.io/scrape" = "true"
+          }
+        }
       }
 
       # config = {
