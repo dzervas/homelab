@@ -12,6 +12,8 @@
 
         ./boot.nix
         ./disk.nix
+        ./k3s.nix
+        ./network.nix
         ./nix.nix
         ./system.nix
         ./srv0.nix
