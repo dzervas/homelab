@@ -1,7 +1,7 @@
 _: {
   networking = {
     domain = "dzerv.art";
-    nftables.enable = true;
+    firewall.enable = true;
   };
   services.zerotierone.enable = true;
 }

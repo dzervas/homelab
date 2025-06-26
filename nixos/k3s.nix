@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: let
+{ config, lib, pkgs, ... }: let
   vpn-iface = "ztrfyoirbv";
   host-index = "150";
 in {
@@ -16,20 +16,34 @@ in {
     extraFlags = [
       "--flannel-iface ${vpn-iface}"
       "--node-ip 10.11.12.${host-index}"
+      "--node-external-ip 10.11.12.${host-index}"
       "--node-name ${config.networking.fqdn}"
+      "--node-label provider=home"
+      "--resolv-conf /etc/rancher/k3s/resolv.conf"
     ];
   };
 
+  environment.etc."rancher/k3s/resolv.conf".text = "nameserver 1.1.1.1\nnameserver 1.0.0.1";
+
   networking.firewall = {
     allowedTCPPorts = [ 80 443 ]; # HTTP/S access to the cluster
-    filterForward = true;
+    filterForward = false;
     # TODO: Avoid this
-    trustedInterfaces = [ "zt+" ];
+    trustedInterfaces = [ "zt+" "cni0" "flannel.1" ];
 
     # Allow pod & service traffic
-    extraInputRules = "ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept";
+    extraInputRules = ''
+      ip saddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
+      ip daddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
+    '';
     # Allow pod & service routing through k3s interface
-    extraForwardRules = "iifname ${vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept";
+    extraForwardRules = ''
+      iifname ${vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
+      oifname ${vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
+      iifname cni0 accept
+      oifname cni0 accept
+      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+    '';
 
     interfaces.${vpn-iface} = {
       # https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-nodes
@@ -59,4 +73,7 @@ in {
     PrivateMounts = "yes";
     BindPaths = "/run/current-system/sw/bin:/bin";
   };
+
+  # Optional dep by longhorn
+  boot.kernelModules = lib.mkAfter ["dm_crypt"];
 }
