@@ -27,21 +27,17 @@ in {
 
   networking.firewall = {
     allowedTCPPorts = [ 80 443 ]; # HTTP/S access to the cluster
-    filterForward = false;
-    # TODO: Avoid this
-    trustedInterfaces = [ "zt+" "cni0" "flannel.1" ];
+    filterForward = true;
 
     # Allow pod & service traffic
     extraInputRules = ''
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
-      ip daddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
+      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
     '';
     # Allow pod & service routing through k3s interface
     extraForwardRules = ''
-      iifname ${vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
-      oifname ${vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16, 10.11.12.0/24 } accept
-      iifname cni0 accept
-      oifname cni0 accept
+      iifname ${vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      oifname ${vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
     '';
 
