@@ -3,20 +3,22 @@
 cluster-init: true
 {% else %}
 server: "https://{{ hostvars[groups.master[0]].k3s_ip }}:6443"
+# server: "https://{{ hostvars[groups.master[0]].address }}:6443"
 {% endif %}
 
 # IP settings
 node-ip: {{ hostvars[inventory_hostname].k3s_ip }}
+# node-ip: {{ hostvars[inventory_hostname].address }}
 node-external-ip: {{ hostvars[inventory_hostname].address }}
 
-flannel-iface: {{ k3s_iface }}
-# Disable flannel
-#flannel-backend: none
-#disable-network-policy: true
+# flannel-iface: {{ k3s_iface }}
+flannel-backend: wireguard-native
 
 # DNS settings
 resolv-conf: /etc/rancher/k3s/resolv.conf
 node-name: {{ inventory_hostname }}
+node-label:
+  - provider={{ provider }}
 
 {% if inventory_hostname not in groups.agent -%}
 # Allow minecraft as nodeport

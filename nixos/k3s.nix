@@ -15,6 +15,7 @@ in {
 
     extraFlags = [
       "--flannel-iface ${vpn-iface}"
+      # "--flannel-backend wireguard-native"
       "--node-ip 10.11.12.${host-index}"
       "--node-external-ip 10.11.12.${host-index}"
       "--node-name ${config.networking.fqdn}"

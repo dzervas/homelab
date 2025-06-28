@@ -1,11 +1,5 @@
 # Ansible
 
-Use the pipenv env:
-
-```bash
-pipenv shell
-```
-
 Install the roles:
 
 ```bash
@@ -17,6 +11,8 @@ Run the playbook
 ```bash
 ansible-playbook playbook.yaml
 ```
+
+to also update the host machines pass `-e update=yes`
 
 ## New hosts
 
