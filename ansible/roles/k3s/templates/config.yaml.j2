@@ -11,8 +11,7 @@ node-ip: {{ hostvars[inventory_hostname].k3s_ip }}
 # node-ip: {{ hostvars[inventory_hostname].address }}
 node-external-ip: {{ hostvars[inventory_hostname].address }}
 
-# flannel-iface: {{ k3s_iface }}
-flannel-backend: wireguard-native
+flannel-iface: {{ k3s_iface }}
 
 # DNS settings
 resolv-conf: /etc/rancher/k3s/resolv.conf
