@@ -1,12 +1,19 @@
-{ config, lib, pkgs, ... }: let
+{
+  config,
+  hostIndex,
+  lib,
+  provider,
+  pkgs,
+  role,
+  ...
+}: let
   vpn-iface = "ztrfyoirbv";
-  host-index = "150";
 in {
   services.k3s = {
+    inherit role;
     enable = true;
     package = pkgs.k3s_1_31;
 
-    role = "agent";
     serverAddr = "https://10.11.12.100:6443";
     tokenFile = "/etc/k3s-token";
 
@@ -15,15 +22,15 @@ in {
 
     extraFlags = [
       "--flannel-iface ${vpn-iface}"
-      # "--flannel-backend wireguard-native"
-      "--node-ip 10.11.12.${host-index}"
-      "--node-external-ip 10.11.12.${host-index}"
+      "--node-ip 10.11.12.${hostIndex}"
+      "--node-external-ip 10.11.12.${hostIndex}"
       "--node-name ${config.networking.fqdn}"
-      "--node-label provider=home"
+      "--node-label provider=${provider}"
       "--resolv-conf /etc/rancher/k3s/resolv.conf"
     ];
   };
 
+  # Have a 100% concrete and clean DNS config - avoids potential local DHCP/DNS fuckery
   environment.etc."rancher/k3s/resolv.conf".text = "nameserver 1.1.1.1\nnameserver 1.0.0.1";
 
   networking.firewall = {
@@ -45,17 +52,15 @@ in {
     interfaces.${vpn-iface} = {
       # https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-nodes
       allowedTCPPorts = [
-        # 2379 # ETCD Server - servers only
-        # 2380 # ETCD Server - servers only
-        # 6443 # API Server - servers only
-
-        # 9501 # Longhorn
         10250 # Kubelet metrics
-      ];
+      ] ++ (if role != "agent" then [
+        2379 # ETCD Server
+        2380 # ETCD Server
+        6443 # API Server
+        9501 # Longhorn
+      ] else []);
       allowedUDPPorts = [
         8472 # Flannel VXLAN
-        # 51820 # Flannel wireguard ipv4
-        # 51821 # Flannel wireguard ipv6
       ];
     };
   };
