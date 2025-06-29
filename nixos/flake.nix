@@ -39,8 +39,8 @@
       gr0 =        { hostIndex = "100"; provider = "grnet";   role = "server"; publicKey = "ZUiMnTjo3wU1PoVXYC2VkHk6hnHFMFF74C1H1dS+cjI="; };
       gr1 =        { hostIndex = "101"; provider = "grnet";                    publicKey = "GO6R9Jh5Q36n2hmhtqqn2ITZqG/MzEexEfSLjmi9lXQ="; };
       srv0 =       { hostIndex = "150"; provider = "homelab";                  publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw="; };
-      frankfurt0 = { hostIndex = "200"; provider = "oracle";  role = "server"; publicKey = "kPRT5uFcM/BQBNSrCbcqg9lGwgJZQeiPnEn3lkZYSwQ="; };
-      frankfurt1 = { hostIndex = "201"; provider = "oracle";  role = "server"; publicKey = "1KjZhHkeQiA+32bwhLt86ZmacI8Io5xqnsi15GeBOXY="; };
+      frankfurt0 = { hostIndex = "200"; provider = "oracle";  role = "server"; publicKey = "kPRT5uFcM/BQBNSrCbcqg9lGwgJZQeiPnEn3lkZYSwQ="; system = "aarch64-linux"; };
+      frankfurt1 = { hostIndex = "201"; provider = "oracle";  role = "server"; publicKey = "1KjZhHkeQiA+32bwhLt86ZmacI8Io5xqnsi15GeBOXY="; system = "aarch64-linux"; };
     };
   };
 

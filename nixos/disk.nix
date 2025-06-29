@@ -24,9 +24,29 @@ _: {
           root = {
             size = "100%";
             content = {
-              type = "filesystem";
-              format = "ext4";
-              mountpoint = "/";
+              type = "btrfs";
+              extraArgs = [ "-f" ]; # Override existing partition
+              subvolumes = {
+                "/" = { mountpoint = "/"; };
+                "/nix".mountOptions = [
+                  "compress=zstd:5"
+                  "noatime" # Don't keep access times
+                  "nodiratime" # Ditto for directories
+                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
+                ];
+                "/ceph".mountOptions = [
+                  "compress=no"
+                  "noatime" # Don't keep access times
+                  "nodiratime" # Ditto for directories
+                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
+                ];
+                "/ceph-zstd".mountOptions = [
+                  "compress=zstd:3"
+                  "noatime" # Don't keep access times
+                  "nodiratime" # Ditto for directories
+                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
+                ];
+              };
             };
           };
         };
