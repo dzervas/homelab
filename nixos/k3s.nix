@@ -25,16 +25,18 @@ in {
     gracefulNodeShutdown.enable = true;
 
     extraFlags = [
-      # Common args
+      # Common args:
       "--flannel-iface ${vpn-iface}"
       "--node-ip 10.11.12.${hostIndex}"
-      "--node-external-ip 10.11.12.${hostIndex}"
+      # "--node-external-ip 10.11.12.${hostIndex}"
       "--node-name ${config.networking.fqdn}"
       "--node-label provider=${provider}"
       "--resolv-conf /etc/rancher/k3s/resolv.conf"
     ] ++ (if role != "agent" then [
       # Server (non-agent) args:
       "--advertise-address 10.11.12.${hostIndex}"
+      # Allow minecraft as nodeport
+      "--service-node-port-range 25000-32767"
       "--disable ${builtins.concatStringsSep "," [
         "servicelb"
         "traefik"
@@ -67,7 +69,10 @@ in {
   };
 
   # Have a 100% concrete and clean DNS config - avoids potential local DHCP/DNS fuckery
-  environment.etc."rancher/k3s/resolv.conf".text = "nameserver 1.1.1.1\nnameserver 1.0.0.1";
+  environment.etc."rancher/k3s/resolv.conf".text = ''
+    nameserver 1.1.1.1
+    nameserver 1.0.0.1
+  '';
 
   networking.firewall = {
     allowedTCPPorts = [ 80 443 ]; # HTTP/S access to the cluster
