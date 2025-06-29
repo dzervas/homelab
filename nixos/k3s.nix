@@ -10,6 +10,12 @@
   vpn-iface = "ztrfyoirbv";
   # Denotes the "master" node, where the initial clusterInit happens
   isMaster = hostIndex == "100";
+  # Function to convert a set of attributes to k3s flags
+  # TODO: Does it handle bools correctly?
+  toFlags = attrs:
+    builtins.map
+      (name: "--${name} ${toString attrs.${name}}")
+      (builtins.attrNames attrs);
 in {
   services.k3s = {
     inherit role;
@@ -24,30 +30,31 @@ in {
     # Gracefully terminate pods when a shutdown is detected
     gracefulNodeShutdown.enable = true;
 
-    extraFlags = [
+    extraFlags = toFlags {
       # Common args:
-      "--flannel-iface ${vpn-iface}"
-      "--node-ip 10.11.12.${hostIndex}"
-      # "--node-external-ip 10.11.12.${hostIndex}"
-      "--node-name ${config.networking.fqdn}"
-      "--node-label provider=${provider}"
-      "--resolv-conf /etc/rancher/k3s/resolv.conf"
-    ] ++ (if role != "agent" then [
+      flannel-iface = vpn-iface;
+      node-ip = "10.11.12.${hostIndex}";
+      node-name = config.networking.fqdn;
+      node-label = "provider=${provider}";
+      resolv-conf = "/etc/rancher/k3s/resolv.conf";
+    } ++ (if role != "agent" then toFlags {
       # Server (non-agent) args:
-      "--advertise-address 10.11.12.${hostIndex}"
+      advertise-address = "10.11.12.${hostIndex}";
+
       # Allow minecraft as nodeport
-      "--service-node-port-range 25000-32767"
-      "--disable ${builtins.concatStringsSep "," [
+      service-node-port-range = "25000-32767";
+
+      disable = builtins.concatStringsSep "," [
         "servicelb"
         "traefik"
         "metrics-server"
         "local-storage"
-      ]}"
+      ];
 
       # Hardening stuff
-      "--protect-kernel-defaults"
-      "--secrets-encryption"
-      "--kube-apiserver-arg ${builtins.concatStringsSep "," [
+      protect-kernel-defaults = true;
+      secrets-encryption = true;
+      kube-apiserver-arg = builtins.concatStringsSep "," [
         "enable-admission-plugins=NodeRestriction,EventRateLimit"
         # From https://docs.k3s.io/security/hardening-guide#pod-security
         "admission-control-config-file=/var/lib/rancher/k3s/server/psa.yaml"
@@ -56,16 +63,17 @@ in {
         # "audit-log-maxage=30"
         # "audit-log-maxbackup=10"
         # "audit-log-maxsize=100"
-      ]}"
-      "--kube-controller-manager-arg ${builtins.concatStringsSep "," [
+      ];
+      kube-controller-manager-arg = builtins.concatStringsSep "," [
         "terminated-pod-gc-threshold=10"
-      ]}"
-      "--kubelet-arg ${builtins.concatStringsSep "," [
+        # "event-qps=1000"
+        # "event-burst=1000"
+      ];
+      kubelet-arg = builtins.concatStringsSep "," [
         "streaming-connection-idle-timeout=5m"
         "tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-      ]}"
-      # Does it need a custom tls-san too?
-    ] else []);
+      ];
+      } else toFlags {});
   };
 
   # Have a 100% concrete and clean DNS config - avoids potential local DHCP/DNS fuckery
