@@ -1,6 +1,7 @@
 { config, hostName, hostIndex, lib, node-vpn-prefix, machines, ... }: {
   networking = {
     inherit hostName;
+    useDHCP = lib.mkDefault true;
     domain = "dzerv.art";
 
     firewall.enable = true;
