@@ -2,20 +2,21 @@
   config,
   hostIndex,
   lib,
+  # node-vpn-prefix,
   provider,
   pkgs,
   role,
   ...
 }: let
+  node-vpn-prefix = "10.11.12";
   vpn-iface = "ztrfyoirbv";
   # Denotes the "master" node, where the initial clusterInit happens
   isMaster = hostIndex == "100";
   # Function to convert a set of attributes to k3s flags
   # TODO: Does it handle bools correctly?
-  toFlags = attrs:
-    builtins.map
-      (name: "--${name} ${toString attrs.${name}}")
-      (builtins.attrNames attrs);
+  toFlags = attrs: builtins.map
+    (name: "--${name} ${toString attrs.${name}}")
+    (builtins.attrNames attrs);
 in {
   services.k3s = {
     inherit role;
@@ -24,7 +25,7 @@ in {
     package = pkgs.k3s_1_31;
 
     clusterInit = isMaster;
-    serverAddr = if isMaster then "" else "https://10.11.12.100:6443";
+    serverAddr = if isMaster then "" else "https://${node-vpn-prefix}.100:6443";
     tokenFile = "/etc/k3s-token";
 
     # Gracefully terminate pods when a shutdown is detected
@@ -33,13 +34,13 @@ in {
     extraFlags = toFlags {
       # Common args:
       flannel-iface = vpn-iface;
-      node-ip = "10.11.12.${hostIndex}";
+      node-ip = "${node-vpn-prefix}.${hostIndex}";
       node-name = config.networking.fqdn;
       node-label = "provider=${provider}";
       resolv-conf = "/etc/rancher/k3s/resolv.conf";
     } ++ (if role != "agent" then toFlags {
       # Server (non-agent) args:
-      advertise-address = "10.11.12.${hostIndex}";
+      advertise-address = "${node-vpn-prefix}.${hostIndex}";
 
       # Allow minecraft as nodeport
       service-node-port-range = "25000-32767";

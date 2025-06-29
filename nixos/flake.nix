@@ -3,13 +3,15 @@
     mkMachine = {
       hostName,
       hostIndex,
-      role ? "agent",
+      machines ? {},
       provider,
+      role ? "agent",
       system ? "x86_64-linux",
+      publicKey ? null,
     }: nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = {
-        inherit hostName hostIndex provider role;
+        inherit hostName hostIndex machines provider role;
         node-vpn-prefix = "10.20.30";
       };
       modules = [
@@ -22,22 +24,23 @@
         ./nix.nix
         ./system.nix
         ./hosts/${hostName}.nix
-
-        { networking.hostName = hostName; }
       ];
     };
+    mkMachines = machines: builtins.mapAttrs
+      (name: machine: mkMachine (machine // { inherit machines; hostName = name; }))
+      machines;
   in {
     # For a fresh install:
-    # nixos-anywhere --flake .#local0 --target-host root@<host> --generate-hardware-config nixos-generate-config ./srv0.nix
+    # nixos-anywhere --flake .#local0 --target-host root@<host> --generate-hardware-config nixos-generate-config ./hosts/srv0.nix
     # nixos-anywhere --flake .#local0 --target-host root@<host>
     # For a rebuild:
     # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
-    nixosConfigurations = {
-      gr0 = mkMachine { hostName = "gr0"; hostIndex = "100"; provider = "grnet"; role = "server"; };
-      gr1 = mkMachine { hostName = "gr0"; hostIndex = "101"; provider = "grnet"; };
-      srv0 = mkMachine { hostName = "srv0"; hostIndex = "150"; provider = "homelab"; };
-      frankfurt0 = mkMachine { hostName = "frankfurt0"; hostIndex = "200"; provider = "oracle"; role = "server"; };
-      frankfurt1 = mkMachine { hostName = "frankfurt1"; hostIndex = "201"; provider = "oracle"; role = "server"; };
+    nixosConfigurations = mkMachines {
+      gr0 =        { hostIndex = "100"; provider = "grnet";   role = "server"; publicKey = "ZUiMnTjo3wU1PoVXYC2VkHk6hnHFMFF74C1H1dS+cjI="; };
+      gr1 =        { hostIndex = "101"; provider = "grnet";                    publicKey = "GO6R9Jh5Q36n2hmhtqqn2ITZqG/MzEexEfSLjmi9lXQ="; };
+      srv0 =       { hostIndex = "150"; provider = "homelab";                  publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw="; };
+      frankfurt0 = { hostIndex = "200"; provider = "oracle";  role = "server"; publicKey = "kPRT5uFcM/BQBNSrCbcqg9lGwgJZQeiPnEn3lkZYSwQ="; };
+      frankfurt1 = { hostIndex = "201"; provider = "oracle";  role = "server"; publicKey = "1KjZhHkeQiA+32bwhLt86ZmacI8Io5xqnsi15GeBOXY="; };
     };
   };
 
