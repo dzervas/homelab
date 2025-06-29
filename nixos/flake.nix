@@ -4,7 +4,7 @@
       hostName,
       hostIndex,
       role ? "agent",
-      provider ? "home",
+      provider,
       system ? "x86_64-linux",
     }: nixpkgs.lib.nixosSystem {
       inherit system;
@@ -32,7 +32,13 @@
     # nixos-anywhere --flake .#local0 --target-host root@<host>
     # For a rebuild:
     # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
-    nixosConfigurations.srv0 = mkMachine { hostName = "srv0"; hostIndex = "150"; };
+    nixosConfigurations = {
+      gr0 = mkMachine { hostName = "gr0"; hostIndex = "100"; provider = "grnet"; role = "server"; };
+      gr1 = mkMachine { hostName = "gr0"; hostIndex = "101"; provider = "grnet"; };
+      srv0 = mkMachine { hostName = "srv0"; hostIndex = "150"; provider = "homelab"; };
+      frankfurt0 = mkMachine { hostName = "frankfurt0"; hostIndex = "200"; provider = "oracle"; role = "server"; };
+      frankfurt1 = mkMachine { hostName = "frankfurt1"; hostIndex = "201"; provider = "oracle"; role = "server"; };
+    };
   };
 
   inputs = {
