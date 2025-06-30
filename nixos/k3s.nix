@@ -3,7 +3,6 @@
   hostIndex,
   lib,
   # node-vpn-prefix,
-  provider,
   pkgs,
   role,
   ...
@@ -36,7 +35,7 @@ in {
       flannel-iface = vpn-iface;
       node-ip = "${node-vpn-prefix}.${hostIndex}";
       node-name = config.networking.fqdn;
-      node-label = "provider=${provider}";
+      node-label = "provider=${config.setup.provider}";
       resolv-conf = "/etc/rancher/k3s/resolv.conf";
     } ++ (if role != "agent" then toFlags {
       # Server (non-agent) args:

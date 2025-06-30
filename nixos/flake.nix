@@ -21,6 +21,7 @@
         ./k3s.nix
         ./network.nix
         ./nix.nix
+        ./options.nix
         ./system.nix
         ./hosts/${hostName}.nix
       ];

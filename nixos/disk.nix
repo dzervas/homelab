@@ -4,6 +4,7 @@
     type = "disk";
 
     content = {
+      # type = if config.setup.isEFI then "gpt" else "msdos";
       type = "gpt";
 
       partitions = if config.setup.isEFI then {
@@ -24,7 +25,12 @@
             ];
           };
         };
-      } else {} // {
+      } else {
+        boot = {
+          size = "1M";
+          type = "EF02"; # for grub MBR
+        };
+      } // {
         root = {
           size = "100%";
           content = {
@@ -32,24 +38,33 @@
             extraArgs = [ "-f" ]; # Override existing partition
             subvolumes = {
               "/" = { mountpoint = "/"; };
-              "/nix".mountOptions = [
-                "compress=zstd:5"
-                "noatime" # Don't keep access times
-                "nodiratime" # Ditto for directories
-                "discard=async" # Asynchronously discard old files with SSD TRIM operations
-              ];
-              "/ceph".mountOptions = [
-                "compress=no"
-                "noatime" # Don't keep access times
-                "nodiratime" # Ditto for directories
-                "discard=async" # Asynchronously discard old files with SSD TRIM operations
-              ];
-              "/ceph-zstd".mountOptions = [
-                "compress=zstd:3"
-                "noatime" # Don't keep access times
-                "nodiratime" # Ditto for directories
-                "discard=async" # Asynchronously discard old files with SSD TRIM operations
-              ];
+              "/nix" = {
+                mountpoint = "/nix";
+                mountOptions = [
+                  "compress=zstd:5"
+                  "noatime" # Don't keep access times
+                  "nodiratime" # Ditto for directories
+                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
+                ];
+              };
+              "/ceph" = {
+                mountpoint = "/ceph";
+                mountOptions = [
+                  "compress=no"
+                  "noatime" # Don't keep access times
+                  "nodiratime" # Ditto for directories
+                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
+                ];
+              };
+              "/ceph-zstd" = {
+                mountpoint = "/ceph-zstd";
+                mountOptions = [
+                  "compress=zstd:3"
+                  "noatime" # Don't keep access times
+                  "nodiratime" # Ditto for directories
+                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
+                ];
+              };
             };
           };
         };

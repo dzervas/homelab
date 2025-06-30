@@ -1,10 +1,10 @@
-_: {
+{ config, ... }: {
   boot.loader = {
     timeout = 0;
     systemd-boot = {
-      enable = true;
+      enable = config.setup.isEFI;
       configurationLimit = 5;
     };
-    efi.canTouchEfiVariables = true;
+    efi.canTouchEfiVariables = config.setup.isEFI;
   };
 }
