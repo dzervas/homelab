@@ -1,4 +1,4 @@
-{ config, ... }: {
+{ config, lib, ... }: {
   disko.devices.disk.root = {
     # `device` is defined in the host configuration
     type = "disk";
@@ -7,8 +7,8 @@
       # type = if config.setup.isEFI then "gpt" else "msdos";
       type = "gpt";
 
-      partitions = if config.setup.isEFI then {
-        ESP = {
+      partitions = {
+        ESP = lib.mkIf config.setup.isEFI {
           size = "1G";
           type = "EF00";
           priority = 1; # Needs to be first partition
@@ -25,47 +25,19 @@
             ];
           };
         };
-      } else {
-        boot = {
+
+        boot = lib.mkIf (!config.setup.isEFI) {
           size = "1M";
           type = "EF02"; # for grub MBR
+          priority = 1; # Needs to be first partition
         };
-      } // {
+
         root = {
           size = "100%";
           content = {
-            type = "btrfs";
-            extraArgs = [ "-f" ]; # Override existing partition
-            subvolumes = {
-              "/" = { mountpoint = "/"; };
-              "/nix" = {
-                mountpoint = "/nix";
-                mountOptions = [
-                  "compress=zstd:5"
-                  "noatime" # Don't keep access times
-                  "nodiratime" # Ditto for directories
-                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
-                ];
-              };
-              "/ceph" = {
-                mountpoint = "/ceph";
-                mountOptions = [
-                  "compress=no"
-                  "noatime" # Don't keep access times
-                  "nodiratime" # Ditto for directories
-                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
-                ];
-              };
-              "/ceph-zstd" = {
-                mountpoint = "/ceph-zstd";
-                mountOptions = [
-                  "compress=zstd:3"
-                  "noatime" # Don't keep access times
-                  "nodiratime" # Ditto for directories
-                  "discard=async" # Asynchronously discard old files with SSD TRIM operations
-                ];
-              };
-            };
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/";
           };
         };
       };

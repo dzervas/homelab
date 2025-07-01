@@ -15,9 +15,15 @@
   isMaster = hostIndex == "100";
   # Function to convert a set of attributes to k3s flags
   # TODO: Does it handle bools correctly?
-  toFlags = attrs: builtins.map
-    (name: "--${name} ${toString attrs.${name}}")
-    (builtins.attrNames attrs);
+  toFlags = attrs: builtins.filter (flag: flag != null)
+    (builtins.map
+      (name: let
+        value = attrs.${name};
+      in
+        if value == "" || value == null then null
+        else if builtins.isBool value && value then "--${name}"
+        else "--${name} ${toString value}"
+      ) (builtins.attrNames attrs));
 in {
   imports = [
     ./etcd.nix

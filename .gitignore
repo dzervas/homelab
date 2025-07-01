@@ -7,3 +7,5 @@ alertmanager.yaml
 .envrc
 /k8s/minecraft-server/.datapacks
 *.zip
+*.tar.gz
+*.tar.bz2
