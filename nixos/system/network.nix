@@ -11,7 +11,7 @@
       address = [ "${node-vpn-prefix}.${hostIndex}/24" ];
       listenPort = 51820;
       # Needs to be generated with:
-      # wg genkey > /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey
+      # touch /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey && wg genkey > /etc/wireguard-privkey
       privateKeyFile = "/etc/wireguard-privkey";
 
       # Generate the peers based on the `machines` attribute, defined in the flake

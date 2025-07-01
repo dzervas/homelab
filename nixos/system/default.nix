@@ -1,4 +1,12 @@
 { lib, pkgs, ... }: {
+  imports = [
+    ./boot.nix
+    ./disk.nix
+    ./network.nix
+    ./nix.nix
+    ./options.nix
+  ];
+
   environment.systemPackages = map lib.lowPrio (with pkgs; [
     curl
     git
@@ -14,7 +22,7 @@
 
   boot.kernel.sysctl = {
     # IPv4 forwarding - needed for k3s
-    "net.ipv4.ip_forward" = "1";
+    "net.ipv4.ip_forward" = 1;
     # Raise the maximum number of open files
     "fs.inotify.max_queued_events" = 32768;
     "fs.inotify.max_user_instances" = 512;

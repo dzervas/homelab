@@ -11,18 +11,18 @@
       inherit system;
       specialArgs = {
         inherit hostName hostIndex machines role;
+
         node-vpn-prefix = "10.20.30";
+        node-vpn-iface = "wg0";
+
+        home-vpn-prefix = "10.11.12";
+        home-vpn-iface = "ztrfyoirbv";
       };
       modules = [
         disko.nixosModules.disko
 
-        ./boot.nix
-        ./disk.nix
-        ./k3s.nix
-        ./network.nix
-        ./nix.nix
-        ./options.nix
-        ./system.nix
+        ./k3s
+        ./system
         ./hosts/${hostName}.nix
       ];
     };
@@ -37,7 +37,7 @@
     # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
     nixosConfigurations = mkMachines {
       gr0 =        { hostIndex = "100"; publicKey = "ZUiMnTjo3wU1PoVXYC2VkHk6hnHFMFF74C1H1dS+cjI="; role = "server"; };
-      gr1 =        { hostIndex = "101"; publicKey = "GO6R9Jh5Q36n2hmhtqqn2ITZqG/MzEexEfSLjmi9lXQ="; };
+      gr1 =        { hostIndex = "101"; publicKey = "Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8="; };
       srv0 =       { hostIndex = "150"; publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw="; };
       frankfurt0 = { hostIndex = "200"; publicKey = "kPRT5uFcM/BQBNSrCbcqg9lGwgJZQeiPnEn3lkZYSwQ="; role = "server"; system = "aarch64-linux"; };
       frankfurt1 = { hostIndex = "201"; publicKey = "1KjZhHkeQiA+32bwhLt86ZmacI8Io5xqnsi15GeBOXY="; role = "server"; system = "aarch64-linux"; };
