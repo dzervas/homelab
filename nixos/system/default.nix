@@ -1,5 +1,6 @@
 { lib, pkgs, ... }: {
   imports = [
+    ./bash.nix
     ./boot.nix
     ./disk.nix
     ./network.nix

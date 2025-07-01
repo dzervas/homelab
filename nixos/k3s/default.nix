@@ -20,6 +20,7 @@
     (builtins.attrNames attrs);
 in {
   imports = [
+    ./etcd.nix
     ./firewall.nix
     ./longhorn.nix
   ];

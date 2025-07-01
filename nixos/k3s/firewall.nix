@@ -17,18 +17,8 @@
 
     # TODO: Remove the home-vpn stuff
     interfaces.${home-vpn-iface} = {
-      # https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-nodes
-      allowedTCPPorts = [
-        10250 # Kubelet metrics
-      ] ++ (if role != "agent" then [
-        2379 # ETCD Server
-        2380 # ETCD Server
-        6443 # API Server
-        9501 # Longhorn
-      ] else []);
-      allowedUDPPorts = [
-        8472 # Flannel VXLAN
-      ];
+      allowedTCPPorts = [ 10250 ]; # Kubelet metrics
+      allowedUDPPorts = [ 8472 ]; # Flannel VXLAN
     };
     interfaces.${node-vpn-iface} = {
       # https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-nodes
