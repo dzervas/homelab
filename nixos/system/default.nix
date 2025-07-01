@@ -38,6 +38,8 @@
     "kernel.panic_on_oops" = 1;
   };
 
+  time.timeZone = "Europe/Athens";
+
   programs.nix-ld.enable = true;
   hardware.enableRedistributableFirmware = true;
   system.stateVersion = "25.05";

@@ -45,6 +45,9 @@ in {
       node-name = config.networking.fqdn;
       node-label = "provider=${config.setup.provider}";
       resolv-conf = "/etc/rancher/k3s/resolv.conf";
+
+      # TODO: Remove gr1-specific taint from here
+      node-taint = builtins.concatStringsSep "," (config.setup.taints ++ (if config.networking.hostName == "gr1" then [ "longhorn=true:NoSchedule" ] else []));
     } ++ (if role != "agent" then toFlags {
       # Server (non-agent) args:
       advertise-address = "${node-vpn-prefix}.${hostIndex}";

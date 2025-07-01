@@ -1,4 +1,13 @@
-{ config, hostName, hostIndex, lib, node-vpn-prefix, machines, ... }: {
+{
+  config,
+  hostName,
+  hostIndex,
+  lib,
+  home-vpn-prefix,
+  node-vpn-prefix,
+  machines,
+  ...
+}: {
   networking = {
     inherit hostName;
     useDHCP = lib.mkDefault true;
@@ -37,7 +46,7 @@
       ignoreIP = [
         "127.0.0.1/8"
         "10.9.8.0/24"
-        "10.11.12.0/24"
+        "${home-vpn-prefix}.0/24"
         "${node-vpn-prefix}.0/24"
       ];
     };

@@ -10,5 +10,10 @@
       default = true;
       description = "Whether the system needs an EFI partition (no for QEMU VMs)";
     };
+    taints = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "Taints to apply to the node, e.g., ['noSchedule', 'noExecute']";
+    };
   };
 }

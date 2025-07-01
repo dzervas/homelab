@@ -1,6 +1,13 @@
 { role, home-vpn-iface, node-vpn-iface, ... }: {
   networking.firewall = {
-    allowedTCPPorts = [ 80 443 ]; # HTTP/S access to the cluster
+    allowedTCPPorts = [
+      80 443 # HTTP/S access to the cluster
+      9993 # ZeroTier
+    ];
+    allowedUDPPorts = [
+      9993 # ZeroTier
+      51820 # WireGuard
+    ];
     filterForward = true;
 
     # Allow pod & service traffic
