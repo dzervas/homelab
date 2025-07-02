@@ -49,3 +49,23 @@ resource "helm_release" "audiobookshelf" {
     }
   })]
 }
+
+resource "kubernetes_network_policy_v1" "audiobookshelf_n8n" {
+  metadata {
+    name      = "audiobookshelf-n8n"
+    namespace = helm_release.audiobookshelf.namespace
+  }
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "n8n"
+          }
+        }
+      }
+    }
+  }
+}

@@ -179,7 +179,7 @@ resource "kubernetes_manifest" "n8n_backup" {
     kind       = "RecurringJob"
     metadata = {
       name      = "n8n-backups"
-      namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+      namespace = kubernetes_namespace.longhorn-system.metadata[0].name
     }
     spec = {
       cron        = "0 */6 * * *"
@@ -205,8 +205,8 @@ resource "kubernetes_labels" "n8n_backup" {
   api_version = "v1"
   kind        = "PersistentVolumeClaim"
   metadata {
-    name      = data.kubernetes_persistent_volume_claim.n8n_backup.metadata.0.name
-    namespace = data.kubernetes_persistent_volume_claim.n8n_backup.metadata.0.namespace
+    name      = data.kubernetes_persistent_volume_claim.n8n_backup.metadata[0].name
+    namespace = data.kubernetes_persistent_volume_claim.n8n_backup.metadata[0].namespace
   }
   labels = {
     "recurring-job.longhorn.io/source"      = "enabled"
