@@ -9,7 +9,13 @@
         type = "gpt";
 
         partitions = {
-          ESP = lib.mkIf config.setup.isEFI {
+          boot = lib.mkIf (!config.setup.isEFI) {
+            size = "1M";
+            type = "EF02"; # for grub MBR
+          };
+
+          # Grub doesn't support f2fs so EFI ESP is used for the kernel + initrd
+          ESP = {
             size = "1G";
             type = "EF00";
             priority = 1; # Needs to be first partition

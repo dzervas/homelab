@@ -4,7 +4,6 @@
 
     grub = {
       enable = !config.setup.isEFI;
-      # device = config.disko.devices.disk.root.device;
       configurationLimit = 5;
     };
 
