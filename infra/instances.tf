@@ -15,7 +15,7 @@ module "oci_instances_arm" {
   shape                 = "VM.Standard.A1.Flex"
   cpus                  = 4
   ram_gbs               = 24
-  disk_gbs              = 150
+  disk_gbs              = 200
   vnic_subnet_id        = module.oci_network_main.subnet_id
   image                 = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaacmd5kkjmy2dxcpaulal2eohsd4xmjkxbjw3pr3gg2kmzomehx4ha"
   ssh_public_key        = var.ssh_public_key

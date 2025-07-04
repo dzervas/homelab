@@ -112,6 +112,8 @@ resource "helm_release" "rook_cluster" {
       }
     }
 
+    # TODO: Change default storage class and reclaim policy
+
     ingress = {
       dashboard = module.rook_cluster_ingress.host_obj_single
     }

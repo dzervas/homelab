@@ -26,6 +26,7 @@
       ) (builtins.attrNames attrs));
 in {
   imports = [
+    ./cron.nix
     ./etcd.nix
     ./firewall.nix
     ./longhorn.nix
