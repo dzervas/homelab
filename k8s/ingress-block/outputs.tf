@@ -44,6 +44,18 @@ output "host_obj" {
   })
 }
 
+output "host_obj_single" {
+  value = merge(local.partial, {
+    enabled   = true
+    className = "nginx"
+    host = {
+      name = var.fqdn
+      path     = "/"
+      pathType = "Prefix"
+    }
+  })
+}
+
 output "fqdn" {
   value = var.fqdn
 }

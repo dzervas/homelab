@@ -21,6 +21,7 @@ terraform {
     }
     helm = {
       source = "hashicorp/helm"
+      version = "<3"
     }
     onepassword = {
       source = "1Password/onepassword"

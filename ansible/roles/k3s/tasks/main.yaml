@@ -1,10 +1,10 @@
 ---
 - import_tasks: download.yaml
-- import_tasks: multipathd.yaml
+# - import_tasks: multipathd.yaml
 - import_tasks: config.yaml
-- import_tasks: wireguard.yaml
-  tags:
-    - wireguard
+# - import_tasks: wireguard.yaml
+#   tags:
+#     - wireguard
 
 # Make sure that the master has started to create the agent-token
 - meta: flush_handlers
