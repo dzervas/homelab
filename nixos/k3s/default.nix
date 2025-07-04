@@ -92,4 +92,7 @@ in {
       ];
       } else toFlags {});
   };
+
+  # Required by ceph
+  boot.kernelModules = ["rbd"];
 }

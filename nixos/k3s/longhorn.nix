@@ -11,5 +11,5 @@
   };
 
   # Optional dep by longhorn
-  boot.kernelModules = lib.mkAfter ["dm_crypt"];
+  boot.kernelModules = ["dm_crypt"];
 }

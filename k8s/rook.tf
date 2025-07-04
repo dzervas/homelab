@@ -33,6 +33,10 @@ resource "helm_release" "rook" {
       effect   = "NoSchedule"
     }]
 
+    # Not strictly necessary to enable the rook module,
+    # but is a pre-requisite to enable features from it
+    enableDiscoveryDaemon = true
+
     pspEnable: false
     monitoring = {
       enabled = true
@@ -81,6 +85,11 @@ resource "helm_release" "rook_cluster" {
       }
       mgr = {
         count = 1 # TODO: Make that 2?
+
+        modules = [
+          { name = "pg_autoscaler", enabled = true }, # Enabled by default but we overwrite it
+          { name = "rook", enabled = true }, # Allow ceph to find the rook operator
+        ]
       }
 
       placement = {
@@ -95,10 +104,11 @@ resource "helm_release" "rook_cluster" {
       }
 
       storage = {
-        nodes = [{
-          name = "gr1.dzerv.art"
-          devices = [{name = "/dev/mainpool/ceph"}]
-        }]
+        useAllNodes = false
+        useAllDevices = false
+        nodes = [
+          { name = "gr1.dzerv.art", devices = [{name = "/dev/mainpool/ceph"}] },
+        ]
       }
     }
 
