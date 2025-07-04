@@ -30,7 +30,7 @@ SSH to the target:
 
 ```bash
 systemctl stop k3s
-tar cpf k3s-migrate.tar.gz /var/lib/rancher/k3s /etc/rancher/node/password
+tar cpf k3s-migrate.tar.gz /var/lib/rancher/k3s /etc/rancher/node/password /var/lib/zerotier-one/identity.* /var/lib/zerotier-one/authtoken.secret
 ```
 
 Download it locally

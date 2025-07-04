@@ -5,6 +5,7 @@
   lib,
   home-vpn-prefix,
   node-vpn-prefix,
+  node-vpn-iface,
   machines,
   ...
 }: {
@@ -39,7 +40,11 @@
   services = {
     # Needs to be manually initialized with:
     # zerotier-cli join <network-id>
-    zerotierone.enable = true;
+    zerotierone = {
+      enable = true;
+      # Don't peek at the k8s interfaces
+      localConf.settings.interfacePrefixBlacklist = [ "flannel" "cni" "veth" node-vpn-iface ];
+    };
 
     fail2ban = {
       enable = true;

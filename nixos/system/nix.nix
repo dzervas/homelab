@@ -15,6 +15,7 @@
       build-cores = 0;
       http-connections = 50; # Parallel downloads
       auto-optimise-store = true;
+      download-buffer-size = 524288000; # 500MB buffer size
 
       # Keep more derivations in memory
       keep-derivations = true;
