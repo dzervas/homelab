@@ -25,12 +25,12 @@ resource "kubernetes_namespace_v1" "_1password" {
 
 resource "helm_release" "_1password" {
   name             = "1password"
-  namespace        = kubernetes_namespace_v1._1password.metadata.0.name
+  namespace        = kubernetes_namespace_v1._1password.metadata[0].name
   create_namespace = false
   repository       = "https://1password.github.io/connect-helm-charts/"
   chart            = "connect"
   # For updates: https://github.com/1Password/connect-helm-charts/releases
-  version = "1.17.0"
+  version = "2.0.0"
   values = [yamlencode({
     connect = {
       credentialsName = "connect-credentials"

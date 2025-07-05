@@ -9,6 +9,9 @@
   machines,
   ...
 }: {
+  # Use predictable interface names starting with eth0
+  boot.kernelParams = [ "net.ifnames=0" ];
+
   networking = {
     inherit hostName;
     useDHCP = lib.mkDefault true;

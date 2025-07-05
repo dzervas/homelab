@@ -2,10 +2,7 @@
   boot.loader = {
     timeout = 0;
 
-    grub = {
-      enable = !config.setup.isEFI;
-      configurationLimit = 5;
-    };
+    grub.configurationLimit = 5;
 
     # EFI
     systemd-boot = {

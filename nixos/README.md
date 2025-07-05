@@ -60,3 +60,11 @@ And lastly:
 ```bash
 k uncordon $TARGET_HOSTNAME
 ```
+
+## Offline root fs tinkering if the host boots
+
+Just whip up a kexec nixos system:
+
+```bash
+nixos-anywhere --target-host <host> --flake ./nixos --phases kexec
+```

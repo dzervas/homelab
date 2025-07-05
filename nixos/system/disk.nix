@@ -47,7 +47,7 @@
       type = "lvm_vg";
       lvs = {
         root = {
-          size = "20G";
+          size = "30G";
           content = {
             type = "filesystem";
             format = "f2fs";
