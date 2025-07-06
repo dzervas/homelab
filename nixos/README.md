@@ -68,3 +68,7 @@ Just whip up a kexec nixos system:
 ```bash
 nixos-anywhere --target-host <host> --flake ./nixos --phases kexec
 ```
+
+## Migrate PVs from longhorn to ceph
+
+

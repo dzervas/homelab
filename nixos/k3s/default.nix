@@ -26,6 +26,7 @@ in {
 
     enable = true;
     package = pkgs.k3s_1_31;
+    tokenFile = "/etc/k3s-token";
 
     clusterInit = isMaster;
     serverAddr = if isMaster then "" else "https://${node-vpn-prefix}.100:6443";

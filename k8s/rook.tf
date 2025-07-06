@@ -22,17 +22,6 @@ resource "helm_release" "rook" {
   chart      = "rook-ceph"
 
   values = [yamlencode({
-    # TODO: Migrate the whole cluster
-    nodeSelector = {
-      "kubernetes.io/hostname" = "gr1.dzerv.art"
-    }
-    tolerations = [{
-      key      = "longhorn"
-      operator = "Equal"
-      value    = "true"
-      effect   = "NoSchedule"
-    }]
-
     # Not strictly necessary to enable the rook module,
     # but is a pre-requisite to enable features from it
     enableDiscoveryDaemon = true
@@ -62,9 +51,6 @@ resource "helm_release" "rook_cluster" {
 
   values = [yamlencode({
     # TODO: Migrate the whole cluster
-    nodeSelector = {
-      "kubernetes.io/hostname" = "gr1.dzerv.art"
-    }
     tolerations = [{
       key      = "longhorn"
       operator = "Equal"
@@ -72,6 +58,7 @@ resource "helm_release" "rook_cluster" {
       effect   = "NoSchedule"
     }]
 
+    toolbox = { enabled = true }
     operatorNamespace = helm_release.rook.namespace
 
     cephClusterSpec = {
@@ -80,20 +67,17 @@ resource "helm_release" "rook_cluster" {
         ssl = false # Disable ceph-side SSL, ingress will take care of it
       }
 
-      mon = {
-        count = 1 # TODO: Make that 3
-      }
       mgr = {
-        count = 1 # TODO: Make that 2?
-
         modules = [
           { name = "pg_autoscaler", enabled = true }, # Enabled by default but we overwrite it
           { name = "rook", enabled = true }, # Allow ceph to find the rook operator
         ]
       }
 
+      mon = { allowMultiplePerNode = false }
+
       placement = {
-        all = {
+        mgr = {
           tolerations = [{
             key      = "longhorn"
             operator = "Equal"
@@ -108,11 +92,26 @@ resource "helm_release" "rook_cluster" {
         useAllDevices = false
         nodes = [
           { name = "gr1.dzerv.art", devices = [{name = "/dev/mainpool/ceph"}] },
+          { name = "frankfurt1.dzerv.art", devices = [{name = "/dev/mainpool/ceph"}] },
         ]
       }
     }
 
     # TODO: Change default storage class and reclaim policy
+    # cephBlockPools = [{
+    #   name = "ceph-blockpool"
+    #   spec = {
+    #     replicated = { size = 2 }
+    #   }
+    #   storageClass = {
+    #     enabled = true
+    #     name = "ceph-block"
+    #     isDefault = true
+    #     reclaimPolicy = "Retain"
+    #     allowVolumeExpansion = true
+    #     volumeBindingMode = "Immediate"
+    #   }
+    # }]
 
     ingress = {
       dashboard = module.rook_cluster_ingress.host_obj_single

@@ -35,6 +35,10 @@
         2380 # ETCD Server
         6443 # API Server
         9501 # Longhorn
+
+        # Ceph
+        3300
+        6789
       ] else []);
       allowedUDPPorts = [ 8472 ]; # Flannel VXLAN
     };
@@ -47,6 +51,10 @@
         2380 # ETCD Server
         6443 # API Server
         9501 # Longhorn
+
+        # Ceph
+        3300
+        6789
       ] else []);
       allowedUDPPorts = [
         8472 # Flannel VXLAN

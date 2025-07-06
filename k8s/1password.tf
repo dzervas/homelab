@@ -30,7 +30,7 @@ resource "helm_release" "_1password" {
   repository       = "https://1password.github.io/connect-helm-charts/"
   chart            = "connect"
   # For updates: https://github.com/1Password/connect-helm-charts/releases
-  version = "2.0.0"
+  version = "1.17.1"
   values = [yamlencode({
     connect = {
       credentialsName = "connect-credentials"
@@ -46,6 +46,17 @@ resource "helm_release" "_1password" {
       token = {
         name = "connect-token"
       }
+
+      # https://github.com/1Password/connect-helm-charts/issues/231
+      # customEnvVars = [{
+      #   name = "OP_CONNECT_TOKEN"
+      #   valueFrom = {
+      #     secretKeyRef = {
+      #       name = "connect-token"
+      #       key = "token"
+      #     }
+      #   }
+      # }]
     }
   })]
 
