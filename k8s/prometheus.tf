@@ -1,11 +1,22 @@
+resource "kubernetes_namespace_v1" "prometheus" {
+  metadata {
+    name = "prometheus"
+    labels = {
+      # Required for the blackbox expoerts
+      "pod-security.kubernetes.io/enforce"         = "privileged"
+      "pod-security.kubernetes.io/enforce-version" = "latest"
+      managed_by                                   = "terraform"
+    }
+  }
+}
+
 resource "helm_release" "prometheus" {
   name             = "prometheus"
-  namespace        = "prometheus"
+  namespace        = kubernetes_namespace_v1.prometheus.metadata[0].name
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
   version          = "65.3.2"
   atomic           = true
-  create_namespace = true
 
   values = [yamlencode({
     grafana      = { enabled = false }

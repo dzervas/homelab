@@ -1,12 +1,3 @@
-locals {
-  nocodb_age_key_id = local.op_secrets["Related Items"]["NocoDB Age key"]
-}
-
-data "onepassword_item" "nocodb_age_key" {
-  vault = var.op_vault
-  uuid  = local.nocodb_age_key_id
-}
-
 module "nocodb" {
   source = "./docker-service"
 

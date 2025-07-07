@@ -7,6 +7,8 @@ locals {
 }
 
 terraform {
+  required_version = ">= 1.12.0"
+
   cloud {
     organization = "dzervas"
 
@@ -18,16 +20,19 @@ terraform {
   required_providers {
     kubernetes = {
       source = "hashicorp/kubernetes"
+      version = "~> 2"
     }
     helm = {
       source = "hashicorp/helm"
-      version = "<3"
+      version = "~> 3"
     }
     onepassword = {
       source = "1Password/onepassword"
+      version = "~> 2"
     }
     random = {
       source = "hashicorp/random"
+      version = "~> 3"
     }
   }
 }
@@ -38,7 +43,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     config_path    = "~/.kube/config"
     config_context = "gr"
   }

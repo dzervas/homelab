@@ -23,7 +23,7 @@ resource "helm_release" "ingress_nginx" {
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   # For upgrading: https://github.com/kubernetes/ingress-nginx/releases
-  version = "4.12.1"
+  version = "4.12.3"
 
   values = [yamlencode({
     controller = {
@@ -55,19 +55,6 @@ resource "helm_release" "ingress_nginx" {
           }
         }
       }
-
-      # config = {
-      #   http-snippet = <<EOF
-      #     geo $vpn_client {
-      #       default 0;
-      #       ${join("\n", local.list_vpn_cidrs)}
-      #     }
-      #   EOF
-      # }
-
-      # nodeSelector = {
-      #   "node-role.kubernetes.io/master" = "true"
-      # }
     }
   })]
 }

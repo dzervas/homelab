@@ -34,4 +34,9 @@ in {
     # Gracefully terminate pods when a shutdown is detected
     gracefulNodeShutdown.enable = true;
   };
+
+  # Garage folder
+  systemd.services.k3s.serviceConfig.ExecStartPre = ''
+    /bin/sh -c "mkdir -p /var/lib/garage/{meta,data}; chown -R 1000:1000 /var/lib/garage/{meta,data}"
+  '';
 }
