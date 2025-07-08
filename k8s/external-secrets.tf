@@ -1,20 +1,18 @@
 resource "helm_release" "external-secrets" {
   name             = "external-secrets"
-  namespace        = kubernetes_namespace_v1._1password.metadata.0.name
-  create_namespace = false
+  namespace        = "external-secrets"
+  create_namespace = true
+
   repository       = "https://charts.external-secrets.io"
   chart            = "external-secrets"
   # For updates: https://github.com/external-secrets/external-secrets/releases
-  version = "0.14.3"
+  version = "0.18.2"
+  atomic  = true
+
   values = [yamlencode({
     serviceMonitor = {
       enabled = true
     }
-    # webhook = {
-    #   certManager = {
-    #     enabled = true # Enable cert-manager integration
-    #   }
-    # }
   })]
 
   lifecycle {
@@ -25,25 +23,20 @@ resource "helm_release" "external-secrets" {
 # Must apply above helm release before applying this
 resource "kubernetes_manifest" "_1password_store" {
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ClusterSecretStore"
     metadata = {
-      name = "1password"
+      name      = "1password"
     }
     spec = {
       provider = {
-        onepassword = {
-          connectHost = "http://onepassword-connect:8080"
-          vaults = {
-            "k8s-secrets" = 1
-          }
-          auth = {
-            secretRef = {
-              connectTokenSecretRef = {
-                namespace = kubernetes_namespace_v1._1password.metadata.0.name
-                name      = "connect-token"
-                key       = "token"
-              }
+        onepasswordSDK = {
+          vault = "k8s-secrets"
+          auth  = {
+            serviceAccountSecretRef = {
+              namespace = helm_release.external-secrets.namespace
+              name = "onepasswordsdk-sa-token"
+              key  = "token"
             }
           }
         }
@@ -54,10 +47,12 @@ resource "kubernetes_manifest" "_1password_store" {
   depends_on = [helm_release.external-secrets]
 }
 
+# TODO: Manage admission controller webhooks for all namespaces (if labeled) as follows
+# Allow access to the admissioncontroller webhook from tf/kubectl/etc.
 resource "kubernetes_network_policy_v1" "external_secrets_webhook" {
   metadata {
     name      = "allow-external-secrets-webhook"
-    namespace = kubernetes_namespace_v1._1password.metadata.0.name
+    namespace = helm_release.external-secrets.namespace
   }
   spec {
     pod_selector {
@@ -68,8 +63,6 @@ resource "kubernetes_network_policy_v1" "external_secrets_webhook" {
     policy_types = ["Ingress"]
     ingress {
       from {
-        # namespace_selector {}
-        # TODO: Limit this
         ip_block {
           cidr = "0.0.0.0/0"
         }

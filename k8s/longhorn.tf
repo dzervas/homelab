@@ -79,11 +79,11 @@ resource "helm_release" "longhorn" {
 
 resource "kubernetes_manifest" "longhorn_s3" {
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ExternalSecret"
     metadata = {
       name      = "longhorn-s3"
-      namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+      namespace = kubernetes_namespace.longhorn-system.metadata[0].name
     }
     spec = {
       refreshInterval = "10m"
@@ -105,17 +105,11 @@ resource "kubernetes_manifest" "longhorn_s3" {
       data = [
         {
           secretKey = "access"
-          remoteRef = {
-            key      = "rclone-s3"
-            property = "access-id"
-          }
+          remoteRef = { key = "rclone-s3/access-id" }
         },
         {
           secretKey = "secret"
-          remoteRef = {
-            key      = "rclone-s3"
-            property = "secret-key"
-          }
+          remoteRef = { key = "rclone-s3/secret-key" }
         }
       ]
     }

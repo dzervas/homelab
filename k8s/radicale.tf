@@ -45,7 +45,7 @@ resource "kubernetes_manifest" "radicale_backup" {
     kind       = "RecurringJob"
     metadata = {
       name      = "radicale-backups"
-      namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+      namespace = kubernetes_namespace.longhorn-system.metadata[0].name
     }
     spec = {
       cron        = "0 0 * * *"

@@ -22,7 +22,7 @@ module "rclone" {
   image = "rclone/rclone:1"
   port  = 80
   secrets = {
-    "/secret" = "${kubernetes_secret_v1.rclone.metadata.0.name}"
+    "/secret" = kubernetes_secret_v1.rclone.metadata[0].name
   }
   command = ["sh", "-c"]
   # VFS Cache results in a horrible performance drop for round-trip write-read operations
@@ -148,14 +148,6 @@ resource "kubernetes_network_policy_v1" "rclone_ingress" {
         namespace_selector {
           match_labels = {
             "kubernetes.io/metadata.name" = "longhorn-system"
-          }
-        }
-      }
-      from {
-        namespace_selector {
-          match_labels = {
-            # TODO: Add as pod label
-            "kubernetes.io/metadata.name" = "appflowy"
           }
         }
       }

@@ -36,7 +36,7 @@ resource "kubernetes_manifest" "memos_backup" {
     kind       = "RecurringJob"
     metadata = {
       name      = "memos-backups"
-      namespace = kubernetes_namespace.longhorn-system.metadata.0.name
+      namespace = kubernetes_namespace.longhorn-system.metadata[0].name
     }
     spec = {
       cron        = "0 0 * * *"

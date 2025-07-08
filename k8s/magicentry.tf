@@ -1,9 +1,3 @@
-locals {
-  magicentry_users_audiobooks = [
-    { name = "Fani", email = "fani-garouf@hotmail.com" }
-  ]
-}
-
 module "magicentry_ingress" {
   source = "./ingress-block"
 

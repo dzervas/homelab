@@ -1,7 +1,3 @@
-locals {
-  list_vpn_cidrs = [for cidr in var.vpn_cidrs : "${cidr} 1;"]
-}
-
 resource "kubernetes_namespace_v1" "ingress" {
   metadata {
     name = "ingress"
