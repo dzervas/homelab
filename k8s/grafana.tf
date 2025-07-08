@@ -14,7 +14,7 @@ resource "kubernetes_namespace" "grafana" {
 module "grafana_ingress" {
   source = "./ingress-block"
 
-  namespace = kubernetes_namespace.grafana.metadata.0.name
+  namespace = kubernetes_namespace.grafana.metadata[0].name
   fqdn      = local.grafana_fqdn
   additional_annotations = {
     # "nginx.ingress.kubernetes.io/auth-snippet"                          = "proxy_set_header X-WEBAUTH-USER admin;"
@@ -24,10 +24,10 @@ module "grafana_ingress" {
 
 resource "helm_release" "grafana" {
   name       = "grafana"
-  namespace  = kubernetes_namespace.grafana.metadata.0.name
+  namespace  = kubernetes_namespace.grafana.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "grafana"
-  version    = "8.2.2"
+  version    = "9.2.10"
   atomic     = true
 
   values = [yamlencode({

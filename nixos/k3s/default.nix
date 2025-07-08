@@ -18,8 +18,8 @@ in {
     ./longhorn.nix
   ];
 
-  # Required by ceph
-  boot.kernelModules = ["rbd"];
+  # Required by openebs
+  boot.kernelModules = ["nvme_tcp"];
 
   services.k3s = {
     inherit role;

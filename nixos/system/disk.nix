@@ -69,14 +69,8 @@
         };
 
         # Due to the thin provisioned root & nix, this lv can be oversized but disko doesn't do that
-        ceph = {
+        storage = {
           size = "100%";
-          content = {
-            type = "filesystem";
-            format = "ext4";
-            mountpoint = "/var/lib/garage";
-            mountOptions = [ "defaults" ];
-          };
         };
       };
     };

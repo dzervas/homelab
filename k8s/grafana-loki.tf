@@ -1,9 +1,9 @@
 resource "helm_release" "loki" {
   name       = "loki"
-  namespace  = kubernetes_namespace.grafana.metadata.0.name
+  namespace  = kubernetes_namespace.grafana.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "loki"
-  version    = "6.6.4"
+  version    = "6.30.1"
   atomic     = true
 
   values = [yamlencode({
@@ -45,7 +45,7 @@ resource "helm_release" "loki" {
       persistence = {
         enabled          = true
         size             = "20Gi"
-        storageClassName = "longhorn"
+        storageClassName = "openebs-replicated"
       }
     }
     monitoring = {

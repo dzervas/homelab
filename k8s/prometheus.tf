@@ -4,7 +4,6 @@ resource "kubernetes_namespace_v1" "prometheus" {
     labels = {
       # Required for the blackbox expoerts
       "pod-security.kubernetes.io/enforce"         = "privileged"
-      "pod-security.kubernetes.io/enforce-version" = "latest"
       managed_by                                   = "terraform"
     }
   }
