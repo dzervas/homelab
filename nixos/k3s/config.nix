@@ -5,7 +5,6 @@
   home-vpn-iface,
   # node-vpn-prefix,
   # node-vpn-iface,
-  lib,
   role,
   ...
 }: let
@@ -17,7 +16,11 @@ in {
     flannel-iface = node-vpn-iface;
     node-ip = "${node-vpn-prefix}.${hostIndex}";
     node-name = config.networking.fqdn;
-    node-label = "provider=${config.setup.provider}";
+    node-label = [
+      "provider=${config.setup.provider}"
+      "openebs.io/engine=mayastor"
+      "openebs.io/csi-node=mayastor"
+    ];
     resolv-conf = "/etc/rancher/k3s/resolv.conf";
 
     # TODO: Remove gr1-specific taint from here

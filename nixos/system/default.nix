@@ -36,6 +36,9 @@
     "vm.overcommit_memory" = 1;
     "kernel.panic" = 10;
     "kernel.panic_on_oops" = 1;
+
+    # Enable hugepages (for openEBS)
+    "vm.nr_hugepages" = 1024;
   };
 
   time.timeZone = "Europe/Athens";

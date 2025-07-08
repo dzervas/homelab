@@ -16,11 +16,11 @@ resource "kubernetes_namespace_v1" "openebs" {
 resource "helm_release" "openebs" {
   name             = "openebs"
   namespace        = kubernetes_namespace_v1.openebs.metadata[0].name
-  atomic           = true
 
   repository = "https://openebs.github.io/openebs"
   chart      = "openebs"
   version    = "4.1.3"
+  # atomic     = true
 
   values = [yamlencode({
     # Disable LVM & ZFS local (not replicated) charts - disables the dependencies
@@ -40,6 +40,10 @@ resource "helm_release" "openebs" {
     mayastor = {
       crds = { enabled = true }
       loki-stack = { enabled = false }
+      # Defaults to amd64 nodeSelector, disable it
+      # TODO: Remove the root nodeSelector completeley
+      # nodeSelector = { "openebs.io/engine" = "mayastor" }
+      # io_engine = { nodeSelector = { "openebs.io/engine" = "mayastor" } }
 
       storageClass = {
         nameSuffix = "replicated"
@@ -50,9 +54,16 @@ resource "helm_release" "openebs" {
         }
       }
 
-      io_engine = {
-        nodeSelector = {}
-      }
+      # TODO: Rename the toleration
+      # TODO: Move the toleration
+      tolerations = [{
+        key      = "longhorn"
+        operator = "Equal"
+        value    = "true"
+        effect   = "NoSchedule"
+      }]
+      # Disable the tolerations for the rest api
+      apis = { rest = { tolerations = [] } }
 
       # Do not create a new storage class just for etcd, localpv-provisioner is already deployed
       localpv-provisioner = { enabled = false }
@@ -72,24 +83,24 @@ resource "helm_release" "openebs" {
   })]
 }
 
-resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
-  depends_on = [helm_release.openebs]
-
-  for_each = toset(["frankfurt0.dzerv.art", "frankfurt1.dzerv.art"])
-
-  manifest = {
-    apiVersion = "openebs.io/v1beta2"
-    kind       = "DiskPool"
-    metadata = {
-      name      = each.key
-      namespace = kubernetes_namespace_v1.openebs.metadata[0].name
-      labels = {
-        managed_by = "terraform"
-      }
-    }
-    spec = {
-      node = each.key
-      disks = [ "/dev/mapper/mainpool-storage" ]
-    }
-  }
-}
+# resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
+#   depends_on = [helm_release.openebs]
+#
+#   for_each = toset(["frankfurt0.dzerv.art", "frankfurt1.dzerv.art"])
+#
+#   manifest = {
+#     apiVersion = "openebs.io/v1beta2"
+#     kind       = "DiskPool"
+#     metadata = {
+#       name      = each.key
+#       namespace = kubernetes_namespace_v1.openebs.metadata[0].name
+#       labels = {
+#         managed_by = "terraform"
+#       }
+#     }
+#     spec = {
+#       node = each.key
+#       disks = [ "/dev/mapper/mainpool-storage" ]
+#     }
+#   }
+# }
