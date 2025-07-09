@@ -1,4 +1,4 @@
-{ role, home-vpn-iface, node-vpn-iface, ... }: {
+{ home-vpn-iface, node-vpn-iface, ... }: {
   networking.firewall = {
     # TODO: Remove the home-vpn stuff
     trustedInterfaces = [ home-vpn-iface node-vpn-iface ];
@@ -26,6 +26,8 @@
     extraForwardRules = ''
       iifname ${node-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       oifname ${node-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      iifname ${home-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      oifname ${home-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
     '';
   };

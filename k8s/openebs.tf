@@ -83,24 +83,81 @@ resource "helm_release" "openebs" {
   })]
 }
 
-# resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
-#   depends_on = [helm_release.openebs]
-#
-#   for_each = toset(["frankfurt0.dzerv.art", "frankfurt1.dzerv.art"])
-#
-#   manifest = {
-#     apiVersion = "openebs.io/v1beta2"
-#     kind       = "DiskPool"
-#     metadata = {
-#       name      = each.key
-#       namespace = kubernetes_namespace_v1.openebs.metadata[0].name
-#       labels = {
-#         managed_by = "terraform"
-#       }
-#     }
-#     spec = {
-#       node = each.key
-#       disks = [ "/dev/mapper/mainpool-storage" ]
-#     }
-#   }
-# }
+# Some openEBS pods run in the host network and they need to be able to reach the etcd pods
+# Host networking pods means that they have an IP from a non-k8s CIDR, hence the 0/0 CIDR
+resource "kubernetes_network_policy_v1" "openebs_etcd_access" {
+  metadata {
+    name      = "openebs-etcd-access"
+    namespace = helm_release.openebs.namespace
+  }
+  spec {
+    pod_selector {
+      match_labels = {
+        "app" = "etcd"
+      }
+    }
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        ip_block {
+          # TODO: Use the vpn CIDR instead of 0/0
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 2379 # ETCD port
+      }
+    }
+  }
+}
+
+# Allow `kubectl mayastor` access from the CLI
+resource "kubernetes_network_policy_v1" "openebs_api_access" {
+  metadata {
+    name      = "openebs-api-access"
+    namespace = helm_release.openebs.namespace
+  }
+  spec {
+    pod_selector {
+      match_labels = {
+        "app" = "api-rest"
+      }
+    }
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 8081
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
+  depends_on = [helm_release.openebs]
+
+  # for_each = toset(["frankfurt0.dzerv.art", "frankfurt1.dzerv.art"])
+  for_each = toset(["gr1.dzerv.art"])
+
+  manifest = {
+    apiVersion = "openebs.io/v1beta2"
+    kind       = "DiskPool"
+    metadata = {
+      name      = each.key
+      namespace = kubernetes_namespace_v1.openebs.metadata[0].name
+      labels = {
+        managed_by = "terraform"
+      }
+    }
+    spec = {
+      node = each.key
+      disks = [ "/dev/mapper/mainpool-storage" ]
+    }
+  }
+}
