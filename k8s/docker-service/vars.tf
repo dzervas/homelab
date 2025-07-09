@@ -51,6 +51,12 @@ variable "image" {
   description = "The container image to deploy"
 }
 
+variable "ghcr_image" {
+  type        = bool
+  default     = false
+  description = "Use the global GHCR credentials to pull the image"
+}
+
 variable "image_pull_policy" {
   type        = bool
   default     = false

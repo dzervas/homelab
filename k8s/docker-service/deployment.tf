@@ -35,6 +35,13 @@ resource "kubernetes_deployment_v1" "docker" {
 
       spec {
         node_selector = var.node_selector
+        dynamic "image_pull_secrets" {
+          for_each = local.ghcr ? ["ghcr-cluster-secret"] : []
+          content {
+            name = image_pull_secrets.value
+          }
+        }
+
         dynamic "init_container" {
           for_each = var.init_containers
           content {

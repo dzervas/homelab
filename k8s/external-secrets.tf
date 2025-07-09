@@ -47,6 +47,50 @@ resource "kubernetes_manifest" "_1password_store" {
   depends_on = [helm_release.external-secrets]
 }
 
+# Cluster-wide ghcr access
+resource "kubernetes_manifest" "ghcr_cluster_secret" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ClusterExternalSecret"
+    metadata = {
+      name      = "ghcr-cluster-secret"
+    }
+    spec = {
+      externalSecretName = "ghcr-cluster-secret"
+      namespaceSelectors = [
+        { matchLabels = { ghcrCreds = "enabled" } },
+      ]
+      externalSecretSpec = {
+        refreshInterval = "1h"
+        secretStoreRef = {
+          name = "1password"
+          kind = "ClusterSecretStore"
+        }
+        target = {
+          name           = "ghcr-cluster-secret"
+          creationPolicy = "Owner"
+          template = {
+            type = "kubernetes.io/dockerconfigjson"
+            engineVersion = "v2"
+            data = {
+              ".dockerconfigjson" = jsonencode({
+                auths = {
+                  "ghcr.io" = {
+                    username = "{{ .ghcr_username }}"
+                    password = "{{ .ghcr_token }}"
+                  }
+                }
+              })
+            }
+          }
+        }
+
+        dataFrom = [ { extract = { key = "external-secrets" } } ]
+      }
+    }
+  }
+}
+
 # TODO: Manage admission controller webhooks for all namespaces (if labeled) as follows
 # Allow access to the admissioncontroller webhook from tf/kubectl/etc.
 resource "kubernetes_network_policy_v1" "external_secrets_webhook" {
