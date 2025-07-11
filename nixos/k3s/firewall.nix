@@ -6,10 +6,6 @@
     allowedTCPPorts = [
       80 443 # HTTP/S access to the cluster
       9993 # ZeroTier
-
-      # Ceph communication
-      3300
-      6789
     ];
     allowedUDPPorts = [
       9993 # ZeroTier
