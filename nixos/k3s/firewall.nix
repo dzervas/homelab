@@ -20,10 +20,16 @@
     '';
     # Allow pod & service routing through k3s interface
     extraForwardRules = ''
-      iifname ${node-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-      oifname ${node-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-      iifname ${home-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-      oifname ${home-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      # Cluster -> host traffic
+      oifname ${node-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      oifname ${home-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+
+      # Host -> cluster traffic
+      iifname ${node-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      iifname ${home-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+
+      # Allow pod & service traffic between nodes
+      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
 
       # Enable internet
