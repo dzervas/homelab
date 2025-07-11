@@ -5,7 +5,7 @@ _: {
       hosthash=$(echo $(hostname -s) | cksum | cut -d ' ' -f1)
       hostcolor=$(( 31 + (hosthash % 6) )) # Using modulo to select from range (31 to 36)
 
-      export PS1="\[\e[1;36m󱄅 \[\e[1;''${hostcolor}m\]\h\[\e[m\]:\w\$ "
+      export PS1="\[\e[1;36m󱄅 \[\e[1;''${hostcolor}m\]\h\[\e[m\]:\w\\$ "
       '';
       shellAliases = {
         ls = "ls --color=always";

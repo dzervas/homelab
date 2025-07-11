@@ -25,6 +25,9 @@
       iifname ${home-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       oifname ${home-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+
+      # Enable internet
+      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } oifname { eth0, enp* } accept
     '';
   };
 

@@ -40,4 +40,5 @@ in {
   # response set ra
   # }
   # according to https://jbn1233.medium.com/kubernetes-kube-dns-fix-nslookup-error-got-recursion-not-available-from-ff9ee86d1823
+  # In file /var/lib/rancher/k3s/server/manifests/coredns.yaml
 }
