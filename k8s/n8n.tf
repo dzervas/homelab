@@ -74,6 +74,12 @@ module "n8n" {
     # N8N_AVAILABLE_BINARY_DATA_MODES       = "filesystem,s3"
     # N8N_DEFAULT_BINARY_DATA_MODE          = "s3"
 
+    # Disable diagnostics (https://docs.n8n.io/hosting/configuration/configuration-examples/isolation/)
+    EXTERNAL_FRONTEND_HOOKS_URLS = ""
+    N8N_DIAGNOSTICS_ENABLED = "false"
+    N8N_DIAGNOSTICS_CONFIG_FRONTEND = ""
+    N8N_DIAGNOSTICS_CONFIG_BACKEND = ""
+
     GLOBAL_VARS = jsonencode({
       browserless_host     = "n8n-browserless"
       browserless_port     = "3000"

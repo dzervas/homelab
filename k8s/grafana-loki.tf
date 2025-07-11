@@ -45,7 +45,6 @@ resource "helm_release" "loki" {
       persistence = {
         enabled          = true
         size             = "20Gi"
-        storageClassName = "openebs-replicated"
       }
     }
     monitoring = {
