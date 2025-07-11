@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+yq --version || { echo "yq command not found. Please install yq-go to proceed."; exit 1; }
+pv-migrate --version || { echo "pv-migrate command not found. Please install pv-migrate to proceed."; exit 1; }
+
+yq --version | grep mikefarah || { echo "yq version is not compatible. Please install yq-go version 4.x, not yq"; exit 1; }
+
 namespace=$1
 pvc_name=$2
 
@@ -79,14 +84,19 @@ yq -o yaml -i ".metadata.name = \"$pvc_name-old\"" "$backup_dir/$pvc_name.old.ya
 echo "Deleting the old PVC $pvc_name"
 kubectl delete pvc "$pvc_name" -n "$namespace"
 
-echo "Removing deleted PVC from the old PV"
-kubectl patch pv "$pv_name" -p '{"spec": {"claimRef": {}}}'
-
 echo "Applying the new PVC $pvc_name"
 kubectl apply -f "$backup_dir/$pvc_name.new.yaml"
 
 echo "Applying the old renamed PVC $pvc_name-old"
 kubectl apply -f "$backup_dir/$pvc_name.old.yaml"
 
+sleep 2
+
+echo "Removing deleted PVC from the old PV"
+kubectl patch pv "$pv_name" --type=json -p '[{"op": "remove", "path": "/spec/claimRef"}]'
+
+sleep 2
+
 echo "Migrating the data between the PVCs with pv-migrate"
-pv-migrate --strategies mnt2 --source-namespace "$namespace" --dest-namespace "$namespace" --source "$pvc_name-old" --dest "$pvc_name"
+set +x
+pv-migrate --strategies mnt2 --source-namespace "$namespace" --dest-namespace "$namespace" --source "$pvc_name-old" --dest "$pvc_name" --helm-set rsync.nodeSelector.provider=oracle

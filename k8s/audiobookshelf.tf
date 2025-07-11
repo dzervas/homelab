@@ -35,7 +35,7 @@ resource "helm_release" "audiobookshelf" {
     podLabels = { "magicentry.rs/enable" = "true" }
     persistence = {
       enabled      = true
-      storageClass = "longhorn"
+      storageClass = "openebs-replicated"
       podcasts = {
         size       = "1Gi"
         volumeName = "pvc-1f03a6a2-865f-445e-aba5-7ac5cecdcb96"

@@ -29,7 +29,7 @@ resource "helm_release" "magicentry" {
     ingress = module.magicentry_ingress.host_obj
     persistence = {
       enabled      = true
-      storageClass = "longhorn"
+      storageClass = "openebs-replicated"
       size         = "1Gi"
     }
 

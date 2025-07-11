@@ -30,36 +30,6 @@ module "memos" {
   }
 }
 
-resource "kubernetes_manifest" "memos_backup" {
-  manifest = {
-    apiVersion = "longhorn.io/v1beta1"
-    kind       = "RecurringJob"
-    metadata = {
-      name      = "memos-backups"
-      namespace = kubernetes_namespace.longhorn-system.metadata[0].name
-    }
-    spec = {
-      cron        = "0 0 * * *"
-      task        = "backup"
-      retain      = 30
-      concurrency = 1
-    }
-  }
-}
-
-resource "kubernetes_labels" "memos_backup" {
-  api_version = "v1"
-  kind        = "PersistentVolumeClaim"
-  metadata {
-    name      = "data-memos-0"
-    namespace = module.memos.namespace
-  }
-  labels = {
-    "recurring-job.longhorn.io/source"        = "enabled"
-    "recurring-job.longhorn.io/memos-backups" = "enabled"
-  }
-}
-
 resource "kubernetes_network_policy_v1" "memos_n8n" {
   metadata {
     name      = "allow-memos-n8n"

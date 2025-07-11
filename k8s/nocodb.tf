@@ -11,7 +11,6 @@ module "nocodb" {
   rclone_access           = true
   #   vpn_bypass_auth  = true
   #   vpn_cidrs        = var.vpn_cidrs
-  node_selector = { "kubernetes.io/arch" = "arm64" }
   image         = "nocodb/nocodb:latest"
   port          = 8080
   retain_pvs    = true

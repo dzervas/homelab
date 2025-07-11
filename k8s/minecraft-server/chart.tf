@@ -102,7 +102,7 @@ resource "helm_release" "minecraft" {
     }
 
     persistence = {
-      storageClass = "local-path"
+      storageClass = "openebs-hostpath"
       dataDir = {
         enabled = true
         Size    = "10Gi"

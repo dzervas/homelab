@@ -24,7 +24,6 @@ module "n8n" {
   auth             = "mtls"
   # vpn_bypass_auth  = true
   # vpn_cidrs        = var.vpn_cidrs
-  node_selector = { "kubernetes.io/arch" = "arm64" }
   image         = "ghcr.io/dzervas/n8n:latest"
   port          = 5678
   retain_pvs    = true
@@ -173,23 +172,6 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
   }
 }
 
-resource "kubernetes_manifest" "n8n_backup" {
-  manifest = {
-    apiVersion = "longhorn.io/v1beta1"
-    kind       = "RecurringJob"
-    metadata = {
-      name      = "n8n-backups"
-      namespace = kubernetes_namespace.longhorn-system.metadata[0].name
-    }
-    spec = {
-      cron        = "0 */6 * * *"
-      task        = "backup"
-      retain      = 120
-      concurrency = 1
-    }
-  }
-}
-
 data "kubernetes_persistent_volume_claim" "n8n_backup" {
   metadata {
     namespace = module.n8n.namespace
@@ -198,18 +180,5 @@ data "kubernetes_persistent_volume_claim" "n8n_backup" {
       managed_by = "terraform"
       service    = "n8n"
     }
-  }
-}
-
-resource "kubernetes_labels" "n8n_backup" {
-  api_version = "v1"
-  kind        = "PersistentVolumeClaim"
-  metadata {
-    name      = data.kubernetes_persistent_volume_claim.n8n_backup.metadata[0].name
-    namespace = data.kubernetes_persistent_volume_claim.n8n_backup.metadata[0].namespace
-  }
-  labels = {
-    "recurring-job.longhorn.io/source"      = "enabled"
-    "recurring-job.longhorn.io/n8n-backups" = "enabled"
   }
 }

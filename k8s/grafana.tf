@@ -36,7 +36,7 @@ resource "helm_release" "grafana" {
     }
     persistence = {
       enabled          = true
-      storageClassName = "longhorn"
+      storageClassName = "openebs-replicated"
     }
     ingress = module.grafana_ingress.host_list
     "grafana.ini" = {
@@ -62,8 +62,7 @@ resource "helm_release" "grafana" {
       }
     }
     nodeSelector = {
-      # TODO: Fix gr1
-      "kubernetes.io/hostname" = "gr0.dzerv.art"
+      provider = "oracle"
     }
   })]
 }

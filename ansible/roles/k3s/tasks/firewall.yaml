@@ -18,10 +18,7 @@
     - port: "10250" # Kubelet metrics
       protocol: tcp
 
-    # Ceph mon communication
-    - port: "3300"
-      protocol: tcp
-    - port: "6789"
+    - port: "10124" # Kubelet metrics
       protocol: tcp
   register: ufw_result
   until: ufw_result is succeeded
