@@ -14,6 +14,7 @@ in {
   environment.etc."rancher/k3s/config.yaml".text = builtins.toJSON ({
     # Common args:
     flannel-iface = node-vpn-iface;
+    # flannel-backend = "host-gw";
     node-ip = "${node-vpn-prefix}.${hostIndex}";
     node-name = config.networking.fqdn;
     node-label = [

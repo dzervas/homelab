@@ -38,7 +38,6 @@ module "atuin_db" {
   port                    = 5432
   enable_security_context = false
   retain_pvs              = true
-  replicas = 0
   pvs = {
     "/var/lib/postgresql" = {
       name         = "data"
