@@ -21,19 +21,26 @@
 
     apps = eachDefaultSystemPassThrough (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+      rebuild = name: builtins.concatStringsSep " " [
+        "${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng" "switch"
+        "--flake" ".#${name}"
+        "--no-reexec"
+        "--target-host" "${name}.dzerv.art"
+        "; echo '🎉 ${name}.dzerv.art build complete!'"
+      ];
     in {
       # Per-machine app
       ${system} = lib.mapAttrs (name: _config:
-        mkShellApp pkgs (builtins.concatStringsSep " " [
-          "${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng" "switch"
-          "--flake" ".#${name}"
-          "--no-reexec"
-          "--target-host" "${name}.dzerv.art"
-        ])
-      ) machines // {
-        # all = {
-        #   type = "app";
-        # }
+        mkShellApp pkgs (rebuild name)
+      ) machines // rec {
+        all = let
+          commands = lib.mapAttrsToList (name: _config: rebuild name) machines;
+        in mkShellApp pkgs ''
+          #!/bin/bash
+          set -euo pipefail
+          ${builtins.concatStringsSep "\n" commands}
+        '';
+        default = all;
       };
     });
   };
