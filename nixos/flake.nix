@@ -8,7 +8,7 @@
       frankfurt1 = { hostIndex = "201"; publicKey = "gdS1om0jFmLu3omuE+aMwFpW1iMse0wjVEkPgZB67xs="; role = "server"; system = "aarch64-linux"; };
     };
 
-    inherit (import ./mkMachines.nix { inherit disko nixpkgs; }) mkMachines;
+    inherit (import ./mkMachines.nix { inherit disko nixpkgs; }) mkMachines mkShellApp;
     inherit (flake-utils.lib) eachDefaultSystemPassThrough;
     inherit (nixpkgs) lib;
   in {
@@ -19,18 +19,23 @@
     # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
     nixosConfigurations = mkMachines machines;
 
-    apps = eachDefaultSystemPassThrough (system:
+    apps = eachDefaultSystemPassThrough (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
       # Per-machine app
-      lib.mapAttrs (name: _config: {
-        type = "app";
-        program = "nixos-rebuild";
-        args = [ "--flake" ".#${name}" "switch" "--no-reexec" "--target-host" name "--build-host" name ];
-      }) machines // {
+      ${system} = lib.mapAttrs (name: _config:
+        mkShellApp pkgs (builtins.concatStringsSep " " [
+          "${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng" "switch"
+          "--flake" ".#${name}"
+          "--no-reexec"
+          "--target-host" "${name}.dzerv.art"
+        ])
+      ) machines // {
         # all = {
         #   type = "app";
         # }
-      }
-    );
+      };
+    });
   };
 
   inputs = {
