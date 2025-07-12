@@ -14,9 +14,11 @@ module "nocodb" {
   image         = "nocodb/nocodb:latest"
   port          = 8080
   retain_pvs    = true
+
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "1m" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
   }
+
   pvs = {
     "/usr/app/data/" = {
       name         = "data"
@@ -26,6 +28,7 @@ module "nocodb" {
       retain       = true
     }
   }
+
   env = {
     TZ                     = var.timezone
     NC_PUBLIC_URL          = "https://db.${var.domain}"

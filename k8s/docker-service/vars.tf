@@ -109,9 +109,9 @@ variable "pvs" {
   type = map(object({
     name         = string
     size         = string
-    access_modes = list(string)
-    retain       = bool
-    read_only    = bool
+    access_modes = optional(list(string), ["ReadWriteOnce"])
+    retain       = optional(bool, false)
+    read_only    = optional(bool, false)
   }))
 }
 
