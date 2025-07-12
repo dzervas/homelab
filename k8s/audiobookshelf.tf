@@ -35,16 +35,8 @@ resource "helm_release" "audiobookshelf" {
     podLabels = { "magicentry.rs/enable" = "true" }
     persistence = {
       enabled      = true
-      podcasts = {
-        size       = "1Gi"
-        volumeName = "pvc-1f03a6a2-865f-445e-aba5-7ac5cecdcb96"
-      }
-      audiobooks = {
-        size       = "100Gi"
-        volumeName = "pvc-5e0c0003-1d57-4939-8cc7-ca8eb3932942"
-      }
-      config   = { volumeName = "pvc-617d3ebd-694e-46fb-b58d-8f32c2bd1446" }
-      metadata = { volumeName = "pvc-9ad70fb5-9d33-4883-8401-8e7297b46798" }
+      podcasts = { size = "1Gi" }
+      audiobooks = { size = "100Gi" }
     }
   })]
 }

@@ -34,7 +34,10 @@ resource "helm_release" "grafana" {
     rbac = {
       namespaced = true
     }
-    persistence = { enabled = true }
+    persistence = {
+      enabled = true
+      storageClassName = "openebs-replicated"
+    }
     ingress = module.grafana_ingress.host_list
     "grafana.ini" = {
       users = {

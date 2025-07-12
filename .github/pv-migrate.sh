@@ -90,12 +90,12 @@ kubectl apply -f "$backup_dir/$pvc_name.new.yaml"
 echo "Applying the old renamed PVC $pvc_name-old"
 kubectl apply -f "$backup_dir/$pvc_name.old.yaml"
 
-sleep 2
+sleep 5
 
 echo "Removing deleted PVC from the old PV"
 kubectl patch pv "$pv_name" --type=json -p '[{"op": "remove", "path": "/spec/claimRef"}]'
 
-sleep 2
+sleep 10
 
 echo "Migrating the data between the PVCs with pv-migrate"
 set +x
