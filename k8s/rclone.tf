@@ -145,13 +145,6 @@ resource "kubernetes_network_policy_v1" "rclone_ingress" {
     policy_types = ["Ingress"]
     ingress {
       from {
-        namespace_selector {
-          match_labels = {
-            "kubernetes.io/metadata.name" = "longhorn-system"
-          }
-        }
-      }
-      from {
         namespace_selector {}
         pod_selector {
           match_labels = {
