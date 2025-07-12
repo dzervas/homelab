@@ -64,7 +64,7 @@ resource "helm_release" "openebs" {
           default = true
           parameters = {
             repl = 2
-            reclaimPolicy = "Retain"
+            thin = "true"
           }
         }
 

@@ -1,47 +1,36 @@
 {
-  outputs = { nixpkgs, disko, ... }: let
-    mkMachine = {
-      hostName,
-      hostIndex,
-      machines ? {},
-      role ? "agent",
-      system ? "x86_64-linux",
-      publicKey ? null,
-    }: nixpkgs.lib.nixosSystem {
-      inherit system;
-      specialArgs = {
-        inherit hostName hostIndex machines role;
-
-        node-vpn-prefix = "10.20.30";
-        node-vpn-iface = "wg0";
-
-        home-vpn-prefix = "10.11.12";
-        home-vpn-iface = "ztrfyoirbv";
-      };
-      modules = [
-        disko.nixosModules.disko
-
-        ./k3s
-        ./system
-        ./hosts/${hostName}.nix
-      ];
-    };
-    mkMachines = machines: builtins.mapAttrs
-      (name: machine: mkMachine (machine // { inherit machines; hostName = name; }))
-      machines;
-  in {
-    # For a fresh install:
-    # nixos-anywhere --flake .#local0 --target-host root@<host> --generate-hardware-config nixos-generate-config ./hosts/srv0.nix
-    # nixos-anywhere --flake .#local0 --target-host root@<host>
-    # For a rebuild:
-    # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
-    nixosConfigurations = mkMachines {
+  outputs = { nixpkgs, disko, flake-utils, ... }: let
+    machines = {
       gr0 =        { hostIndex = "100"; publicKey = "ZUiMnTjo3wU1PoVXYC2VkHk6hnHFMFF74C1H1dS+cjI="; role = "server"; };
       gr1 =        { hostIndex = "101"; publicKey = "Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8="; };
       srv0 =       { hostIndex = "150"; publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw="; };
       frankfurt0 = { hostIndex = "200"; publicKey = "kPRT5uFcM/BQBNSrCbcqg9lGwgJZQeiPnEn3lkZYSwQ="; role = "server"; system = "aarch64-linux"; };
       frankfurt1 = { hostIndex = "201"; publicKey = "gdS1om0jFmLu3omuE+aMwFpW1iMse0wjVEkPgZB67xs="; role = "server"; system = "aarch64-linux"; };
     };
+
+    inherit (import ./mkMachines.nix { inherit disko nixpkgs; }) mkMachines;
+    inherit (flake-utils.lib) eachDefaultSystemPassThrough;
+    inherit (nixpkgs) lib;
+  in {
+    # For a fresh install:
+    # nixos-anywhere --flake .#local0 --target-host root@<host> --generate-hardware-config nixos-generate-config ./hosts/srv0.nix
+    # nixos-anywhere --flake .#local0 --target-host root@<host>
+    # For a rebuild:
+    # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
+    nixosConfigurations = mkMachines machines;
+
+    apps = eachDefaultSystemPassThrough (system:
+      # Per-machine app
+      lib.mapAttrs (name: _config: {
+        type = "app";
+        program = "nixos-rebuild";
+        args = [ "--flake" ".#${name}" "switch" "--no-reexec" "--target-host" name "--build-host" name ];
+      }) machines // {
+        # all = {
+        #   type = "app";
+        # }
+      }
+    );
   };
 
   inputs = {
@@ -49,5 +38,7 @@
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
+
+    flake-utils.url = "github:numtide/flake-utils";
   };
 }
