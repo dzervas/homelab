@@ -27,14 +27,18 @@ module "radicale" {
 
 resource "kubernetes_manifest" "radicale_secrets" {
   manifest = {
-    apiVersion = "onepassword.com/v1"
-    kind       = "OnePasswordItem"
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
     metadata = {
       name      = "radicale-secrets-op"
       namespace = module.radicale.namespace
     }
     spec = {
-      itemPath = "vaults/k8s-secrets/items/radicale"
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      dataFrom = [ { extract = { key = "radicale" } } ]
     }
   }
 }

@@ -64,14 +64,18 @@ module "atuin_db" {
 
 resource "kubernetes_manifest" "atuin_secrets" {
   manifest = {
-    apiVersion = "onepassword.com/v1"
-    kind       = "OnePasswordItem"
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
     metadata = {
       name      = "atuin-secrets-op"
       namespace = module.atuin.namespace
     }
     spec = {
-      itemPath = "vaults/k8s-secrets/items/atuin"
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      dataFrom = [ { extract = { key = "atuin" } } ]
     }
   }
 }

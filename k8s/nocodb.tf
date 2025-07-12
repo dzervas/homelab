@@ -62,14 +62,18 @@ module "nocodb" {
 
 resource "kubernetes_manifest" "nocodb_s3" {
   manifest = {
-    apiVersion = "onepassword.com/v1"
-    kind       = "OnePasswordItem"
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
     metadata = {
       name      = "rclone-s3-op"
       namespace = module.nocodb.namespace
     }
     spec = {
-      itemPath = "vaults/k8s-secrets/items/rclone-s3"
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      dataFrom = [ { extract = { key = "rclone-s3" } } ]
     }
   }
 }
