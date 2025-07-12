@@ -217,21 +217,20 @@ resource "kubernetes_network_policy_v1" "openebs_api_access" {
 resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
   depends_on = [helm_release.openebs]
 
-  for_each = toset(["frankfurt0.dzerv.art", "frankfurt1.dzerv.art"])
-  # for_each = toset(["gr1.dzerv.art"])
+  for_each = toset(["gr0", "gr1", "frankfurt0", "frankfurt1"])
 
   manifest = {
     apiVersion = "openebs.io/v1beta3"
     kind       = "DiskPool"
     metadata = {
-      name      = each.key
+      name      = "${each.key}.${var.domain}"
       namespace = kubernetes_namespace_v1.openebs.metadata[0].name
       labels = {
         managed_by = "terraform"
       }
     }
     spec = {
-      node = each.key
+      node = "${each.key}.${var.domain}"
       disks = [ "/dev/mapper/mainpool-storage" ]
     }
   }
