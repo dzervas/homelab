@@ -217,7 +217,7 @@ resource "kubernetes_network_policy_v1" "openebs_api_access" {
 resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
   depends_on = [helm_release.openebs]
 
-  for_each = toset(["gr0", "gr1", "frankfurt0", "frankfurt1"])
+  for_each = toset(["gr0", "gr1", "frankfurt0", "frankfurt1", "srv0"])
 
   manifest = {
     apiVersion = "openebs.io/v1beta3"

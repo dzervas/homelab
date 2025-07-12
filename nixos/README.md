@@ -29,6 +29,7 @@ k drain $TARGET_HOSTNAME --ignore-daemonsets
 SSH to the target:
 
 ```bash
+crictl rmi --all
 systemctl stop k3s
 tar cpf k3s-migrate.tar.gz /var/lib/rancher/k3s /etc/rancher/node/password /var/lib/zerotier-one/identity.* /var/lib/zerotier-one/authtoken.secret
 ```
