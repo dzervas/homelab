@@ -4,7 +4,7 @@
       gr0 =        { hostIndex = "100"; publicKey = "IL/4BsJxWB+D+k9tAyz3VaQD4F1J6+C1/FXByrUr9Ak="; role = "server"; };
       gr1 =        { hostIndex = "101"; publicKey = "Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8="; };
       srv0 =       { hostIndex = "150"; publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw="; };
-      frankfurt0 = { hostIndex = "200"; publicKey = "kPRT5uFcM/BQBNSrCbcqg9lGwgJZQeiPnEn3lkZYSwQ="; role = "server"; system = "aarch64-linux"; };
+      frankfurt0 = { hostIndex = "200"; publicKey = "nJLpWuGE+NQA5k1nSAgTeFMpGbyGuT4ZAfi2OzsKjzY="; role = "server"; system = "aarch64-linux"; };
       frankfurt1 = { hostIndex = "201"; publicKey = "gdS1om0jFmLu3omuE+aMwFpW1iMse0wjVEkPgZB67xs="; role = "server"; system = "aarch64-linux"; };
     };
 
@@ -22,11 +22,14 @@
     apps = eachDefaultSystemPassThrough (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       rebuild = name: builtins.concatStringsSep " " [
+        "echo -e '\n🔄 Rebuilding ${name}.dzerv.art...\n';"
+
         "${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng" "switch"
         "--flake" ".#${name}"
         "--no-reexec"
         "--target-host" "${name}.dzerv.art"
-        "; echo '🎉 ${name}.dzerv.art build complete!'"
+
+        "; echo -e '🎉 ${name}.dzerv.art build complete!\n'"
       ];
     in {
       # Per-machine app

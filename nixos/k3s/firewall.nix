@@ -34,6 +34,9 @@
 
       # Enable internet
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } oifname { eth0, enp* } accept
+
+      # Host -> host traffic over the VPN
+      iifname ${node-vpn-iface} oifname ${node-vpn-iface} accept
     '';
   };
 

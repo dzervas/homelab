@@ -1,10 +1,10 @@
 {
   config,
   hostIndex,
-  home-vpn-prefix,
-  home-vpn-iface,
   # node-vpn-prefix,
   # node-vpn-iface,
+  home-vpn-prefix,
+  home-vpn-iface,
   role,
   ...
 }: let
@@ -14,7 +14,8 @@ in {
   environment.etc."rancher/k3s/config.yaml".text = builtins.toJSON ({
     # Common args:
     flannel-iface = node-vpn-iface;
-    # flannel-backend = "host-gw";
+    # flannel-backend = "host-gw"; # TODO: Enable this once we have a working host-gw setup
+
     node-ip = "${node-vpn-prefix}.${hostIndex}";
     node-name = config.networking.fqdn;
     node-label = [
@@ -24,8 +25,7 @@ in {
     ];
     resolv-conf = "/etc/rancher/k3s/resolv.conf";
 
-    # TODO: Remove gr1-specific taint from here
-    node-taint = config.setup.taints ++ (if config.networking.hostName == "gr1" then [ "longhorn=true:NoSchedule" ] else []);
+    node-taint = config.setup.taints;
   } // (if (role != "agent") then {
     # Server (non-agent) args:
     advertise-address = "${node-vpn-prefix}.${hostIndex}";
@@ -66,18 +66,10 @@ in {
 
     # Server certificate SAN
     tls-san = [
-      # That seems dangerous
-      # "127.0.0.1"
-      # "localhost"
-
+      "127.0.0.1"
       config.networking.fqdn
-      # "$(curl ifconfig.co)"
-      # config.networking.hostName
-      # "${node-vpn-prefix}.${hostIndex}"
-
-      # TODO: Remove these
-      # "10.11.12.${hostIndex}"
-      # "10.20.30.${hostIndex}"
+      "${node-vpn-prefix}.${hostIndex}"
+      "10.20.30.${hostIndex}"
     ];
   } else {}));
 }

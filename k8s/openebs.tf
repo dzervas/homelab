@@ -20,8 +20,8 @@ resource "helm_release" "openebs" {
   repository        = "https://openebs.github.io/openebs"
   chart             = "openebs"
   version           = "4.3.2"
-  timeout = 120
-  # atomic            = true
+  # timeout = 600
+  atomic            = true
 
   set = [
     # Disable amd64 nodeSelectors - for the life of me, I can't get theme to work in the values
@@ -52,7 +52,7 @@ resource "helm_release" "openebs" {
       mayastor = {
         io_engine = {
           tolerations = [{
-            key      = "longhorn"
+            key      = "storage-only"
             operator = "Equal"
             value    = "true"
             effect   = "NoSchedule"

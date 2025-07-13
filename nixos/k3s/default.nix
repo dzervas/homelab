@@ -1,12 +1,10 @@
 {
   hostIndex,
-  home-vpn-prefix,
-  # node-vpn-prefix,
+  node-vpn-prefix,
   pkgs,
   role,
   ...
 }: let
-  node-vpn-prefix = home-vpn-prefix;
   # Denotes the "master" node, where the initial clusterInit happens
   isMaster = hostIndex == "100";
 in {
@@ -15,11 +13,8 @@ in {
     ./cron.nix
     ./etcd.nix
     ./firewall.nix
-    ./longhorn.nix
+    ./kernel.nix
   ];
-
-  # Required by openebs
-  boot.kernelModules = ["nvme_tcp"];
 
   services.k3s = {
     inherit role;
