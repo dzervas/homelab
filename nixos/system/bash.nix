@@ -29,6 +29,7 @@ _: {
       HISTSIZE=10000
       HISTFILESIZE=20000
 
+      export KUBECONFIG="/etc/rancher/rke2/rke2.yaml"
       export PATH="$PATH:/var/lib/rancher/rke2/bin"
       '';
     };
