@@ -20,7 +20,7 @@
     modules = [
       disko.nixosModules.disko
 
-      ./k3s
+      ./rke2
       ./system
       ./hosts/${hostName}.nix
     ];

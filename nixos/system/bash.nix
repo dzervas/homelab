@@ -5,7 +5,8 @@ _: {
       hosthash=$(echo $(hostname -s) | cksum | cut -d ' ' -f1)
       hostcolor=$(( 31 + (hosthash % 6) )) # Using modulo to select from range (31 to 36)
 
-      export PS1="\[\e[1;36m󱄅 \[\e[1;''${hostcolor}m\]\h\[\e[m\]:\w\\$ "
+      export TERM="xterm-256color"
+      export PS1="\[\e[1;36m\]󱄅 \[\e[1;''${hostcolor}m\]\h\[\e[m\]:\w\\$ "
       '';
       shellAliases = {
         ls = "ls --color=always";
@@ -13,10 +14,9 @@ _: {
         fgrep = "fgrep --color=always";
         egrep = "egrep --color=always";
         watch = "watch --color --beep";
-        kubectl = "k3s kubectl";
 
         ll = "ls -Falh";
-        k = "k3s kubectl";
+        k = "kubectl";
         v = "vim";
         hh = "history | grep";
         rg = "grep --color=always";
@@ -28,6 +28,8 @@ _: {
       HISTCONTROL=ignoredups:ignorespace
       HISTSIZE=10000
       HISTFILESIZE=20000
+
+      export PATH="$PATH:/var/lib/rancher/rke2/bin"
       '';
     };
     vim = {

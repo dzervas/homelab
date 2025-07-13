@@ -21,7 +21,6 @@ in {
     node-label = [
       "provider=${config.setup.provider}"
       "openebs.io/engine=mayastor"
-      "openebs.io/csi-node=mayastor"
     ];
     resolv-conf = "/etc/rancher/k3s/resolv.conf";
 

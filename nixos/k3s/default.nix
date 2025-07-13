@@ -29,4 +29,6 @@ in {
     # Gracefully terminate pods when a shutdown is detected
     gracefulNodeShutdown.enable = true;
   };
+
+  systemd.services.k3s.enable = false;
 }
