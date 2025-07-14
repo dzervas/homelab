@@ -18,7 +18,7 @@
     domain = "dzerv.art";
 
     firewall.enable = true;
-    nftables.enable = true;
+    # NOTE: Cilium is NOT compatible with nftables!
 
     wg-quick.interfaces.${node-vpn-iface} = {
       address = [ "${node-vpn-prefix}.${hostIndex}/32" ];
@@ -49,7 +49,19 @@
     zerotierone = {
       enable = true;
       # Don't peek at the k8s interfaces
-      localConf.settings.interfacePrefixBlacklist = [ "flannel" "cni" "veth" node-vpn-iface ];
+      localConf.settings.interfacePrefixBlacklist = [
+        # Flannel
+        "flannel"
+        "cni"
+        "veth"
+
+        # Cilium
+        "cilium_"
+        "lxc"
+
+        # WireGuard
+        node-vpn-iface
+      ];
     };
 
     wgautomesh = {

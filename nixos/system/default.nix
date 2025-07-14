@@ -21,6 +21,8 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB9rcx6pJF2ZEJsB5oFWF0E7LKOL5HQlA2uPdvDdafq"
   ];
 
+  networking.enableIPv6 = false;
+
   boot.kernel.sysctl = {
     # IPv4 forwarding - needed for k3s
     "net.ipv4.ip_forward" = 1;

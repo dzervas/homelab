@@ -8,6 +8,7 @@
 }: let
   # Denotes the "master" node, where the initial clusterInit happens
   isMaster = hostIndex == "100";
+  nodeIP = "${node-vpn-prefix}.${hostIndex}";
 in {
   imports = [
     ./cron.nix
@@ -16,8 +17,8 @@ in {
     ./kernel.nix
   ];
 
-  services.rke2 = rec {
-    inherit role;
+  services.rke2 = {
+    inherit role nodeIP;
 
     enable = true;
     tokenFile = "/etc/k3s-token";
@@ -25,7 +26,6 @@ in {
     serverAddr = if isMaster then "" else "https://${node-vpn-prefix}.100:9345";
 
     nodeName = config.networking.hostName;
-    nodeIP = "${node-vpn-prefix}.${hostIndex}";
     nodeLabel = [
       "provider=${config.setup.provider}"
       "openebs.io/engine=mayastor"
@@ -34,18 +34,17 @@ in {
 
     # cisHardening = true;
     # selinux = true;
-
+  } // (if role == "server" then {
     # TODO: Check if rke2-ingress-nginx is better
-    disable = ["rke2-ingress-nginx"];
+    disable = ["rke2-ingress-nginx" "rke2-canal"];
 
     cni = "cilium";
-    extraFlags = if role == "server" then [
-      # "--disable-kube-proxy"
+    extraFlags = [
+      "--disable-kube-proxy"
       "--tls-san=${home-vpn-prefix}.${hostIndex},${nodeIP},${config.networking.fqdn}"
       "--service-node-port-range=25000-32767"
       "--enable-servicelb=false"
       "--advertise-address=${nodeIP}"
-    ] else [];
-  };
-  # systemd.services.rke2-server.enable = false;
+    ];
+  } else {});
 }
