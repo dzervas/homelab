@@ -21,7 +21,7 @@ in {
     inherit role nodeIP;
 
     enable = true;
-    tokenFile = "/etc/k3s-token";
+    tokenFile = if isMaster then null else "/etc/k3s-token";
 
     serverAddr = if isMaster then "" else "https://${node-vpn-prefix}.100:9345";
 
@@ -35,12 +35,24 @@ in {
     # cisHardening = true;
     # selinux = true;
   } // (if role == "server" then {
-    # TODO: Check if rke2-ingress-nginx is better
-    disable = ["rke2-ingress-nginx" "rke2-canal"];
+    disable = [
+      # TODO: Check if rke2-ingress-nginx is better
+      "rke2-ingress-nginx"
 
-    cni = "cilium";
+      # NO
+      "rke2-traefik"
+
+      "rke2-cilium"
+
+      # Clash with OpenEBS CRDs
+      "rke2-snapshot-controller"
+      "rke2-snapshot-controller-crd"
+      "rke2-snapshot-validation-webhook"
+    ];
+
+    cni = "canal";
     extraFlags = [
-      "--disable-kube-proxy"
+      # "--disable-kube-proxy"
       "--tls-san=${home-vpn-prefix}.${hostIndex},${nodeIP},${config.networking.fqdn}"
       "--service-node-port-range=25000-32767"
       "--enable-servicelb=false"

@@ -19,6 +19,7 @@
 
     firewall.enable = true;
     # NOTE: Cilium is NOT compatible with nftables!
+    nftables.enable = true;
 
     wg-quick.interfaces.${node-vpn-iface} = {
       address = [ "${node-vpn-prefix}.${hostIndex}/32" ];
