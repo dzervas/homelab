@@ -23,6 +23,9 @@
       # Host -> host traffic over the VPN
       iifname ${node-vpn-iface} oifname ${node-vpn-iface} accept
 
+      # Cluster -> home traffic
+      oifname ${home-vpn-iface} ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+
       # Allow pod & service traffic between nodes
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept

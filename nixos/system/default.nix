@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }: {
+_: {
   imports = [
     ./bash.nix
     ./boot.nix
@@ -7,11 +7,6 @@
     ./nix.nix
     ./options.nix
   ];
-
-  environment.systemPackages = map lib.lowPrio (with pkgs; [
-    curl
-    git
-  ]);
 
   services = {
     fwupd.enable = true;
@@ -24,20 +19,16 @@
   networking.enableIPv6 = false;
 
   boot.kernel.sysctl = {
-    # IPv4 forwarding - needed for k3s
+    # IPv4 forwarding - needed for networking
     "net.ipv4.ip_forward" = 1;
+    # Cause who needs IPv6
+    "net.ipv6.conf.all.disable_ipv6" = 1;
+    "net.ipv6.conf.default.disable_ipv6" = 1;
+
     # Raise the maximum number of open files
     "fs.inotify.max_queued_events" = 32768;
     "fs.inotify.max_user_instances" = 512;
     "fs.inotify.max_user_watches" = 524288;
-    # Cause who needs IPv6
-    "net.ipv6.conf.all.disable_ipv6" = 1;
-    "net.ipv6.conf.default.disable_ipv6" = 1;
-    # k3s hardening: https://docs.k3s.io/security/hardening-guide#ensure-protect-kernel-defaults-is-set
-    "vm.panic_on_oom" = 0;
-    "vm.overcommit_memory" = 1;
-    "kernel.panic" = 10;
-    "kernel.panic_on_oops" = 1;
 
     # Enable hugepages (for openEBS)
     "vm.nr_hugepages" = 1024;

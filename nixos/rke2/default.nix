@@ -1,57 +1,41 @@
-{
-  config,
-  hostIndex,
-  home-vpn-prefix,
-  node-vpn-prefix,
-  role,
-  ...
-}: let
-  # Denotes the "master" node, where the initial clusterInit happens
-  isMaster = hostIndex == "100";
-  nodeIP = "${node-vpn-prefix}.${hostIndex}";
-in {
+{ hostIndex, node-vpn-prefix, role, ... }: {
   imports = [
+    ./config.nix
     ./cron.nix
     ./etcd.nix
     ./firewall.nix
     ./kernel.nix
   ];
 
-  services.rke2 = {
-    inherit role nodeIP;
+  # Add RKE2 utilities to path (kubectl and friends)
+  environment.sessionVariables.PATH = "/var/lib/rancher/rke2/bin";
+
+  services.rke2 = let
+    isMaster = hostIndex == "100";
+  in {
+    inherit role;
 
     enable = true;
-    tokenFile = if isMaster then null else "/etc/k3s-token";
 
+    # Could be in the config but they need to be here
+    nodeIP = "${node-vpn-prefix}.${hostIndex}"; # RKE2 bug recreates the cluster
+    # NixOS modules bug doesn't like the default configFile
+    tokenFile = if isMaster then null else "/etc/k3s-token";
     serverAddr = if isMaster then "" else "https://${node-vpn-prefix}.100:9345";
 
-    nodeName = config.networking.hostName;
-    nodeLabel = [
-      "provider=${config.setup.provider}"
-      "openebs.io/engine=mayastor"
-    ];
-    nodeTaint = config.setup.taints;
-
+    # TODO: Requires https://docs.rke2.io/security/hardening_guide/
     # cisHardening = true;
     # selinux = true;
-  } // (if role == "server" then {
-    disable = [
-      # TODO: Check if rke2-ingress-nginx is better
-      "rke2-ingress-nginx"
+  };
 
-      # Clash with OpenEBS CRDs
-      "rke2-snapshot-controller"
-      "rke2-snapshot-controller-crd"
-      "rke2-snapshot-validation-webhook"
-    ];
-
-    cni = "canal";
-    extraFlags = [
-      # "--disable-kube-proxy"
-      "--tls-san=${home-vpn-prefix}.${hostIndex},${nodeIP},${config.networking.fqdn}"
-      "--service-node-port-range=25000-32767"
-      "--enable-servicelb=false"
-      "--advertise-address=${nodeIP}"
-    ];
-  } else {});
+  # util-linux 2.41 bug
+  # nixpkgs.overlays = [(self: super: {
+  #   util-linux = super.util-linux.overrideAttrs (_: rec {
+  #     version = "2.40";
+  #     src = pkgs.fetchurl {
+  #       url = "mirror://kernel/linux/utils/util-linux/v${lib.versions.majorMinor version}/util-linux-${version}.tar.xz";
+  #       hash = "sha256-1XpiYIH56tAvpExjpq8WLsGcWPU+mT8garfDpmQcLNc=";
+  #     };
+  #   });
+  # })];
 }

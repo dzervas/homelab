@@ -7,6 +7,9 @@ resource "helm_release" "loki" {
   atomic     = true
 
   values = [yamlencode({
+    global = {
+      dnsService = "rke2-coredns-rke2-coredns"
+    }
     loki = {
       auth_enabled = false
       commonConfig = {
@@ -45,13 +48,6 @@ resource "helm_release" "loki" {
       persistence = {
         enabled          = true
         size             = "20Gi"
-      }
-    }
-    monitoring = {
-      selfMonitoring = {
-        grafanaAgent = {
-          installOperator = false
-        }
       }
     }
     backend = { replicas = 0 }

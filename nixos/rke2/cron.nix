@@ -3,7 +3,7 @@ _: {
     enable = true;
     systemCronJobs = [
       # Remove old k3s container images daily
-      "@daily crictl rmi --prune"
+      "@daily sh -c '/var/lib/rancher/rke2/bin/crictl rmi --prune'"
     ];
   };
 }
