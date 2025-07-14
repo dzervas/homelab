@@ -29,7 +29,7 @@
         "--no-reexec"
         "--target-host" "${name}.dzerv.art"
 
-        "&& echo -e '🎉 ${name}.dzerv.art build complete!\n'"
+        "&& echo -e '🎉 ${name}.dzerv.art build complete!\n' || exit 1"
       ];
     in {
       # Per-machine app

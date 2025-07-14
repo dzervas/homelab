@@ -8,7 +8,9 @@
   node-vpn-iface,
   machines,
   ...
-}: {
+}: let
+  wireguard-port = 51820;
+in {
   # Use predictable interface names starting with eth0
   boot.kernelParams = [ "net.ifnames=0" ];
 
@@ -17,13 +19,17 @@
     useDHCP = lib.mkDefault true;
     domain = "dzerv.art";
 
-    firewall.enable = true;
+    firewall = {
+      enable = true;
+      allowedUDPPorts = [ wireguard-port ]; # WireGuard
+    };
+
     # NOTE: Cilium is NOT compatible with nftables!
     nftables.enable = true;
 
     wg-quick.interfaces.${node-vpn-iface} = {
       address = [ "${node-vpn-prefix}.${hostIndex}/32" ];
-      listenPort = 51820;
+      listenPort = wireguard-port;
       # Needs to be generated with:
       # touch /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey && wg genkey > /etc/wireguard-privkey
       privateKeyFile = "/etc/wireguard-privkey";
@@ -37,7 +43,7 @@
             allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32"];
 
             # Use it as an endpoint only if it's a k3s server
-            endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:51820" else null;
+            endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
             persistentKeepalive = if builtins.hasAttr "role" machine && machine.role == "server" then null else 25;
           } else null)
           machines);
@@ -51,10 +57,13 @@
       enable = true;
       # Don't peek at the k8s interfaces
       localConf.settings.interfacePrefixBlacklist = [
-        # Flannel
+        # Flannel/Canal
         "flannel"
         "cni"
         "veth"
+
+        # Calico/Canal
+        "cali"
 
         # Cilium
         "cilium_"
@@ -67,6 +76,7 @@
 
     wgautomesh = {
       enable = true;
+      openFirewall = true;
       gossipSecretFile = "/etc/wgautomesh-secret";
 
       settings = {

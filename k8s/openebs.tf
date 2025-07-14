@@ -217,7 +217,7 @@ resource "kubernetes_network_policy_v1" "openebs_api_access" {
 resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
   depends_on = [helm_release.openebs]
 
-  for_each = toset(["gr0", "gr1", "frankfurt0", "frankfurt1", "srv0"])
+  for_each = toset(["gr0", "gr1", "fra0", "fra1", "srv0"])
 
   manifest = {
     apiVersion = "openebs.io/v1beta3"
@@ -230,8 +230,10 @@ resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
       }
     }
     spec = {
-      node = "${each.key}.${var.domain}"
+      node = each.key
       disks = [ "/dev/mapper/mainpool-storage" ]
     }
   }
 }
+
+# Node rename (cluster rebuild) notes: https://github.com/openebs/openebs/issues/3775#issuecomment-3068847343

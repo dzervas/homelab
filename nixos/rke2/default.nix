@@ -39,11 +39,6 @@ in {
       # TODO: Check if rke2-ingress-nginx is better
       "rke2-ingress-nginx"
 
-      # NO
-      "rke2-traefik"
-
-      "rke2-cilium"
-
       # Clash with OpenEBS CRDs
       "rke2-snapshot-controller"
       "rke2-snapshot-controller-crd"
