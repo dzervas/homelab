@@ -1,24 +1,24 @@
-resource "kubernetes_namespace" "descheduler" {
-  metadata {
-    name = "descheduler"
-    labels = {
-      managed_by = "terraform"
+resource "kubernetes_manifest" "descheduler" {
+  manifest = {
+    apiVersion = "helm.cattle.io/v1"
+    kind       = "HelmChart"
+
+    metadata = {
+      name       = "descheduler"
+      namespace  = "kube-system"
+    }
+
+    spec = {
+      # For upgrading: https://github.com/kubernetes-sigs/descheduler/releases
+      repo    = "https://kubernetes-sigs.github.io/descheduler"
+      chart   = "descheduler"
+      version = "0.33.0"
+
+      targetNamespace = "descheduler"
+      createNamespace = true
+      valuesContent   = yamlencode({
+        serviceMonitor = { enabled = true }
+      })
     }
   }
-}
-
-resource "helm_release" "descheduler" {
-  name       = "descheduler"
-  namespace  = kubernetes_namespace.descheduler.metadata[0].name
-  repository = "https://kubernetes-sigs.github.io/descheduler"
-  chart      = "descheduler"
-  # For upgrading: https://github.com/kubernetes-sigs/descheduler/releases
-  version = "0.32.2"
-
-  values = [yamlencode({
-    serviceMonitor = {
-      enabled   = true
-      namespace = "prometheus"
-    }
-  })]
 }

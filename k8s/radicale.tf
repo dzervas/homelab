@@ -24,21 +24,3 @@ module "radicale" {
     TZ = var.timezone
   }
 }
-
-resource "kubernetes_manifest" "radicale_secrets" {
-  manifest = {
-    apiVersion = "external-secrets.io/v1"
-    kind       = "ExternalSecret"
-    metadata = {
-      name      = "radicale-secrets-op"
-      namespace = module.radicale.namespace
-    }
-    spec = {
-      secretStoreRef = {
-        name = "1password"
-        kind = "ClusterSecretStore"
-      }
-      dataFrom = [ { extract = { key = "radicale" } } ]
-    }
-  }
-}
