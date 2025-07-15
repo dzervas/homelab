@@ -6,7 +6,7 @@ module "n8n_runners" {
   ingress_enabled  = false
 
   type     = "deployment"
-  replicas = 3
+  replicas = 0
 
   name      = "n8n-runners"
   image     = "ghcr.io/dzervas/n8n:latest"

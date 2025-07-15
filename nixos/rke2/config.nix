@@ -24,15 +24,8 @@ in {
     service-node-port-range = "25000-32767";
 
     enable-servicelb = false;
-    disable = [
-      # TODO: Check if rke2-ingress-nginx is better
-      "rke2-ingress-nginx"
-
-      # Clash with OpenEBS CRDs
-      "rke2-snapshot-controller"
-      "rke2-snapshot-controller-crd"
-      "rke2-snapshot-validation-webhook"
-    ];
+    # TODO: Check if rke2-ingress-nginx is better
+    disable = [ "rke2-ingress-nginx" ];
 
     tls-san = [
       "${home-vpn-prefix}.${hostIndex}"
@@ -44,7 +37,7 @@ in {
     # secrets-encryption-provider = "aescbc";
   } else {}));
 
-  systemd.services."rke2-${role}".restartTriggers = [ "/etc/rancher/rke2/config.yaml" ];
+  systemd.services."rke2-${role}".restartTriggers = [ config.environment.etc."rancher/rke2/config.yaml".source ];
 
   # Extra manifests to configure rke2 plugins
   systemd.tmpfiles.settings."10-rke2-config" = if isMaster then (let
