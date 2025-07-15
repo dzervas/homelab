@@ -42,43 +42,43 @@ module "rclone" {
   env_secrets = {
     # S3 server credentials
     RCLONE_ACCESS_ID = {
-      secret = "rclone-s3-op"
+      secret = kubernetes_manifest.rclone_s3_op.manifest.metadata.name
       key    = "access-id"
     }
     RCLONE_SECRET_KEY = {
-      secret = "rclone-s3-op"
+      secret = kubernetes_manifest.rclone_s3_op.manifest.metadata.name
       key    = "secret-key"
     }
 
     # Crypt remote
     CRYPT_PASSWORD = {
-      secret = "rclone-secrets-op"
+      secret = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
       key    = "crypt-password"
     }
     CRYPT_SALT = {
-      secret = "rclone-secrets-op"
+      secret = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
       key    = "crypt-salt"
     }
 
     # OneDrive remote
     RCLONE_ONEDRIVE_TENANT = {
-      secret = "rclone-secrets-op"
+      secret = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
       key    = "onedrive-tenant"
     }
     RCLONE_ONEDRIVE_CLIENT_ID = {
-      secret = "rclone-secrets-op"
+      secret = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
       key    = "onedrive-client-id"
     }
     RCLONE_ONEDRIVE_CLIENT_SECRET = {
-      secret = "rclone-secrets-op"
+      secret = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
       key    = "onedrive-client-secret"
     }
     RCLONE_ONEDRIVE_TOKEN = {
-      secret = "rclone-secrets-op"
+      secret = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
       key    = "onedrive-token"
     }
     RCLONE_ONEDRIVE_DRIVE_ID = {
-      secret = "rclone-secrets-op"
+      secret = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
       key    = "onedrive-drive-id"
     }
   }
@@ -107,30 +107,38 @@ resource "kubernetes_secret_v1" "rclone" {
   }
 }
 
-resource "kubernetes_manifest" "rclone_secrets" {
+resource "kubernetes_manifest" "rclone_secrets_op" {
   manifest = {
-    apiVersion = "onepassword.com/v1"
-    kind       = "OnePasswordItem"
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
     metadata = {
       name      = "rclone-secrets-op"
       namespace = module.rclone.namespace
     }
     spec = {
-      itemPath = "vaults/k8s-secrets/items/rclone"
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      dataFrom = [ { extract = { key = "rclone" } } ]
     }
   }
 }
 
-resource "kubernetes_manifest" "rclone_s3_secrets" {
+resource "kubernetes_manifest" "rclone_s3_op" {
   manifest = {
-    apiVersion = "onepassword.com/v1"
-    kind       = "OnePasswordItem"
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
     metadata = {
       name      = "rclone-s3-op"
       namespace = module.rclone.namespace
     }
     spec = {
-      itemPath = "vaults/k8s-secrets/items/rclone-s3"
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      dataFrom = [ { extract = { key = "rclone-s3" } } ]
     }
   }
 }

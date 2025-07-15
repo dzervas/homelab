@@ -18,18 +18,19 @@ module "n8n" {
 
   type             = "statefulset"
   name             = "n8n"
-  fqdn             = "auto.${var.domain}"
   create_namespace = true
-  ingress_enabled  = true
-  auth             = "mtls"
-  # vpn_bypass_auth  = true
-  # vpn_cidrs        = var.vpn_cidrs
-  image         = "ghcr.io/dzervas/n8n:latest"
-  port          = 5678
-  retain_pvs    = true
+  image            = "ghcr.io/dzervas/n8n:latest"
+
+  fqdn = "auto.${var.domain}"
+  auth = "mtls"
+  port = 5678
+
+  ingress_enabled     = true
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
   }
+
+  retain_pvs = true
   pvs = {
     "/home/node/.n8n" = {
       name         = "data"
@@ -46,16 +47,22 @@ module "n8n" {
       retain       = false
     }
   }
+
   env = {
     TZ                                    = var.timezone
     GENERIC_TIMEZONE                      = var.timezone
     N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = true
-    N8N_EDITOR_BASE_URL                   = "https://auto.${var.domain}"
-    WEBHOOK_URL                           = "https://hook.${var.domain}"
-    N8N_ENCRYPTION_KEY                    = local.op_secrets.n8n.encryption_key
-    N8N_PROXY_HOPS                        = 1 # Allows X-Forwarded-For header
-    N8N_PORT                              = "5678"
-    N8N_DEFAULT_BINARY_DATA_MODE          = "filesystem"
+
+    N8N_EDITOR_BASE_URL = "https://auto.${var.domain}"
+    WEBHOOK_URL         = "https://hook.${var.domain}"
+    N8N_PROXY_HOPS      = 1 # Allows X-Forwarded-For header
+    N8N_PORT            = "5678"
+
+    N8N_DEFAULT_BINARY_DATA_MODE = "filesystem"
+
+    # N8N_RUNNERS_ENABLED               = "true"
+    # N8N_RUNNERS_MODE                  = "external"
+    # N8N_RUNNERS_BROKER_LISTEN_ADDRESS = "0.0.0.0"
 
     EXECUTIONS_TIMEOUT              = 600
     EXECUTIONS_DATA_PRUNE           = true
@@ -75,30 +82,86 @@ module "n8n" {
     # N8N_DEFAULT_BINARY_DATA_MODE          = "s3"
 
     # Disable diagnostics (https://docs.n8n.io/hosting/configuration/configuration-examples/isolation/)
-    EXTERNAL_FRONTEND_HOOKS_URLS = ""
-    N8N_DIAGNOSTICS_ENABLED = "false"
+    EXTERNAL_FRONTEND_HOOKS_URLS    = ""
+    N8N_DIAGNOSTICS_ENABLED         = "false"
     N8N_DIAGNOSTICS_CONFIG_FRONTEND = ""
-    N8N_DIAGNOSTICS_CONFIG_BACKEND = ""
+    N8N_DIAGNOSTICS_CONFIG_BACKEND  = ""
+  }
 
-    GLOBAL_VARS = jsonencode({
-      browserless_host     = "n8n-browserless"
-      browserless_port     = "3000"
-      browserless_token    = random_password.n8n_browserless_token.result
-      browserless_endpoint = "ws://n8n-browserless:3000/?token=${random_password.n8n_browserless_token.result}"
-    })
-
-    CREDENTIAL_OVERWRITE_DATA = jsonencode({
-      browserlessApi = {
-        url   = "http://n8n-browserless:3000",
-        token = random_password.n8n_browserless_token.result
-      }
-    })
+  env_secrets = {
+    N8N_ENCRYPTION_KEY = {
+      secret = kubernetes_manifest.n8n_op.manifest.metadata.name
+      key    = "encryption-key"
+    }
+    CREDENTIAL_OVERWRITE_DATA = {
+      secret = kubernetes_manifest.n8n_browserless_token.manifest.metadata.name
+      key    = "credential_overwrite_data"
+    }
+    GLOBAL_VARS = {
+      secret = kubernetes_manifest.n8n_browserless_token.manifest.metadata.name
+      key    = "global_vars"
+    }
   }
 }
 
-resource "random_password" "n8n_browserless_token" {
-  length  = 32
-  special = false
+resource "kubernetes_manifest" "n8n_op" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "n8n-op"
+      namespace = "n8n"
+    }
+    spec = {
+      secretStoreRef = {
+        name = "1password"
+        kind = "ClusterSecretStore"
+      }
+      dataFrom = [ { extract = { key = "n8n" } } ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "n8n_browserless_token" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "n8n-browserless-token"
+      namespace = "n8n"
+    }
+    spec = {
+      refreshPolicy = "OnChange"
+      target = {
+        template = {
+          data = {
+            token = "{{ .password }}"
+            credential_overwrite_data = jsonencode({
+              browserlessApi = {
+                url   = "http://n8n-browserless:3000",
+                token = "{{ .password }}"
+              }
+            })
+            global_vars = jsonencode({
+              browserless_host     = "n8n-browserless"
+              browserless_port     = "3000"
+              browserless_token    = "{{ .password }}"
+              browserless_endpoint = "ws://n8n-browserless:3000/?token={{ .password }}"
+            })
+          }
+        }
+      }
+      dataFrom = [{
+        sourceRef = {
+          generatorRef = {
+            apiVersion = "generators.external-secrets.io/v1alpha1"
+            kind       = "ClusterGenerator"
+            name       = "password"
+          }
+        }
+      }]
+    }
+  }
 }
 
 module "n8n-browserless" {
@@ -125,12 +188,18 @@ module "n8n-browserless" {
   node_selector = { "kubernetes.io/arch" = "amd64" }
   env = {
     ALLOW_GET  = true # Required for some stuff in the n8n node
-    TOKEN      = random_password.n8n_browserless_token.result
     PROXY_HOST = "n8n-browserless.${module.n8n.namespace}.svc.cluster.local"
     PROXY_PORT = "3000"
     PROXY_SSL  = false
     CONCURRENT = 5
     QUEUED     = 10
+  }
+
+  env_secrets = {
+    TOKEN = {
+      secret = kubernetes_manifest.n8n_browserless_token.manifest.metadata.name
+      key   = "token"
+    }
   }
 }
 
@@ -174,17 +243,6 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
     tls {
       hosts       = ["hook.${var.domain}"]
       secret_name = "${replace("hook.${var.domain}", ".", "-")}-webhook-cert"
-    }
-  }
-}
-
-data "kubernetes_persistent_volume_claim" "n8n_backup" {
-  metadata {
-    namespace = module.n8n.namespace
-    name      = "backups-n8n-0"
-    labels = {
-      managed_by = "terraform"
-      service    = "n8n"
     }
   }
 }

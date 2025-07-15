@@ -21,6 +21,32 @@ resource "helm_release" "external-secrets" {
 }
 
 # Must apply above helm release before applying this
+resource "kubernetes_manifest" "password_generator" {
+  manifest = {
+    apiVersion = "generators.external-secrets.io/v1alpha1"
+    kind       = "ClusterGenerator"
+    metadata = {
+      name      = "password"
+    }
+    spec = {
+      kind = "Password"
+      generator = {
+        passwordSpec ={
+          length = 42
+          symbolCharacters = "-_+=~<>,."
+          allowRepeat = true
+        }
+      }
+    }
+  }
+
+  depends_on = [helm_release.external-secrets]
+}
+
+# Requires Service Account credentials:
+# 1password.com > developer tools > Infrastructure Secrets Management > Other > Create a Service Account
+# Save the token to op
+# k create secret generic onepasswordsdk-sa-token --namespace external-secrets --from-literal=token=(op item get --vault Private "<name>" --fields credential --reveal)
 resource "kubernetes_manifest" "_1password_store" {
   manifest = {
     apiVersion = "external-secrets.io/v1"

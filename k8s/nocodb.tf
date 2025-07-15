@@ -60,7 +60,7 @@ module "nocodb" {
   }
 }
 
-resource "kubernetes_manifest" "nocodb_s3" {
+resource "kubernetes_manifest" "nocodb_s3_op" {
   manifest = {
     apiVersion = "external-secrets.io/v1"
     kind       = "ExternalSecret"
