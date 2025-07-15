@@ -10,6 +10,8 @@
   # Add RKE2 utilities to path (kubectl and friends)
   environment.sessionVariables.PATH = "/var/lib/rancher/rke2/bin";
 
+  # TODO: Add graceful shutdown like the k3s module
+
   services.rke2 = let
     isMaster = hostIndex == "100";
   in {
@@ -27,15 +29,4 @@
     # cisHardening = true;
     # selinux = true;
   };
-
-  # util-linux 2.41 bug
-  # nixpkgs.overlays = [(self: super: {
-  #   util-linux = super.util-linux.overrideAttrs (_: rec {
-  #     version = "2.40";
-  #     src = pkgs.fetchurl {
-  #       url = "mirror://kernel/linux/utils/util-linux/v${lib.versions.majorMinor version}/util-linux-${version}.tar.xz";
-  #       hash = "sha256-1XpiYIH56tAvpExjpq8WLsGcWPU+mT8garfDpmQcLNc=";
-  #     };
-  #   });
-  # })];
 }
