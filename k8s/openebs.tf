@@ -256,3 +256,19 @@ resource "kubernetes_network_policy_v1" "openebs_api_access" {
 # }
 
 # Node rename (cluster rebuild) notes: https://github.com/openebs/openebs/issues/3775#issuecomment-3068847343
+
+
+resource "kubernetes_manifest" "opensebs_snapshot_class" {
+  manifest = {
+    apiVersion = "snapshot.storage.k8s.io/v1"
+    kind       = "VolumeSnapshotClass"
+    metadata = {
+      name      = "openebs-replicated"
+      annotations = {
+        "snapshot.storage.kubernetes.io/is-default-class" = "true"
+      }
+    }
+    driver = "io.openebs.csi-mayastor"
+    deletionPolicy = "Retain"
+  }
+}

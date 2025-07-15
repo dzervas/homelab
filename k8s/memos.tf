@@ -55,3 +55,22 @@ resource "kubernetes_network_policy_v1" "memos_n8n" {
     }
   }
 }
+
+resource "kubernetes_manifest" "memos_backup" {
+  manifest = {
+    apiVersion = "gemini.fairwinds.com/v1"
+    kind       = "SnapshotGroup"
+    metadata = {
+      name      = "data-memos"
+      namespace = module.memos.namespace
+    }
+    spec = {
+      persistentVolumeClaim = { claimName = "data-memos-0" }
+      schedule = [
+        { every = "day", keep = 7 },
+        { every = "week", keep = 4 },
+        { every = "month", keep = 3 }
+      ]
+    }
+  }
+}
