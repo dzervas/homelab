@@ -1,4 +1,4 @@
-{ hostIndex, node-vpn-prefix, role, ... }: {
+{ hostIndex, node-vpn-iface, node-vpn-prefix, role, ... }: {
   imports = [
     ./config.nix
     ./cron.nix
@@ -28,5 +28,11 @@
     # TODO: Requires https://docs.rke2.io/security/hardening_guide/
     # cisHardening = true;
     # selinux = true;
+  };
+
+  # OpenEBS RDMA
+  networking.rxe = {
+    enable = true;
+    interfaces = [ node-vpn-iface ];
   };
 }
