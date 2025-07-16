@@ -16,7 +16,8 @@ resource "kubernetes_manifest" "descheduler" {
 
       targetNamespace = "descheduler"
       createNamespace = true
-      valuesContent   = yamlencode({
+
+      valuesContent = yamlencode({
         serviceMonitor = { enabled = true }
       })
     }

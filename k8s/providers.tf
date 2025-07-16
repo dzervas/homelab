@@ -30,10 +30,6 @@ terraform {
       source = "1Password/onepassword"
       version = "~> 2"
     }
-    random = {
-      source = "hashicorp/random"
-      version = "~> 3"
-    }
   }
 }
 
@@ -48,8 +44,6 @@ provider "helm" {
     config_context = "gr"
   }
 }
-
-provider "random" {}
 
 provider "onepassword" {}
 
