@@ -10,9 +10,8 @@ resource "helm_release" "external-secrets" {
   atomic  = true
 
   values = [yamlencode({
-    serviceMonitor = {
-      enabled = true
-    }
+    serviceMonitor = { enabled = true }
+    grafanaDashboard = { enabled = true }
   })]
 
   lifecycle {

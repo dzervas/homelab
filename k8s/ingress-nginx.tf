@@ -46,9 +46,6 @@ resource "helm_release" "ingress_nginx" {
         enabled        = true
         serviceMonitor = {
           enabled = true
-          annotations = {
-            "prometheus.io/scrape" = "true"
-          }
         }
       }
     }

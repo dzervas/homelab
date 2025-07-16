@@ -1,7 +1,9 @@
 data "kubernetes_all_namespaces" "all" {}
 
 resource "kubernetes_network_policy_v1" "default_ingress" {
-  for_each = { for ns in data.kubernetes_all_namespaces.all.namespaces : ns => ns if !contains(["kube-system", "ingress"], ns) }
+  # `default` hosts the kubernetes service (kubernetes api)
+  # `kube-system` hosts DNS, the actual kube api server, etc.
+  for_each = { for ns in data.kubernetes_all_namespaces.all.namespaces : ns => ns if !contains(["kube-system", "ingress", "default"], ns) }
   metadata {
     name      = "default-ingress"
     namespace = each.value
@@ -24,7 +26,10 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
           match_expressions {
             key      = "kubernetes.io/metadata.name"
             operator = "In"
-            values   = ["ingress", "kube-system"]
+            # TODO: Better way to decide what pod these services should have access to
+            # ingress-nginx needs to be able to access the services that have an ingress pointing to them
+            # prometheus needs to be able to access pods/services that have a service/podmonitor pointing to them
+            values   = ["ingress", "prometheus"]
           }
         }
       }

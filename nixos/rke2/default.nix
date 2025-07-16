@@ -1,4 +1,4 @@
-{ hostIndex, node-vpn-iface, node-vpn-prefix, role, ... }: {
+{ hostIndex, node-vpn-iface, node-vpn-prefix, pkgs, role, ... }: {
   imports = [
     ./config.nix
     ./cron.nix
@@ -8,7 +8,10 @@
   ];
 
   # Add RKE2 utilities to path (kubectl and friends)
-  environment.sessionVariables.PATH = "/var/lib/rancher/rke2/bin";
+  environment = {
+    sessionVariables.PATH = "/var/lib/rancher/rke2/bin";
+    systemPackages = with pkgs; [ rdma-core ];
+  };
 
   # TODO: Add graceful shutdown like the k3s module
 
@@ -35,4 +38,5 @@
     enable = true;
     interfaces = [ node-vpn-iface ];
   };
+  hardware.infiniband.enable = true;
 }

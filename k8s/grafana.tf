@@ -31,9 +31,7 @@ resource "helm_release" "grafana" {
   atomic     = true
 
   values = [yamlencode({
-    rbac = {
-      namespaced = true
-    }
+    useStatefulSet = true # OpenEBS doesn't support RWX
     persistence = {
       enabled = true
       storageClassName = "openebs-replicated"
@@ -64,5 +62,69 @@ resource "helm_release" "grafana" {
     nodeSelector = {
       provider = "oracle"
     }
+
+    rbac = {
+      useExistingClusterRole = kubernetes_cluster_role_v1.grafana.metadata[0].name
+    }
+
+    # Allow arbitrary services to create grafana resources through a configmap
+    sidecar = {
+      enableUniqueFilenames = true # Avoid overwrites due to same filenames
+
+      # Needs label `grafana_alert=1`
+      alerts = {
+        enabled = true
+        resource = "configmap"
+        searchNamespace = "ALL"
+      }
+
+      # Needs label `grafana_dashboard=1`
+      dashboards = {
+        enabled = true
+        resource = "configmap"
+        searchNamespace = "ALL"
+
+        defaultFolderName = "collected" # target subdirectory in the PV
+
+        # grafana_folder annotation can describe the target folder (within grafana)
+        folderAnnotation = "grafana_folder"
+
+        # Place all collected dashboards under this folder
+        provider = { folder = "Collected" }
+      }
+
+      # Needs label `grafana_datasource=1`
+      datasources = {
+        enabled = true
+        resource = "configmap"
+        searchNamespace = "ALL"
+      }
+
+      # Needs label `grafana_plugin=1`
+      # plugins = {
+      #   enabled = true
+      #   resource = "configmap"
+      #   searchNamespace = "ALL"
+      # }
+
+      # Needs label `grafana_notifier=1`
+      notifiers = {
+        enabled = true
+        resource = "configmap"
+        searchNamespace = "ALL"
+      }
+    }
   })]
+}
+
+# Define our own cluster role since by default it has access to all secrets too
+resource "kubernetes_cluster_role_v1" "grafana" {
+  metadata {
+    name = "grafana"
+  }
+  rule {
+    api_groups = [""]
+    resources = ["configmaps"]
+    verbs = ["get", "list", "watch"]
+  }
 }

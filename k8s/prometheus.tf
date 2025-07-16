@@ -14,21 +14,48 @@ resource "helm_release" "prometheus" {
   namespace        = kubernetes_namespace_v1.prometheus.metadata[0].name
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
-  version          = "65.3.2"
+  version          = "75.11.0"
   atomic           = true
 
-  values = [yamlencode({
-    grafana      = { enabled = false }
-    alertmanager = { enabled = false }
-    prometheus = {
-      prometheusSpec = {
-        scrapeInterval                          = "30s"
-        evaluationInterval                      = "30s"
-        podMonitorSelectorNilUsesHelmValues     = false
-        serviceMonitorSelectorNilUsesHelmValues = false
+  values = [
+    yamlencode({
+      # Grafana deployed separately
+      grafana      = { enabled = false }
+      alertmanager = { enabled = false }
+    }),
+    yamlencode({
+      # Upgrade CRDs automatically
+      crds = {
+        upgradeJob = {
+          enabled = true
+          forceConflicts = true
+        }
       }
-    }
-  })]
+    }),
+    yamlencode({
+      prometheusOperator = { networkPolicy = { enabled = true } }
+
+      prometheus = {
+        # Allow it to roam free
+        # TODO: Configure this?
+        networkPolicy = { enabled = false }
+
+        prometheusSpec = {
+          podMonitorSelector                  = {}
+          podMonitorNamespaceSelector         = { any = true }
+          podMonitorSelectorNilUsesHelmValues = false
+
+          ruleSelector                  = {}
+          ruleNamespaceSelector         = { any = true }
+          ruleSelectorNilUsesHelmValues = false
+
+          serviceMonitorSelector                  = {}
+          serviceMonitorNamespaceSelector         = { any = true }
+          serviceMonitorSelectorNilUsesHelmValues = false
+        }
+      }
+    })
+  ]
 }
 
 resource "kubernetes_network_policy_v1" "prometheus_grafana" {
