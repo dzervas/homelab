@@ -32,7 +32,7 @@ module "n8n-browserless" {
   env_secrets = {
     TOKEN = {
       secret = kubernetes_manifest.n8n_browserless_token.manifest.metadata.name
-      key   = "token"
+      key    = "token"
     }
   }
 }

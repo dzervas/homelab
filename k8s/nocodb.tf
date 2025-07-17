@@ -6,9 +6,9 @@ module "nocodb" {
   fqdn = "db.${var.domain}"
   auth = "mtls"
 
-  image         = "nocodb/nocodb:latest"
-  port          = 8080
-  retain_pvs    = true
+  image      = "nocodb/nocodb:latest"
+  port       = 8080
+  retain_pvs = true
 
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "1m" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
@@ -16,17 +16,14 @@ module "nocodb" {
 
   pvs = {
     "/usr/app/data/" = {
-      name         = "data"
-      read_only    = false
-      access_modes = ["ReadWriteOnce"]
-      size         = "10Gi"
-      retain       = true
+      name = "data"
+      size = "10Gi"
     }
   }
 
   env = {
-    TZ                     = var.timezone
-    NC_PUBLIC_URL          = "https://db.${var.domain}"
+    TZ            = var.timezone
+    NC_PUBLIC_URL = "https://db.${var.domain}"
   }
 }
 

@@ -110,7 +110,6 @@ variable "pvs" {
     name         = string
     size         = string
     access_modes = optional(list(string), ["ReadWriteOnce"])
-    retain       = optional(bool, false)
     read_only    = optional(bool, false)
   }))
 }

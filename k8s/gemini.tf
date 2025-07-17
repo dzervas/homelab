@@ -4,8 +4,8 @@ resource "kubernetes_manifest" "gemini" {
     kind       = "HelmChart"
 
     metadata = {
-      name       = "gemini"
-      namespace  = "kube-system"
+      name      = "gemini"
+      namespace = "kube-system"
     }
 
     spec = {

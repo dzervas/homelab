@@ -8,8 +8,8 @@ module "ntfy" {
   image_pull_policy = true
   port              = 8080
 
-  fqdn              = "notify.${var.domain}"
-  auth              = "mtls"
+  fqdn = "notify.${var.domain}"
+  auth = "mtls"
 
   pvs = {
     "/var/cache/ntfy" = {
@@ -23,10 +23,10 @@ module "ntfy" {
   }
 
   ingress_annotations = {
-    "nginx.ingress.kubernetes.io/proxy-body-size" = "10g"
+    "nginx.ingress.kubernetes.io/proxy-body-size"    = "10g"
     "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
     "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
-    "nginx.ingress.kubernetes.io/server-snippets" = <<EOF
+    "nginx.ingress.kubernetes.io/server-snippets"    = <<EOF
       location / {
         proxy_set_header Upgrade $http_upgrade;
         proxy_http_version 1.1;
@@ -42,17 +42,17 @@ module "ntfy" {
   }
 
   env = {
-    NTFY_AUTH_FILE = "/var/lib/ntfy/user.db"
-    NTFY_BASE_URL = "https://notify.${var.domain}"
-    NTFY_BEHIND_PROXY = "true"
+    NTFY_AUTH_FILE      = "/var/lib/ntfy/user.db"
+    NTFY_BASE_URL       = "https://notify.${var.domain}"
+    NTFY_BEHIND_PROXY   = "true"
     NTFY_CACHE_DURATION = "96h" # keep undelivered notifications for 4 days
-    NTFY_LISTEN_HTTP = ":8080"
-    NTFY_WEB_PUSH_FILE = "/var/cache/ntfy/webpush.db"
+    NTFY_LISTEN_HTTP    = ":8080"
+    NTFY_WEB_PUSH_FILE  = "/var/cache/ntfy/webpush.db"
 
-    NTFY_ATTACHMENT_CACHE_DIR = "/var/cache/ntfy/attachments"
+    NTFY_ATTACHMENT_CACHE_DIR        = "/var/cache/ntfy/attachments"
     NTFY_ATTACHMENT_TOTAL_SIZE_LIMIT = "20G"
-    NTFY_ATTACHMENT_FILE_SIZE_LIMIT = "10G"
-    NTFY_ATTACHMENT_EXPIRY_DURATION = "24h"
+    NTFY_ATTACHMENT_FILE_SIZE_LIMIT  = "10G"
+    NTFY_ATTACHMENT_EXPIRY_DURATION  = "24h"
   }
 
   env_secrets = {
@@ -84,7 +84,7 @@ resource "kubernetes_manifest" "ntfy_op" {
         name = "1password"
         kind = "ClusterSecretStore"
       }
-      dataFrom = [ { extract = { key = "ntfy" } } ]
+      dataFrom = [{ extract = { key = "ntfy" } }]
     }
   }
 }

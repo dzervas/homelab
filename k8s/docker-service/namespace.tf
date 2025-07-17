@@ -1,6 +1,6 @@
 locals {
   namespace = var.namespace != "" ? var.namespace : var.name
-  ghcr = var.ghcr_image || startswith(var.image, "ghcr.io/dzervas/")
+  ghcr      = var.ghcr_image || startswith(var.image, "ghcr.io/dzervas/")
 }
 
 

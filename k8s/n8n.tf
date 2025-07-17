@@ -25,7 +25,7 @@ module "n8n" {
   auth = "mtls"
   port = 5678
 
-  ingress_enabled     = true
+  ingress_enabled = true
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
   }
@@ -33,18 +33,12 @@ module "n8n" {
   retain_pvs = true
   pvs = {
     "/home/node/.n8n" = {
-      name         = "data"
-      read_only    = false
-      access_modes = ["ReadWriteOnce"]
-      size         = "10Gi"
-      retain       = true
+      name = "data"
+      size = "10Gi"
     }
     "/home/node/backups" = {
-      name         = "backups"
-      read_only    = false
-      access_modes = ["ReadWriteOnce"]
-      size         = "10Gi"
-      retain       = false
+      name = "backups"
+      size = "10Gi"
     }
   }
 
@@ -121,7 +115,7 @@ resource "kubernetes_manifest" "n8n_op" {
         name = "1password"
         kind = "ClusterSecretStore"
       }
-      dataFrom = [ { extract = { key = "n8n" } } ]
+      dataFrom = [{ extract = { key = "n8n" } }]
     }
   }
 }

@@ -43,7 +43,7 @@ resource "helm_release" "ingress_nginx" {
       # dnsPolicy   = "ClusterFirstWithHostNet" # Use cluster DNS, even in host network
 
       metrics = {
-        enabled        = true
+        enabled = true
         serviceMonitor = {
           enabled = true
         }

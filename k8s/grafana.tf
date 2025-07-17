@@ -33,7 +33,7 @@ resource "helm_release" "grafana" {
   values = [yamlencode({
     useStatefulSet = true # OpenEBS doesn't support RWX
     persistence = {
-      enabled = true
+      enabled          = true
       storageClassName = "openebs-replicated"
     }
     ingress = module.grafana_ingress.host_list
@@ -73,15 +73,15 @@ resource "helm_release" "grafana" {
 
       # Needs label `grafana_alert=1`
       alerts = {
-        enabled = true
-        resource = "configmap"
+        enabled         = true
+        resource        = "configmap"
         searchNamespace = "ALL"
       }
 
       # Needs label `grafana_dashboard=1`
       dashboards = {
-        enabled = true
-        resource = "configmap"
+        enabled         = true
+        resource        = "configmap"
         searchNamespace = "ALL"
 
         defaultFolderName = "collected" # target subdirectory in the PV
@@ -95,8 +95,8 @@ resource "helm_release" "grafana" {
 
       # Needs label `grafana_datasource=1`
       datasources = {
-        enabled = true
-        resource = "configmap"
+        enabled         = true
+        resource        = "configmap"
         searchNamespace = "ALL"
       }
 
@@ -109,8 +109,8 @@ resource "helm_release" "grafana" {
 
       # Needs label `grafana_notifier=1`
       notifiers = {
-        enabled = true
-        resource = "configmap"
+        enabled         = true
+        resource        = "configmap"
         searchNamespace = "ALL"
       }
     }
@@ -124,8 +124,8 @@ resource "kubernetes_cluster_role_v1" "grafana" {
   }
   rule {
     api_groups = [""]
-    resources = ["configmaps"]
-    verbs = ["get", "list", "watch"]
+    resources  = ["configmaps"]
+    verbs      = ["get", "list", "watch"]
   }
 }
 

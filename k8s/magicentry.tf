@@ -28,8 +28,8 @@ resource "helm_release" "magicentry" {
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
-      enabled      = true
-      size         = "1Gi"
+      enabled = true
+      size    = "1Gi"
     }
 
     # image = {
@@ -48,7 +48,7 @@ resource "helm_release" "magicentry" {
 
       external_url = "https://auth.dzerv.art"
 
-      auth_url_user_header = "X-Remote-User"
+      auth_url_user_header   = "X-Remote-User"
       auth_url_realms_header = "X-Remote-Group"
 
       oidc_enable = true
@@ -73,14 +73,14 @@ resource "helm_release" "magicentry" {
         },
         {
           // TODO: Just use proxy headers
-          id            = local.op_secrets.magicentry.files_id
-          secret        = local.op_secrets.magicentry.files_secret
+          id     = local.op_secrets.magicentry.files_id
+          secret = local.op_secrets.magicentry.files_secret
           redirect_uris = [
             "https://files.dzerv.art/api/session/auth/",
             "https://files.dzerv.art/",
           ]
-          origins       = ["https://files.dzerv.art"]
-          realms        = ["files", "public"]
+          origins = ["https://files.dzerv.art"]
+          realms  = ["files", "public"]
         },
         {
           id            = local.op_secrets.magicentry.notes_id
@@ -140,8 +140,8 @@ resource "kubernetes_network_policy_v1" "magicentry_ingress" {
         }
       }
       # ports {
-        # protocol = "TCP"
-        # port     = 8080
+      # protocol = "TCP"
+      # port     = 8080
       # }
     }
   }

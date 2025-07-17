@@ -8,10 +8,10 @@ module "n8n_runners" {
   type     = "deployment"
   replicas = 0
 
-  name      = "n8n-runners"
-  image     = "ghcr.io/dzervas/n8n:latest"
-  command   = ["/usr/local/bin/task-runner-launcher"]
-  args      = ["javascript"]
+  name    = "n8n-runners"
+  image   = "ghcr.io/dzervas/n8n:latest"
+  command = ["/usr/local/bin/task-runner-launcher"]
+  args    = ["javascript"]
 
   # TODO: Liveness probe GET /healthz on 5680
 

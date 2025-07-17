@@ -19,15 +19,15 @@ terraform {
 
   required_providers {
     kubernetes = {
-      source = "hashicorp/kubernetes"
+      source  = "hashicorp/kubernetes"
       version = "~> 2"
     }
     helm = {
-      source = "hashicorp/helm"
+      source  = "hashicorp/helm"
       version = "~> 3"
     }
     onepassword = {
-      source = "1Password/onepassword"
+      source  = "1Password/onepassword"
       version = "~> 2"
     }
   }

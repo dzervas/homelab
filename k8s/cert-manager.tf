@@ -102,7 +102,7 @@ resource "kubernetes_manifest" "cm_op_secrets" {
         name = "1password"
         kind = "ClusterSecretStore"
       }
-      dataFrom = [ { extract = { key = "cert-manager" } } ]
+      dataFrom = [{ extract = { key = "cert-manager" } }]
     }
   }
 }

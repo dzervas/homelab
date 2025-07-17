@@ -29,38 +29,38 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
             # TODO: Better way to decide what pod these services should have access to
             # ingress-nginx needs to be able to access the services that have an ingress pointing to them
             # prometheus needs to be able to access pods/services that have a service/podmonitor pointing to them
-            values   = ["ingress", "prometheus"]
+            values = ["ingress", "prometheus"]
           }
         }
       }
     }
 
     # egress {
-      # # Allow intra-namespace traffic
-      # to {
-        # pod_selector {}
-      # }
+    # # Allow intra-namespace traffic
+    # to {
+    # pod_selector {}
+    # }
 
-      # # Allow internet
-      # to {
-        # ip_block {
-          # cidr = "0.0.0.0/0"
-        # }
-      # }
+    # # Allow internet
+    # to {
+    # ip_block {
+    # cidr = "0.0.0.0/0"
+    # }
+    # }
 
-      # # Allow kube-dns access
-      # to {
-        # namespace_selector {
-          # match_labels = {
-            # "kubernetes.io/metadata.name" = "kube-system"
-          # }
-        # }
-        # pod_selector {
-          # match_labels = {
-            # "k8s-app" = "kube-dns"
-          # }
-        # }
-      # }
+    # # Allow kube-dns access
+    # to {
+    # namespace_selector {
+    # match_labels = {
+    # "kubernetes.io/metadata.name" = "kube-system"
+    # }
+    # }
+    # pod_selector {
+    # match_labels = {
+    # "k8s-app" = "kube-dns"
+    # }
+    # }
+    # }
     # }
   }
 }

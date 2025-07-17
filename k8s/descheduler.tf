@@ -4,8 +4,8 @@ resource "kubernetes_manifest" "descheduler" {
     kind       = "HelmChart"
 
     metadata = {
-      name       = "descheduler"
-      namespace  = "kube-system"
+      name      = "descheduler"
+      namespace = "kube-system"
     }
 
     spec = {

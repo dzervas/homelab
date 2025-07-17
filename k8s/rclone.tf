@@ -120,7 +120,7 @@ resource "kubernetes_manifest" "rclone_secrets_op" {
         name = "1password"
         kind = "ClusterSecretStore"
       }
-      dataFrom = [ { extract = { key = "rclone" } } ]
+      dataFrom = [{ extract = { key = "rclone" } }]
     }
   }
 }
@@ -138,7 +138,7 @@ resource "kubernetes_manifest" "rclone_s3_op" {
         name = "1password"
         kind = "ClusterSecretStore"
       }
-      dataFrom = [ { extract = { key = "rclone-s3" } } ]
+      dataFrom = [{ extract = { key = "rclone-s3" } }]
     }
   }
 }

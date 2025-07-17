@@ -3,8 +3,8 @@ resource "kubernetes_namespace_v1" "openebs" {
     name = "openebs"
     labels = {
       # Required for the hostpath storage class
-      "pod-security.kubernetes.io/enforce"         = "privileged"
-      managed_by                                   = "terraform"
+      "pod-security.kubernetes.io/enforce" = "privileged"
+      managed_by                           = "terraform"
     }
   }
 
@@ -14,13 +14,13 @@ resource "kubernetes_namespace_v1" "openebs" {
 }
 
 resource "helm_release" "openebs" {
-  name             = "openebs"
-  namespace        = kubernetes_namespace_v1.openebs.metadata[0].name
+  name      = "openebs"
+  namespace = kubernetes_namespace_v1.openebs.metadata[0].name
 
-  repository        = "https://openebs.github.io/openebs"
-  chart             = "openebs"
-  version           = "4.3.2"
-  atomic            = true
+  repository = "https://openebs.github.io/openebs"
+  chart      = "openebs"
+  version    = "4.3.2"
+  atomic     = true
 
   set = [
     # Disable amd64 nodeSelectors - for the life of me, I can't get theme to work in the values
@@ -48,13 +48,13 @@ resource "helm_release" "openebs" {
         lvm = { enabled = false }
         zfs = { enabled = false }
       } }
-      loki = { enabled = false }
-      alloy = { enabled = false }
+      loki     = { enabled = false }
+      alloy    = { enabled = false }
       mayastor = { loki-stack = { enabled = false } }
     }),
     yamlencode({
       localpv-provisioner = {
-        localpv = { basePath = "/var/lib/openebs/local" }
+        localpv       = { basePath = "/var/lib/openebs/local" }
         hostpathClass = { reclaimPolicy = "Retain" }
       }
 
@@ -62,7 +62,7 @@ resource "helm_release" "openebs" {
         io_engine = {
           # TODO: Fix RDMA
           target = { nvmf = {
-            rdma = { enabled = true }
+            rdma  = { enabled = true }
             iface = "wg0"
           } }
 
@@ -79,7 +79,7 @@ resource "helm_release" "openebs" {
 
         storageClass = {
           nameSuffix = "replicated"
-          default = true
+          default    = true
           parameters = {
             repl = 2
             thin = "true"
@@ -93,7 +93,7 @@ resource "helm_release" "openebs" {
 
           # Use the default hostpath storage class
           persistence = {
-            storageClass = "openebs-hostpath"
+            storageClass  = "openebs-hostpath"
             reclaimPolicy = "Retain"
           }
         }
@@ -104,7 +104,7 @@ resource "helm_release" "openebs" {
       mayastor = {
         image = {
           registry = "ghcr.io/dzervas"
-          repo = "openebs"
+          repo     = "openebs"
         }
         # Fix the initContainers registry
         base = { initContainers = { image = { registry = "docker.io" } } }
@@ -263,12 +263,12 @@ resource "kubernetes_manifest" "opensebs_snapshot_class" {
     apiVersion = "snapshot.storage.k8s.io/v1"
     kind       = "VolumeSnapshotClass"
     metadata = {
-      name      = "openebs-replicated"
+      name = "openebs-replicated"
       annotations = {
         "snapshot.storage.kubernetes.io/is-default-class" = "true"
       }
     }
-    driver = "io.openebs.csi-mayastor"
+    driver         = "io.openebs.csi-mayastor"
     deletionPolicy = "Retain"
   }
 }

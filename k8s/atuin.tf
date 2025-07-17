@@ -20,9 +20,8 @@ module "atuin" {
 
   pvs = {
     "/db" = {
-      name         = "db"
-      size         = "1Gi"
-      retain       = true
+      name = "db"
+      size = "1Gi"
     }
   }
 }

@@ -3,14 +3,14 @@ resource "helm_release" "external-secrets" {
   namespace        = "external-secrets"
   create_namespace = true
 
-  repository       = "https://charts.external-secrets.io"
-  chart            = "external-secrets"
+  repository = "https://charts.external-secrets.io"
+  chart      = "external-secrets"
   # For updates: https://github.com/external-secrets/external-secrets/releases
   version = "0.18.2"
   atomic  = true
 
   values = [yamlencode({
-    serviceMonitor = { enabled = true }
+    serviceMonitor   = { enabled = true }
     grafanaDashboard = { enabled = true }
   })]
 
@@ -25,15 +25,15 @@ resource "kubernetes_manifest" "password_generator" {
     apiVersion = "generators.external-secrets.io/v1alpha1"
     kind       = "ClusterGenerator"
     metadata = {
-      name      = "password"
+      name = "password"
     }
     spec = {
       kind = "Password"
       generator = {
-        passwordSpec ={
-          length = 42
+        passwordSpec = {
+          length           = 42
           symbolCharacters = "-_+=~<>,."
-          allowRepeat = true
+          allowRepeat      = true
         }
       }
     }
@@ -51,17 +51,17 @@ resource "kubernetes_manifest" "_1password_store" {
     apiVersion = "external-secrets.io/v1"
     kind       = "ClusterSecretStore"
     metadata = {
-      name      = "1password"
+      name = "1password"
     }
     spec = {
       provider = {
         onepasswordSDK = {
           vault = "k8s-secrets"
-          auth  = {
+          auth = {
             serviceAccountSecretRef = {
               namespace = helm_release.external-secrets.namespace
-              name = "onepasswordsdk-sa-token"
-              key  = "token"
+              name      = "onepasswordsdk-sa-token"
+              key       = "token"
             }
           }
         }
@@ -78,7 +78,7 @@ resource "kubernetes_manifest" "ghcr_cluster_secret" {
     apiVersion = "external-secrets.io/v1"
     kind       = "ClusterExternalSecret"
     metadata = {
-      name      = "ghcr-cluster-secret"
+      name = "ghcr-cluster-secret"
     }
     spec = {
       externalSecretName = "ghcr-cluster-secret"
@@ -95,7 +95,7 @@ resource "kubernetes_manifest" "ghcr_cluster_secret" {
           name           = "ghcr-cluster-secret"
           creationPolicy = "Owner"
           template = {
-            type = "kubernetes.io/dockerconfigjson"
+            type          = "kubernetes.io/dockerconfigjson"
             engineVersion = "v2"
             data = {
               ".dockerconfigjson" = jsonencode({
@@ -110,7 +110,7 @@ resource "kubernetes_manifest" "ghcr_cluster_secret" {
           }
         }
 
-        dataFrom = [ { extract = { key = "external-secrets" } } ]
+        dataFrom = [{ extract = { key = "external-secrets" } }]
       }
     }
   }

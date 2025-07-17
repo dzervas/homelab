@@ -11,11 +11,8 @@ module "radicale" {
   retain_pvs = true
   pvs = {
     "/data" = {
-      name         = "originals"
-      read_only    = false
-      access_modes = ["ReadWriteOnce"]
-      size         = "10Gi"
-      retain       = true
+      name = "originals"
+      size = "10Gi"
     }
   }
 

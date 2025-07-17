@@ -37,17 +37,17 @@ resource "helm_release" "loki" {
         retention_period = "90d"
       }
       compactor = {
-        retention_enabled = true
+        retention_enabled      = true
         retention_delete_delay = "2h"
-        delete_request_store = "filesystem"
+        delete_request_store   = "filesystem"
       }
     }
     deploymentMode = "SingleBinary"
     singleBinary = {
       replicas = 1
       persistence = {
-        enabled          = true
-        size             = "20Gi"
+        enabled = true
+        size    = "20Gi"
       }
     }
     backend = { replicas = 0 }

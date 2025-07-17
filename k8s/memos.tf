@@ -7,8 +7,8 @@ module "memos" {
   image_pull_policy = true
   port              = 5230
 
-  fqdn              = "notes.${var.domain}"
-  auth              = "mtls"
+  fqdn = "notes.${var.domain}"
+  auth = "mtls"
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "32m" # Also defined in the settings
   }
@@ -16,11 +16,8 @@ module "memos" {
   retain_pvs = true
   pvs = {
     "/var/opt/memos" = {
-      name         = "data"
-      read_only    = false
-      access_modes = ["ReadWriteOnce"]
-      size         = "1Gi" # It's actually 10, but I can't edit the statefulset
-      retain       = true
+      name = "data"
+      size = "1Gi" # It's actually 10, but I can't edit the statefulset
     }
   }
 
