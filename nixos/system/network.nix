@@ -52,27 +52,8 @@ in {
 
   services = {
     # Needs to be manually initialized with:
-    # zerotier-cli join <network-id>
-    zerotierone = {
-      enable = true;
-      # Don't peek at the k8s interfaces
-      localConf.settings.interfacePrefixBlacklist = [
-        # Flannel/Canal
-        "flannel"
-        "cni"
-        "veth"
-
-        # Calico/Canal
-        "cali"
-
-        # Cilium
-        "cilium_"
-        "lxc"
-
-        # WireGuard
-        node-vpn-iface
-      ];
-    };
+    # tailscale up --login-server https://vpn.dzerv.art:9999
+    tailscale.enable = true;
 
     wgautomesh = {
       enable = true;

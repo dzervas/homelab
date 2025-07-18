@@ -106,3 +106,26 @@ resource "kubernetes_manifest" "cm_op_secrets" {
     }
   }
 }
+
+resource "kubernetes_manifest" "cm_headscale_cert" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "headscale-vpn"
+      namespace = helm_release.cert_manager.namespace
+      labels = {
+        managed_by = "terraform"
+      }
+    }
+
+    spec = {
+      secretName = "headscale-vpn-certificate"
+      dnsNames   = ["vpn.${var.domain}"]
+      issuerRef = {
+        name = "letsencrypt"
+        kind = "ClusterIssuer"
+      }
+    }
+  }
+}

@@ -1,7 +1,6 @@
 { hostIndex, node-vpn-iface, node-vpn-prefix, pkgs, role, ... }: {
   imports = [
     ./config.nix
-    ./cron.nix
     ./etcd.nix
     ./firewall.nix
     ./kernel.nix
@@ -38,4 +37,7 @@
     enable = true;
     interfaces = [ node-vpn-iface ];
   };
+
+  # Remove old k3s container images daily
+  services.cron.systemCronJobs = ["@daily /var/lib/rancher/rke2/bin/crictl rmi --prune"];
 }
