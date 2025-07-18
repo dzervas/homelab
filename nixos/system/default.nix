@@ -29,9 +29,6 @@ _: {
     "fs.inotify.max_queued_events" = 32768;
     "fs.inotify.max_user_instances" = 512;
     "fs.inotify.max_user_watches" = 524288;
-
-    # Enable hugepages (for openEBS)
-    "vm.nr_hugepages" = 1024;
   };
 
   time.timeZone = "Europe/Athens";

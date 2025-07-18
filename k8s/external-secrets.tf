@@ -1,4 +1,4 @@
-resource "helm_release" "external-secrets" {
+resource "helm_release" "external_secrets" {
   name             = "external-secrets"
   namespace        = "external-secrets"
   create_namespace = true
@@ -39,7 +39,7 @@ resource "kubernetes_manifest" "password_generator" {
     }
   }
 
-  depends_on = [helm_release.external-secrets]
+  depends_on = [helm_release.external_secrets]
 }
 
 # Requires Service Account credentials:
@@ -59,7 +59,7 @@ resource "kubernetes_manifest" "_1password_store" {
           vault = "k8s-secrets"
           auth = {
             serviceAccountSecretRef = {
-              namespace = helm_release.external-secrets.namespace
+              namespace = helm_release.external_secrets.namespace
               name      = "onepasswordsdk-sa-token"
               key       = "token"
             }
@@ -68,8 +68,6 @@ resource "kubernetes_manifest" "_1password_store" {
       }
     }
   }
-
-  depends_on = [helm_release.external-secrets]
 }
 
 # Cluster-wide ghcr access
@@ -96,7 +94,6 @@ resource "kubernetes_manifest" "ghcr_cluster_secret" {
           creationPolicy = "Owner"
           template = {
             type          = "kubernetes.io/dockerconfigjson"
-            engineVersion = "v2"
             data = {
               ".dockerconfigjson" = jsonencode({
                 auths = {
@@ -114,6 +111,8 @@ resource "kubernetes_manifest" "ghcr_cluster_secret" {
       }
     }
   }
+
+  depends_on = [helm_release.external_secrets]
 }
 
 # TODO: Manage admission controller webhooks for all namespaces (if labeled) as follows
@@ -121,7 +120,7 @@ resource "kubernetes_manifest" "ghcr_cluster_secret" {
 resource "kubernetes_network_policy_v1" "external_secrets_webhook" {
   metadata {
     name      = "allow-external-secrets-webhook"
-    namespace = helm_release.external-secrets.namespace
+    namespace = helm_release.external_secrets.namespace
   }
   spec {
     pod_selector {
