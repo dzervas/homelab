@@ -35,5 +35,14 @@
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       ];
     };
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 7d";
+      dates = "08:00:00";
+    };
+    optimise = {
+      automatic = true;
+      dates = ["09:00:00"];
+    };
   };
 }

@@ -7,12 +7,6 @@
     ./kernel.nix
   ];
 
-  # Add RKE2 utilities to path (kubectl and friends)
-  environment = {
-    sessionVariables.PATH = "/var/lib/rancher/rke2/bin";
-    systemPackages = with pkgs; [ rdma-core ];
-  };
-
   # TODO: Add graceful shutdown like the k3s module
 
   services.rke2 = let
@@ -33,10 +27,15 @@
     # selinux = true;
   };
 
+  # Add RKE2 utilities to path (kubectl and friends)
+  environment = {
+    sessionVariables.PATH = "/var/lib/rancher/rke2/bin";
+    systemPackages = with pkgs; [ rdma-core ];
+  };
+
   # OpenEBS RDMA
   networking.rxe = {
     enable = true;
     interfaces = [ node-vpn-iface ];
   };
-  hardware.infiniband.enable = true;
 }
