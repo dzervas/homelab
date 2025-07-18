@@ -1,3 +1,4 @@
+# Currently not possible with calico global network policies: https://github.com/projectcalico/calico/issues/6107
 data "kubernetes_all_namespaces" "all" {}
 
 resource "kubernetes_network_policy_v1" "default_ingress" {
@@ -29,38 +30,46 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
             # TODO: Better way to decide what pod these services should have access to
             # ingress-nginx needs to be able to access the services that have an ingress pointing to them
             # prometheus needs to be able to access pods/services that have a service/podmonitor pointing to them
+            # A global network policy would be better suited for this
             values = ["ingress", "prometheus"]
           }
         }
       }
     }
-
-    # egress {
-    # # Allow intra-namespace traffic
-    # to {
-    # pod_selector {}
-    # }
-
-    # # Allow internet
-    # to {
-    # ip_block {
-    # cidr = "0.0.0.0/0"
-    # }
-    # }
-
-    # # Allow kube-dns access
-    # to {
-    # namespace_selector {
-    # match_labels = {
-    # "kubernetes.io/metadata.name" = "kube-system"
-    # }
-    # }
-    # pod_selector {
-    # match_labels = {
-    # "k8s-app" = "kube-dns"
-    # }
-    # }
-    # }
-    # }
   }
 }
+
+# resource "kubernetes_manifest" "default_np" {
+#   manifest = {
+#     apiVersion = "crd.projectcalico.org/v1"
+#     kind       = "GlobalNetworkPolicy"
+#     metadata = {
+#       name      = "default"
+#     }
+#     spec = {
+#       # Traffic TO the pods
+#       types = ["Ingress"]
+#       selector = "all()"
+#
+#       ingress = [
+#         {
+#           # `default` hosts the kubernetes service (kubernetes api)
+#           # `kube-system` hosts DNS, the actual kube api server, etc.
+#           action = "Allow"
+#           protocol = "TCP"
+#           destination = {
+#             namespaceSelector = "projectcalico.org/name in {'default', 'kube-system', 'ingress'}"
+#           }
+#         },
+#         {
+#           # Allow traffic from prometheus (to scrape metrics) and ingress-nginx (to route traffic)
+#           action = "Allow"
+#           protocol = "TCP"
+#           source = {
+#             namespaceSelector = "projectcalico.org/name in {'ingress', 'prometheus'}"
+#           }
+#         }
+#       ]
+#     }
+#   }
+# }
