@@ -33,6 +33,10 @@ in {
       config.networking.fqdn
     ];
 
+    oidc = {
+      only_start_if_oidc_is_available = false;
+    };
+
     # TODO: Available in next update v1.31.8+rke2r1:
     # secrets-encryption-provider = "aescbc";
   } else {}));

@@ -14,8 +14,8 @@
       node-vpn-prefix = "10.20.30";
       node-vpn-iface = "wg0";
 
-      home-vpn-prefix = "10.11.12";
-      home-vpn-iface = "ztrfyoirbv";
+      home-vpn-prefix = "100.100.50";
+      home-vpn-iface = "tailscale0";
     };
     modules = [
       disko.nixosModules.disko

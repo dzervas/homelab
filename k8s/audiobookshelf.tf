@@ -14,7 +14,7 @@ module "audiobookshelf_ingress" {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "4096m"
 
     "nginx.ingress.kubernetes.io/auth-url"    = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
-    "nginx.ingress.kubernetes.io/auth-signin" = "https://auth.dzerv.art/login"
+    "nginx.ingress.kubernetes.io/auth-signin" = "https://auth.${var.domain}/login"
     # "nginx.ingress.kubernetes.io/auth-url"    = "http://10.11.12.50:8181/auth-url/status"
     # "nginx.ingress.kubernetes.io/auth-signin" = "http://localhost:8181/login"
 

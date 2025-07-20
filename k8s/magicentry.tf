@@ -51,43 +51,20 @@ resource "helm_release" "magicentry" {
       auth_url_user_header   = "X-Remote-User"
       auth_url_realms_header = "X-Remote-Group"
 
-      oidc_enable = true
-      oidc_clients = [
+      services = [
         {
-          id            = local.op_secrets.magicentry.audiobooks_id
-          secret        = local.op_secrets.magicentry.audiobooks_secret
-          origins       = ["https://audiobooks.dzerv.art"]
-          redirect_uris = ["https://audiobooks.dzerv.art/auth/openid/callback"]
+          name          = "Audiobooks"
+          url           = "https://audiobooks.dzerv.art"
+          valid_origins = ["https://audiobooks.dzerv.art"]
           realms        = ["audiobooks", "public"]
-        },
-        {
-          id     = local.op_secrets.magicentry.cook_id
-          secret = local.op_secrets.magicentry.cook_secret
-          redirect_uris = [
-            "https://cook.dzerv.art/",
-            "https://cook.dzerv.art/login/",
-            "https://cook.dzerv.art/login/?direct=1"
-          ]
-          origins = ["https://cook.dzerv.art"]
-          realms  = ["cook"]
-        },
-        {
-          // TODO: Just use proxy headers
-          id     = local.op_secrets.magicentry.files_id
-          secret = local.op_secrets.magicentry.files_secret
-          redirect_uris = [
-            "https://files.dzerv.art/api/session/auth/",
-            "https://files.dzerv.art/",
-          ]
-          origins = ["https://files.dzerv.art"]
-          realms  = ["files", "public"]
-        },
-        {
-          id            = local.op_secrets.magicentry.notes_id
-          secret        = local.op_secrets.magicentry.notes_secret
-          redirect_uris = ["https://notes.dzerv.art/oauth/callback"]
-          origins       = ["https://notes.dzerv.art"]
-          realms        = ["notes", "public"]
+
+          auth_url = { origins = ["https://audiobooks.dzerv.art"] }
+
+          oidc = {
+            client_id            = local.op_secrets.magicentry.audiobooks_id
+            client_secret        = local.op_secrets.magicentry.audiobooks_secret
+            redirect_urls = ["https://audiobooks.dzerv.art/auth/openid/callback"]
+          }
         },
       ]
       users = [
