@@ -18,6 +18,8 @@ in {
       "provider=${config.setup.provider}"
       "openebs.io/engine=mayastor"
     ];
+
+    resolv-conf = "/etc/rancher/rke2/resolv.conf";
   } // (if role == "server" then {
     cni = "canal";
     advertise-address = nodeIP;

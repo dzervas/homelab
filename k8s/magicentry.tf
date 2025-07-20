@@ -7,12 +7,6 @@ module "magicentry_ingress" {
   additional_annotations = {
     "cert-manager.io/cluster-issuer"           = "letsencrypt"
     "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
-    # "nginx.ingress.kubernetes.io/configuration-snippet" = <<EOF
-    #   location /oidc/token {
-    #     deny all;
-    #     return 403;
-    #   }
-    # EOF
   }
 }
 
@@ -24,7 +18,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.5.2"
+  version    = "0.6.0"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -32,18 +26,18 @@ resource "helm_release" "magicentry" {
       size    = "1Gi"
     }
 
-    image = {
-      repository  = "ghcr.io/dzervas/magicentry"
-      tag         = "kube-main"
-      pull_policy = "Always"
-    }
+    # image = {
+    #   repository  = "ghcr.io/dzervas/magicentry"
+    #   tag         = "kube-main"
+    #   pull_policy = "Always"
+    # }
 
     config = {
       title          = "DZerv.Art Auth Service"
       request_enable = false
       smtp_enable    = true
-      smtp_url       = "smtp://noreply%40dzerv.art:${local.op_secrets.magicentry.mail_pass}@smtp.office365.com:587/?tls=required"
-      smtp_from      = "DZerv.Art Auth Service <noreply@dzerv.art>"
+      smtp_url       = "smtp://auth%40dzerv.art:${local.op_secrets.magicentry.mail_pass}@smtp-hve.office365.com:587/?tls=required"
+      smtp_from      = "DZerv.Art Auth Service <auth@dzerv.art>"
       smtp_body      = "Click the link to login: <a href=\"{magic_link}\">Login</a>"
 
       external_url = "https://auth.dzerv.art"
@@ -51,36 +45,22 @@ resource "helm_release" "magicentry" {
       auth_url_user_header   = "X-Remote-User"
       auth_url_realms_header = "X-Remote-Group"
 
-      oidc_enable = true
-      oidc_clients = [
+      services = [
         {
-          id            = local.op_secrets.magicentry.audiobooks_id
-          secret        = local.op_secrets.magicentry.audiobooks_secret
-          origins       = ["https://audiobooks.dzerv.art"]
-          redirect_uris = [
-            "https://audiobooks.dzerv.art/login",
-            "https://audiobooks.dzerv.art/auth/openid/callback"
-          ]
+          name          = "Audiobooks"
+          url           = "https://audiobooks.dzerv.art"
+          valid_origins = ["https://audiobooks.dzerv.art"]
           realms        = ["audiobooks", "public"]
-        }
-      ]
 
-      # services = [
-      #   {
-      #     name          = "Audiobooks"
-      #     url           = "https://audiobooks.dzerv.art"
-      #     valid_origins = ["https://audiobooks.dzerv.art"]
-      #     realms        = ["audiobooks", "public"]
-      #
-      #     auth_url = { origins = ["https://audiobooks.dzerv.art"] }
-      #
-      #     oidc = {
-      #       client_id            = local.op_secrets.magicentry.audiobooks_id
-      #       client_secret        = local.op_secrets.magicentry.audiobooks_secret
-      #       redirect_urls = ["https://audiobooks.dzerv.art/auth/openid/callback"]
-      #     }
-      #   },
-      # ]
+          auth_url = { origins = ["https://audiobooks.dzerv.art"] }
+
+          oidc = {
+            client_id            = local.op_secrets.magicentry.audiobooks_id
+            client_secret        = local.op_secrets.magicentry.audiobooks_secret
+            redirect_urls = ["https://audiobooks.dzerv.art/auth/openid/callback"]
+          }
+        },
+      ]
 
       users = [
         { name = "Dimitris Zervas", email = "dzervas@dzervas.gr", username = "dzervas", realms = ["all"] },

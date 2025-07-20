@@ -36,8 +36,8 @@
   };
 
   # Have a 100% concrete and clean DNS config - avoids potential local DHCP/DNS fuckery
-  # environment.etc."rancher/rke2/resolv.conf".text = ''
-  #   nameserver 1.1.1.1
-  #   nameserver 1.0.0.1
-  # '';
+  environment.etc."rancher/rke2/resolv.conf".text = ''
+    nameserver 1.1.1.1
+    nameserver 1.0.0.1
+  '';
 }
