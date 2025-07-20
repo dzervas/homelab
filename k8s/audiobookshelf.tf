@@ -18,7 +18,7 @@ module "audiobookshelf_ingress" {
     # "nginx.ingress.kubernetes.io/auth-url"    = "http://10.11.12.50:8181/auth-url/status"
     # "nginx.ingress.kubernetes.io/auth-signin" = "http://localhost:8181/login"
 
-    "nginx.ingress.kubernetes.io/auth-cache-duration" = "200 202 10m, 401 1m"
+    "nginx.ingress.kubernetes.io/auth-cache-duration" = "200 202 10m"
     "nginx.ingress.kubernetes.io/auth-cache-key"      = "$remote_user$http_authorization"
   }
 }

@@ -32,11 +32,11 @@ resource "helm_release" "magicentry" {
       size    = "1Gi"
     }
 
-    # image = {
-    #   repository  = "ghcr.io/dzervas/magicentry"
-    #   tag         = "kube-main"
-    #   pull_policy = "Always"
-    # }
+    image = {
+      repository  = "ghcr.io/dzervas/magicentry"
+      tag         = "kube-main"
+      pull_policy = "Always"
+    }
 
     config = {
       title          = "DZerv.Art Auth Service"
@@ -51,22 +51,37 @@ resource "helm_release" "magicentry" {
       auth_url_user_header   = "X-Remote-User"
       auth_url_realms_header = "X-Remote-Group"
 
-      services = [
+      oidc_enable = true
+      oidc_clients = [
         {
-          name          = "Audiobooks"
-          url           = "https://audiobooks.dzerv.art"
-          valid_origins = ["https://audiobooks.dzerv.art"]
+          id            = local.op_secrets.magicentry.audiobooks_id
+          secret        = local.op_secrets.magicentry.audiobooks_secret
+          origins       = ["https://audiobooks.dzerv.art"]
+          redirect_uris = [
+            "https://audiobooks.dzerv.art/login",
+            "https://audiobooks.dzerv.art/auth/openid/callback"
+          ]
           realms        = ["audiobooks", "public"]
-
-          auth_url = { origins = ["https://audiobooks.dzerv.art"] }
-
-          oidc = {
-            client_id            = local.op_secrets.magicentry.audiobooks_id
-            client_secret        = local.op_secrets.magicentry.audiobooks_secret
-            redirect_urls = ["https://audiobooks.dzerv.art/auth/openid/callback"]
-          }
-        },
+        }
       ]
+
+      # services = [
+      #   {
+      #     name          = "Audiobooks"
+      #     url           = "https://audiobooks.dzerv.art"
+      #     valid_origins = ["https://audiobooks.dzerv.art"]
+      #     realms        = ["audiobooks", "public"]
+      #
+      #     auth_url = { origins = ["https://audiobooks.dzerv.art"] }
+      #
+      #     oidc = {
+      #       client_id            = local.op_secrets.magicentry.audiobooks_id
+      #       client_secret        = local.op_secrets.magicentry.audiobooks_secret
+      #       redirect_urls = ["https://audiobooks.dzerv.art/auth/openid/callback"]
+      #     }
+      #   },
+      # ]
+
       users = [
         { name = "Dimitris Zervas", email = "dzervas@dzervas.gr", username = "dzervas", realms = ["all"] },
         { name = "Fani", email = "fani-garouf@hotmail.com", username = "fani", realms = ["audiobooks", "cook"] },
@@ -111,9 +126,9 @@ resource "kubernetes_network_policy_v1" "magicentry_ingress" {
           }
         }
         pod_selector {
-          match_labels = {
-            "magicentry.rs/enable" = "true"
-          }
+          # match_labels = {
+          #   "magicentry.rs/enable" = "true"
+          # }
         }
       }
       # ports {

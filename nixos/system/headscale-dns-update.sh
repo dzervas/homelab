@@ -24,11 +24,12 @@ for svc in $services; do
 done
 ingresses=${ingresses%,} # Remove trailing comma
 
-kube_api=$(kubectl get nodes -l node-role.kubernetes.io/control-plane=true -o wide | grep Ready | awk '{print $6}' | head -1)
+kube_api_host=$(kubectl get nodes -l node-role.kubernetes.io/control-plane=true | grep Ready | awk '{print $1}' | head -1)
+kube_api_ip=$(tailscale ip -4 "$kube_api_host")
 nodes=$(headscale nodes ls -o json | jq 'map({name: (.given_name + ".dzerv.art"), type: "A", value: (.ip_addresses | map(select(contains("."))) | first)})')
 
 jq --slurp 'reduce .[] as $x ([]; . + $x)' \
-	<(echo '[{"name": "kube.dzerv.art", "type": "A", "value": "'"$kube_api"'"}]' | jq -c) \
+	<(echo '[{"name": "kube.dzerv.art", "type": "A", "value": "'"$kube_api_ip"'"}]' | jq -c) \
 	<(echo "[$ingresses]" | jq -c) \
 	<(echo "$nodes" | jq -c) \
 	> /var/lib/headscale/dns.json

@@ -31,6 +31,7 @@ in {
       "${home-vpn-prefix}.${hostIndex}"
       nodeIP
       config.networking.fqdn
+      "kube.${config.networking.domain}"
     ];
 
     oidc = {

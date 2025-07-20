@@ -15,11 +15,12 @@ resource "helm_release" "ingress_nginx" {
   namespace        = kubernetes_namespace_v1.ingress.metadata[0].name
   create_namespace = false
   atomic           = true
+  timeout          = 600 # Daemonset takes time
 
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   # For upgrading: https://github.com/kubernetes/ingress-nginx/releases
-  version = "4.12.3"
+  version = "4.12.4"
 
   values = [yamlencode({
     controller = {
