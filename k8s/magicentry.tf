@@ -18,7 +18,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.6.0"
+  version    = "0.6.1"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -36,8 +36,8 @@ resource "helm_release" "magicentry" {
       title          = "DZerv.Art Auth Service"
       request_enable = false
       smtp_enable    = true
-      smtp_url       = "smtp://auth%40dzerv.art:${local.op_secrets.magicentry.mail_pass}@smtp-hve.office365.com:587/?tls=required"
-      smtp_from      = "DZerv.Art Auth Service <auth@dzerv.art>"
+      smtp_url       = "smtp://noreply%40dzerv.art:${local.op_secrets.magicentry.mail_pass}@smtp.office365.com:587/?tls=required"
+      smtp_from      = "DZerv.Art Auth Service <noreply@dzerv.art>"
       smtp_body      = "Click the link to login: <a href=\"{magic_link}\">Login</a>"
 
       external_url = "https://auth.dzerv.art"
