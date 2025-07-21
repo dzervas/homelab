@@ -2,6 +2,8 @@
   environment.systemPackages = map lib.lowPrio (with pkgs; [
     btop
     curl
+    dig
+    dnslookup
     git
     jq
   ]);

@@ -52,7 +52,12 @@ in {
       name = "rke2-canal-config";
       text = builtins.readFile ./rke2-canal-config.yaml;
     };
+    rke2-coredns-config = pkgs.writeTextFile {
+      name = "rke2-coredns-config";
+      text = builtins.readFile ./rke2-coredns-config.yaml;
+    };
   in {
-    "/var/lib/rancher/rke2/server/manifests/rke2-canal-config.yaml".L.argument = toString rke2-canal-config;
+    "/var/lib/rancher/rke2/server/manifests/rke2-canal-config.yaml".C.argument = toString rke2-canal-config;
+    "/var/lib/rancher/rke2/server/manifests/rke2-coredns-config.yaml".C.argument = toString rke2-coredns-config;
   }) else {};
 }

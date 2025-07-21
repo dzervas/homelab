@@ -53,7 +53,14 @@ in {
   services = {
     # Needs to be manually initialized with:
     # tailscale up --login-server https://vpn.dzerv.art:9999
-    tailscale.enable = true;
+    tailscale = {
+      enable = true;
+      # Disable DNS takeover as it fucks up the cluster DNS too
+      extraSetFlags = [
+        "--accept-dns=false"
+        "--advertise-exit-node"
+      ];
+    };
 
     wgautomesh = {
       enable = true;
