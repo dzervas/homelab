@@ -55,8 +55,8 @@ resource "helm_release" "magicentry" {
           auth_url = { origins = ["https://audiobooks.dzerv.art"] }
 
           oidc = {
-            client_id            = local.op_secrets.magicentry.audiobooks_id
-            client_secret        = local.op_secrets.magicentry.audiobooks_secret
+            client_id     = local.op_secrets.magicentry.audiobooks_id
+            client_secret = local.op_secrets.magicentry.audiobooks_secret
             redirect_urls = ["https://audiobooks.dzerv.art/auth/openid/callback"]
           }
         },

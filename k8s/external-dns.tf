@@ -12,20 +12,31 @@ resource "helm_release" "external_dns" {
   values = [yamlencode({
     sources = ["ingress"]
     policy = "sync"
-    domainFilters = [".${var.domain}"]
+    domainFilters = [var.domain]
     provider = { name = "cloudflare" }
+    managedRecordTypes = ["CNAME"]
 
-    env = [
-      {
-        name = "CF_API_TOKEN"
-        valueFrom = {
-          secretKeyRef = {
-            name = "cloudflare-api-token"
-            key = "cloudflare-api-token"
-          }
+    env = [{
+      name = "CF_API_TOKEN"
+      valueFrom = {
+        secretKeyRef = {
+          name = "cloudflare-api-token"
+          key = "cloudflare-api-token"
         }
-      },
-    ]
+      }
+    }]
+
+    extraArgs = {
+      ingress-class = "nginx"
+    }
+
+    rbac = {
+      additionalPermissions = [{
+        apiGroups = [""]
+        resources = ["nodes"]
+        verbs = ["list"]
+      }]
+    }
 
     serviceMonitor = { enabled = true }
   })]

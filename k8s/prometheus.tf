@@ -20,8 +20,7 @@ resource "helm_release" "prometheus" {
   values = [
     yamlencode({
       # Grafana deployed separately
-      grafana      = { enabled = false }
-      alertmanager = { enabled = false }
+      grafana = { enabled = false }
     }),
     yamlencode({
       # Upgrade CRDs automatically
@@ -33,6 +32,13 @@ resource "helm_release" "prometheus" {
       }
     }),
     yamlencode({
+      # Default alert rules
+      defaultRules = { rules = {
+        # RKE2 doesn't have a scheduler pod
+        kubeScheduler = false
+      } }
+    }),
+    yamlencode({
       prometheusOperator = { networkPolicy = { enabled = true } }
 
       prometheus = {
@@ -40,7 +46,10 @@ resource "helm_release" "prometheus" {
         # TODO: Configure this?
         networkPolicy = { enabled = false }
 
+        # Allow rules from any namespace without any special annotation/label
         prometheusSpec = {
+          # scrapeInterval = "15s"
+
           podMonitorSelector                  = {}
           podMonitorNamespaceSelector         = { any = true }
           podMonitorSelectorNilUsesHelmValues = false
@@ -52,6 +61,12 @@ resource "helm_release" "prometheus" {
           serviceMonitorSelector                  = {}
           serviceMonitorNamespaceSelector         = { any = true }
           serviceMonitorSelectorNilUsesHelmValues = false
+
+          storageSpec = {
+            volumeClaimTemplate = {
+              spec = { resources = { requests = { storage = "10Gi" } } }
+            }
+          }
         }
       }
     })
