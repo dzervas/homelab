@@ -1,9 +1,9 @@
 resource "helm_release" "mimir" {
   name       = "mimir"
   namespace  = kubernetes_namespace_v1.prometheus.metadata[0].name
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "kube-prometheus-stack"
-  version    = "75.11.0"
+  repository = "https://grafana.github.io/helm-charts"
+  chart      = "mimir-distributed"
+  version    = "5.7.0"
   atomic     = true
 
   values = [
@@ -14,7 +14,6 @@ resource "helm_release" "mimir" {
       minio              = { enabled = false }
       nginx              = { enabled = false }
       overrides_exporter = { enabled = false }
-      query_frontend     = { enabled = false }
       query_scheduler    = { enabled = false }
       rollout_operator   = { enabled = false }
       ruler              = { enabled = false }
@@ -23,13 +22,10 @@ resource "helm_release" "mimir" {
       # Mimir config
       mimir = {
         structuredConfig = {
+          multitenancy_enabled = false # Otherwise it requires an Org ID
+          blocks_storage = { backend = "filesystem" }
           common = {
-            storage = {
-              backend = "filesystem"
-              # filesystem = {
-              #   directory = "/mimir"
-              # }
-            }
+            storage = { backend = "filesystem" }
           }
         }
       }
@@ -40,9 +36,10 @@ resource "helm_release" "mimir" {
         persistentVolume = { size = "10Gi" }
       }
       ingester = {
-        persistentVolume = { size = "20Gi" }
+        zoneAwareReplication = { enabled = false }
       }
       store_gateway = {
+        zoneAwareReplication = { enabled = false }
         persistentVolume = { size = "5Gi" }
       }
     }),
@@ -61,33 +58,34 @@ resource "helm_release" "mimir" {
   ]
 }
 
-# resource "kubernetes_network_policy_v1" "mimir_grafana" {
-#   metadata {
-#     name      = "allow-mimir-grafana"
-#     namespace = helm_release.prometheus.namespace
-#   }
-#   spec {
-#     pod_selector {
-#       match_labels = {
-#         "app.kubernetes.io/name"      = "prometheus"
-#         "operator.prometheus.io/name" = "prometheus-kube-prometheus-prometheus"
-#       }
-#     }
-#     policy_types = ["Ingress"]
-#
-#     ingress {
-#       from {
-#         namespace_selector {
-#           match_labels = {
-#             "kubernetes.io/metadata.name" = "grafana"
-#           }
-#         }
-#         pod_selector {
-#           match_labels = {
-#             "app.kubernetes.io/name" = "grafana"
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+resource "kubernetes_network_policy_v1" "mimir_grafana" {
+  metadata {
+    name      = "allow-mimir-grafana"
+    namespace = helm_release.prometheus.namespace
+  }
+  spec {
+    pod_selector {
+      match_labels = {
+        "app.kubernetes.io/component" = "query-frontend"
+        "app.kubernetes.io/instance"  = "mimir"
+        "app.kubernetes.io/name"      = "mimir"
+      }
+    }
+    policy_types = ["Ingress"]
+
+    ingress {
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "grafana"
+          }
+        }
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/name" = "grafana"
+          }
+        }
+      }
+    }
+  }
+}

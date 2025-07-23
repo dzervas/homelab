@@ -38,7 +38,7 @@ resource "helm_release" "grafana" {
     }
     ingress = module.grafana_ingress.host_list
     "grafana.ini" = {
-      users = { allow_sign_up = false }
+      users    = { allow_sign_up = false }
       database = { wal = true }
     }
     datasources = {
@@ -59,6 +59,15 @@ resource "helm_release" "grafana" {
             name = "Alertmanager"
             type = "alertmanager"
             url  = "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:8080"
+          },
+          {
+            name                = "Mimir"
+            type                = "prometheus"
+            prometheusType      = "Mimir"
+            url                 = "http://mimir-query-frontend-headless.prometheus.svc.cluster.local:8080"
+            incrementalQuerying = "true"
+            cacheLevel          = "Medium"
+            isDefault           = true
           },
         ]
       }

@@ -39,6 +39,26 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
   }
 }
 
+# resource "kubernetes_network_policy_v1" "default_ingress_system" {
+#   # `default` hosts the kubernetes service (kubernetes api)
+#   # `kube-system` hosts DNS, the actual kube api server, etc.
+#   for_each = toset(["kube-system", "ingress", "default"])
+#   metadata {
+#     name      = "default-ingress"
+#     namespace = each.value
+#   }
+#   spec {
+#     pod_selector {}
+#     policy_types = ["Ingress"]
+#     ingress {
+#       from {
+#         namespace_selector {}
+#         pod_selector {}
+#       }
+#     }
+#   }
+# }
+
 # resource "kubernetes_manifest" "default_np" {
 #   manifest = {
 #     apiVersion = "crd.projectcalico.org/v1"

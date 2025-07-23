@@ -48,7 +48,7 @@ resource "helm_release" "prometheus" {
 
         # Allow rules from any namespace without any special annotation/label
         prometheusSpec = {
-          # scrapeInterval = "15s"
+          scrapeInterval = "15s"
 
           podMonitorSelector                  = {}
           podMonitorNamespaceSelector         = { any = true }
@@ -62,11 +62,8 @@ resource "helm_release" "prometheus" {
           serviceMonitorNamespaceSelector         = { any = true }
           serviceMonitorSelectorNilUsesHelmValues = false
 
-          storageSpec = {
-            volumeClaimTemplate = {
-              spec = { resources = { requests = { storage = "10Gi" } } }
-            }
-          }
+          # Send everything to mimir
+          remoteWrite = [{ url = "http://mimir-distributor-headless:8080/api/v1/push" }]
         }
       }
     })
@@ -85,8 +82,8 @@ resource "kubernetes_network_policy_v1" "prometheus_grafana" {
         "operator.prometheus.io/name" = "prometheus-kube-prometheus-prometheus"
       }
     }
-    policy_types = ["Ingress"]
 
+    policy_types = ["Ingress"]
     ingress {
       from {
         namespace_selector {

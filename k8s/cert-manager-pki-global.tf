@@ -30,10 +30,9 @@ resource "kubernetes_manifest" "kubernetes_store" {
   }
 }
 
-resource "kubernetes_role_v1" "cm_global_client_ca" {
+resource "kubernetes_cluster_role_v1" "cm_global_client_ca" {
   metadata {
     name      = "external-secrets-client-ca"
-    namespace = helm_release.cert_manager.namespace
   }
 
   rule {
@@ -55,15 +54,14 @@ resource "kubernetes_role_v1" "cm_global_client_ca" {
   }
 }
 
-resource "kubernetes_role_binding_v1" "cm_global_client_ca" {
+resource "kubernetes_cluster_role_binding_v1" "cm_global_client_ca" {
   metadata {
     name      = "external-secrets-client-ca"
-    namespace = helm_release.cert_manager.namespace
   }
   role_ref {
     api_group = "rbac.authorization.k8s.io"
-    kind      = "Role"
-    name      = kubernetes_role_v1.cm_global_client_ca.metadata[0].name
+    kind      = "ClusterRole"
+    name      = kubernetes_cluster_role_v1.cm_global_client_ca.metadata[0].name
   }
   subject {
     kind      = "ServiceAccount"
