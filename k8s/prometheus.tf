@@ -62,8 +62,15 @@ resource "helm_release" "prometheus" {
           serviceMonitorNamespaceSelector         = { any = true }
           serviceMonitorSelectorNilUsesHelmValues = false
 
-          # Send everything to mimir
-          remoteWrite = [{ url = "http://mimir-distributor-headless:8080/api/v1/push" }]
+          retention              = "365d"
+          retentionSize          = "10GiB"
+          allowOverlappingBlocks = true # Enables vertical compaction
+
+          storageSpec = {
+            volumeClaimTemplate = {
+              spec = { resources = { requests = { storage = "10Gi" } } }
+            }
+          }
         }
       }
     })

@@ -51,23 +51,17 @@ resource "helm_release" "grafana" {
             url  = "http://loki-gateway"
           },
           {
-            name = "Prometheus"
-            type = "prometheus"
-            url  = "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+            name                = "Prometheus"
+            type                = "prometheus"
+            url                 = "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+            incrementalQuerying = "true"
+            cacheLevel          = "Medium"
+            isDefault           = true
           },
           {
             name = "Alertmanager"
             type = "alertmanager"
             url  = "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:8080"
-          },
-          {
-            name                = "Mimir"
-            type                = "prometheus"
-            prometheusType      = "Mimir"
-            url                 = "http://mimir-query-frontend-headless.prometheus.svc.cluster.local:8080"
-            incrementalQuerying = "true"
-            cacheLevel          = "Medium"
-            isDefault           = true
           },
         ]
       }
