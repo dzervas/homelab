@@ -25,7 +25,6 @@
         HISTSIZE=10000
         HISTFILESIZE=20000
 
-        export KUBECONFIG="/etc/rancher/rke2/rke2.yaml"
         export TERM="xterm-256color"
       '';
 
