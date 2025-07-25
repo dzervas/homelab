@@ -11,7 +11,7 @@ resource "helm_release" "cert_manager" {
   version = "v1.17.1"
 
   values = [yamlencode({
-    installCRDs = true
+    crds = { enabled = true }
     prometheus = {
       servicemonitor = { enabled = true }
     }

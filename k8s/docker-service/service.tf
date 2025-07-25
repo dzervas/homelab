@@ -1,3 +1,7 @@
+locals {
+  selector = var.type == "deployment" ? kubernetes_deployment_v1.docker[0].spec[0].selector[0].match_labels : kubernetes_stateful_set.docker[0].spec[0].selector[0].match_labels
+}
+
 resource "kubernetes_service" "docker" {
   metadata {
     name      = var.name
@@ -9,7 +13,7 @@ resource "kubernetes_service" "docker" {
   }
 
   spec {
-    selector = var.type == "deployment" ? kubernetes_deployment_v1.docker.0.spec[0].selector[0].match_labels : kubernetes_stateful_set.docker.0.spec.0.selector.0.match_labels
+    selector = local.selector
 
     port {
       port        = var.port

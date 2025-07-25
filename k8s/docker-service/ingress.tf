@@ -45,7 +45,7 @@ resource "kubernetes_ingress_v1" "docker" {
           path = "/"
           backend {
             service {
-              name = kubernetes_service.docker.metadata.0.name
+              name = kubernetes_service.docker.metadata[0].name
               port {
                 number = var.port
               }

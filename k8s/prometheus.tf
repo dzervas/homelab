@@ -64,7 +64,7 @@ resource "helm_release" "prometheus" {
 
           retention              = "365d"
           retentionSize          = "10GiB"
-          allowOverlappingBlocks = true # Enables vertical compaction
+          # allowOverlappingBlocks = true # Enables vertical compaction - no longer supported?
 
           storageSpec = {
             volumeClaimTemplate = {

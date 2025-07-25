@@ -1,4 +1,9 @@
-module "n8n-browserless" {
+moved {
+  from = module.n8n-browserless
+  to = module.n8n_browserless
+}
+
+module "n8n_browserless" {
   source = "./docker-service"
 
   type             = "deployment"

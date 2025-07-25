@@ -8,6 +8,8 @@ module "rclone" {
   image = "rclone/rclone:1"
   port  = 80
 
+  metrics_port = 9090
+
   command = ["sh", "-c"]
   args = [join(" ", [
     "rclone", "serve", "webdav", "remote:",
@@ -17,6 +19,7 @@ module "rclone" {
     "--addr", "0.0.0.0:80",
     "--config", "/secret/rclone.conf",
     "--temp-dir", "/tmp",
+    "--metrics-addr", "0.0.0.0:9090",
   ])]
 
   secrets = {

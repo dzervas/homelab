@@ -35,6 +35,24 @@ variable "port" {
   default     = 80
 }
 
+variable "metrics_port" {
+  type        = number
+  description = "The container port to expose on the service"
+  default     = 0
+}
+
+variable "metrics_path" {
+  type        = string
+  description = "The container port to expose on the service"
+  default     = "/metrics"
+}
+
+variable "metrics_interval" {
+  type        = string
+  description = "The container port to expose on the service"
+  default     = "60s"
+}
+
 variable "replicas" {
   type    = number
   default = 1
