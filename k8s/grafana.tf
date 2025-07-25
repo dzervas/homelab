@@ -57,6 +57,7 @@ resource "helm_release" "grafana" {
             incrementalQuerying = "true"
             cacheLevel          = "Medium"
             isDefault           = true
+            # uid                 = "PBFA97CFB590B2093"
           },
           {
             name = "Alertmanager"

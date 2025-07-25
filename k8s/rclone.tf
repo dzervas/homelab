@@ -8,18 +8,19 @@ module "rclone" {
   image = "rclone/rclone:1"
   port  = 80
 
-  command = ["rclone"]
-  args = [
-    "serve", "webdav", "remote:",
+  command = ["sh", "-c"]
+  args = [join(" ", [
+    "rclone", "serve", "webdav", "remote:",
     "--cache-dir", "/tmp/.cache",
     # VFS Cache results in a horrible performance drop for round-trip write-read operations
     "--vfs-cache-mode", "full",
     "--addr", "0.0.0.0:80",
-    "--config", "/secret/rclone.conf"
-  ]
+    "--config", "/secret/rclone.conf",
+    "--temp-dir", "/tmp",
+  ])]
 
   secrets = {
-    "/secret" = kubernetes_manifest.rclone_secrets_op.manifest.metadata.name
+    "/secret" = "${kubernetes_manifest.rclone_secrets_op.manifest.metadata.name}:rw"
   }
 }
 
