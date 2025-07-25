@@ -9,12 +9,11 @@ locals {
 terraform {
   required_version = ">= 1.12.0"
 
-  cloud {
-    organization = "dzervas"
-
-    workspaces {
-      name = "homelab-k8s"
-    }
+  backend "kubernetes" {
+    secret_suffix  = "homelab-k8s"
+    namespace      = "kube-system"
+    config_path    = "~/.kube/config"
+    config_context = "gr"
   }
 
   required_providers {

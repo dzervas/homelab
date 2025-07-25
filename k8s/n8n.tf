@@ -21,9 +21,10 @@ module "n8n" {
   create_namespace = true
   image            = "ghcr.io/dzervas/n8n:latest"
 
-  fqdn = "auto.${var.domain}"
-  auth = "mtls"
-  port = 5678
+  fqdn         = "auto.${var.domain}"
+  auth         = "mtls"
+  port         = 5678
+  metrics_port = 5678
 
   ingress_enabled = true
   ingress_annotations = {
@@ -64,8 +65,8 @@ module "n8n" {
     EXECUTIONS_DATA_PRUNE_MAX_COUNT = 50000
     # DB_SQLITE_VACUUM_ON_STARTUP     = true # Makes startup painfully slow
 
-    # TODO: Add prometheus metrics
-    # N8N_METRICS                           = true
+    N8N_METRICS = true
+
     # TODO: Requires https
     # N8N_EXTERNAL_STORAGE_S3_HOST          = "rclone.rclone.svc.cluster.local:8080"
     # N8N_EXTERNAL_STORAGE_S3_BUCKET_NAME   = "n8n"

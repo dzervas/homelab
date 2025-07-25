@@ -15,13 +15,15 @@ resource "kubernetes_manifest" "docker_servicemonitor" {
     }
 
     spec = {
-      selector = { matchLabels = local.selector }
+      selector = {
+        matchLabels = kubernetes_service_v1.docker_metrics[0].metadata[0].labels
+      }
 
       jobLabel = var.name
       endpoints = [{
-        targetPort = var.metrics_port
-        path       = var.metrics_path
-        interval   = var.metrics_interval
+        port     = "metrics"
+        path     = var.metrics_path
+        interval = var.metrics_interval
       }]
     }
   }

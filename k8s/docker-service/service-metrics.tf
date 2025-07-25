@@ -1,4 +1,4 @@
-resource "kubernetes_service_v1" "docker" {
+resource "kubernetes_service_v1" "docker_metrics" {
   count = var.metrics_port != 0 ? 1 : 0
 
   metadata {
@@ -14,6 +14,7 @@ resource "kubernetes_service_v1" "docker" {
     selector = local.selector
 
     port {
+      name        = "metrics"
       port        = var.metrics_port
       target_port = var.metrics_port
     }
