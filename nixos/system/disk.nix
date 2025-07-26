@@ -1,4 +1,4 @@
-{ config, lib, ... }: {
+{ config, lib, role, ... }: {
   disko.devices = {
     disk.root = {
       # `device` is defined in the host configuration
@@ -47,7 +47,7 @@
       type = "lvm_vg";
       lvs = {
         root = {
-          size = "30G";
+          size = if role == "server" then "50G" else "30G";
           content = {
             type = "filesystem";
             format = "f2fs";

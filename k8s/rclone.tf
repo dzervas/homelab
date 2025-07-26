@@ -10,6 +10,9 @@ module "rclone" {
 
   metrics_port = 9090
 
+  liveness_http_path  = "/"
+  readiness_http_path = "/"
+
   command = ["sh", "-c"]
   args = [join(" ", [
     "rclone", "serve", "webdav", "remote:",

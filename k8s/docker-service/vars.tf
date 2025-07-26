@@ -53,6 +53,18 @@ variable "metrics_interval" {
   default     = "60s"
 }
 
+variable "liveness_http_path" {
+  type        = string
+  description = "The path to use for liveness probe"
+  default     = null
+}
+
+variable "readiness_http_path" {
+  type        = string
+  description = "The path to use for liveness probe"
+  default     = null
+}
+
 variable "replicas" {
   type    = number
   default = 1

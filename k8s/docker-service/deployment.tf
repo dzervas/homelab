@@ -133,6 +133,38 @@ resource "kubernetes_deployment_v1" "docker" {
             }
           }
 
+          dynamic "liveness_probe" {
+            for_each = var.liveness_http_path != null ? [1] : []
+            content {
+              http_get {
+                path = var.liveness_http_path
+                port = var.port
+              }
+
+              initial_delay_seconds = 30
+              period_seconds        = 10
+              timeout_seconds       = 10
+              success_threshold     = 1
+              failure_threshold     = 10
+            }
+          }
+
+          dynamic "readiness_probe" {
+            for_each = var.readiness_http_path != null ? [1] : []
+            content {
+              http_get {
+                path   = var.readiness_http_path
+                port   = var.port
+                scheme = "HTTP"
+              }
+
+              period_seconds    = 10
+              timeout_seconds   = 1
+              success_threshold = 1
+              failure_threshold = 3
+            }
+          }
+
           dynamic "volume_mount" {
             for_each = merge(var.config_maps, var.secrets)
             content {

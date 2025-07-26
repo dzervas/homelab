@@ -43,6 +43,9 @@ module "n8n" {
     }
   }
 
+  liveness_http_path  = "/healthz"
+  readiness_http_path = "/healthz"
+
   env = {
     TZ               = var.timezone
     GENERIC_TIMEZONE = var.timezone
@@ -65,7 +68,8 @@ module "n8n" {
     EXECUTIONS_DATA_PRUNE_MAX_COUNT = 50000
     # DB_SQLITE_VACUUM_ON_STARTUP     = true # Makes startup painfully slow
 
-    N8N_METRICS = true
+    N8N_METRICS               = true
+    QUEUE_HEALTH_CHECK_ACTIVE = true
 
     # TODO: Requires https
     # N8N_EXTERNAL_STORAGE_S3_HOST          = "rclone.rclone.svc.cluster.local:8080"

@@ -1,17 +1,25 @@
 moved {
   from = module.n8n-browserless
-  to = module.n8n_browserless
+  to   = module.n8n_browserless
 }
 
 module "n8n_browserless" {
   source = "./docker-service"
 
-  type             = "deployment"
-  name             = "n8n-browserless"
+  type  = "deployment"
+  name  = "n8n-browserless"
+  fqdn  = "browser.${var.domain}"
+  auth  = "mtls"
+  image = "ghcr.io/browserless/chromium"
+  port  = 3000
+
+  run_as_user = 999 # BLESS_USER_ID env var
+
   namespace        = module.n8n.namespace
   create_namespace = false
-  fqdn             = "browser.${var.domain}"
-  ingress_enabled  = true
+  node_selector    = { "provider" = "grnet" }
+
+  ingress_enabled = true
   # ingress_annotations = {
   #   "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
   #     location = /debugger {
@@ -21,10 +29,10 @@ module "n8n_browserless" {
   #     }
   #   EOF
   # }
-  auth          = "mtls"
-  image         = "ghcr.io/browserless/chromium"
-  port          = 3000
-  node_selector = { "kubernetes.io/arch" = "amd64" }
+
+  # liveness_http_path  = "/meta"
+  # readiness_http_path = "/meta"
+
   env = {
     ALLOW_GET  = true # Required for some stuff in the n8n node
     PROXY_HOST = "n8n-browserless.${module.n8n.namespace}.svc.cluster.local"
