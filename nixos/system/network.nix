@@ -24,7 +24,7 @@ in {
       allowedUDPPorts = [ wireguard-port ]; # WireGuard
     };
 
-    # NOTE: Cilium is NOT compatible with nftables!
+    # Cilium is NOT compatible with nftables!
     nftables.enable = true;
 
     wg-quick.interfaces.${node-vpn-iface} = {
@@ -92,7 +92,6 @@ in {
       enable = true;
       ignoreIP = [
         "127.0.0.1/8"
-        "10.9.8.0/24"
         "${home-vpn-prefix}.0/24"
         "${node-vpn-prefix}.0/24"
       ];

@@ -12,9 +12,8 @@ in {
     settings = let
       domain = "vpn.${config.networking.domain}";
     in {
-      # TODO: Manage this with exgternal-dns
+      # TODO: Manage this with external-dns
       server_url = "https://${domain}:${toString port}";
-      acme_email = "dzervas@dzervas.gr";
       disable_check_updates = true;
 
       tls_cert_path = "/var/lib/headscale/${domain}-cert.pem";
@@ -26,6 +25,19 @@ in {
         base_domain = "ts.${config.networking.domain}";
         extra_records_path = "/var/lib/headscale/dns.json";
       };
+
+      # oidc = {
+      #   only_start_if_oidc_is_available = false;
+      #
+      #   issuer = "https://auth.dzerv.art";
+      #   client_id = "";
+      #   client_secret_path = "/etc/headscale-oidc-secret";
+      #
+      #   allowed_domains = ["dzervas.gr"];
+      #   allowed_users = ["dzervas@dzervas.gr"];
+      #
+      #   pkce.enabled = true;
+      # };
 
       metrics_listen_addr = "${node-vpn-prefix}.${hostIndex}:9090";
     };

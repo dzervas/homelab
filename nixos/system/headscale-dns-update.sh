@@ -28,12 +28,13 @@ ingresses=${ingresses%,} # Remove trailing comma
 kube_api_host=$(kubectl get nodes -l node-role.kubernetes.io/control-plane=true | grep Ready | awk '{print $1}' | head -1)
 kube_api_ip=$(tailscale ip -4 "$kube_api_host")
 nodes=$(headscale nodes ls -o json | jq 'map({name: (.given_name + ".dzerv.art"), type: "A", value: (.ip_addresses | map(select(contains("."))) | first)})')
-vpn_ip=$(tailscale ip -4 "$(hostname)")
 
 # Sort the keys to bypass unnecessary updates (hedscale checks for hash of the file)
 jq --slurp 'reduce .[] as $x ([]; . + $x) | sort_by(.name)' \
 	<(echo '[{"name": "kube.dzerv.art", "type": "A", "value": "'"$kube_api_ip"'"}]' | jq -c) \
-	<(echo '[{"name": "vpn.dzerv.art", "type": "A", "value": "'"$vpn_ip"'"}]' | jq -c) \
 	<(echo "[$ingresses]" | jq -c) \
 	<(echo "$nodes" | jq -c) \
 	> /var/lib/headscale/dns.json
+
+# vpn_ip=$(tailscale ip -4 "$(hostname)")
+	# <(echo '[{"name": "vpn.dzerv.art", "type": "A", "value": "'"$vpn_ip"'"}]' | jq -c) \

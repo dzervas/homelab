@@ -38,8 +38,13 @@ resource "helm_release" "grafana" {
     }
     ingress = module.grafana_ingress.host_list
     "grafana.ini" = {
-      users    = { allow_sign_up = false }
-      database = { wal = true }
+      users = { allow_sign_up = false }
+      database = {
+        # Database locked workarounds: https://github.com/grafana/grafana/issues/68941#issuecomment-1567941013
+        wal                 = true
+        query_retires       = 3
+        transaction_retries = 5
+      }
     }
     datasources = {
       "datasources.yaml" = {

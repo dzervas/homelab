@@ -13,6 +13,10 @@ module "rclone" {
   liveness_http_path  = "/"
   readiness_http_path = "/"
 
+  ingress_annotations = {
+    "nginx.ingress.kubernetes.io/proxy-body-size" = "4g"
+  }
+
   command = ["sh", "-c"]
   args = [join(" ", [
     "rclone", "serve", "webdav", "remote:",
