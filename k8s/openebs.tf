@@ -77,14 +77,8 @@ resource "helm_release" "openebs" {
           }]
         }
 
-        storageClass = {
-          nameSuffix = "replicated"
-          default    = true
-          parameters = {
-            repl = 2
-            thin = "true"
-          }
-        }
+        # Redefine it with reatin by default
+        storageClass = { enabled = false }
 
         # Do not create a new storage class just for etcd, localpv-provisioner is already deployed
         localpv-provisioner = { enabled = false }
@@ -114,6 +108,25 @@ resource "helm_release" "openebs" {
       }
     }),
   ]
+}
+
+resource "kubernetes_storage_class_v1" "openebs" {
+  metadata {
+    name = "openebs-replicated"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = true
+      "managed_by"                                  = "terraform"
+    }
+  }
+
+  allow_volume_expansion = true
+  storage_provisioner    = "io.openebs.csi-mayastor"
+  reclaim_policy         = "Retain"
+
+  parameters = {
+    repl = 2
+    thin = true
+  }
 }
 
 # Some openEBS pods run in the host network and they need to be able to reach the etcd pods

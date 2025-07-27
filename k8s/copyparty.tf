@@ -13,6 +13,7 @@ module "copyparty" {
   port  = 3923
 
   args = [
+    # TODO: Stats need auth
     "--stats", # metrics
     "--dedup",
     "-v", ".::rw", # Add the default volume
