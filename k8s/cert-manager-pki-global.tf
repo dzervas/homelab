@@ -12,15 +12,15 @@ resource "kubernetes_manifest" "kubernetes_store" {
           remoteNamespace = helm_release.cert_manager.namespace
           server = {
             caProvider = {
-              type = "ConfigMap"
-              name = "kube-root-ca.crt"
-              key = "ca.crt"
-              namespace = helm_release.cert_manager.namespace
+              type      = "ConfigMap"
+              name      = "kube-root-ca.crt"
+              key       = "ca.crt"
+              namespace = helm_release.external_secrets.namespace
             }
           }
           auth = {
             serviceAccount = {
-              name = kubernetes_service_account_v1.cm_global_client_ca.metadata[0].name
+              name      = kubernetes_service_account_v1.cm_global_client_ca.metadata[0].name
               namespace = kubernetes_service_account_v1.cm_global_client_ca.metadata[0].namespace
             }
           }
@@ -30,33 +30,37 @@ resource "kubernetes_manifest" "kubernetes_store" {
   }
 }
 
+# We want es service account to access -> cm secret
+# So: es sa -> cluster role -> role-binded to the cm ns
 resource "kubernetes_cluster_role_v1" "cm_global_client_ca" {
   metadata {
-    name      = "external-secrets-client-ca"
+    name = "external-secrets-client-ca"
   }
 
   rule {
     api_groups = [""]
-    verbs     = ["list"]
-    resources = ["secrets"]
+    verbs      = ["list"]
+    resources  = ["secrets"]
   }
   rule {
-    api_groups = [""]
-    verbs     = ["get", "watch"]
-    resources = ["secrets"]
-    resource_names = [ kubernetes_manifest.cm_client_ca.manifest.metadata.name ]
+    api_groups     = [""]
+    verbs          = ["get", "watch"]
+    resources      = ["secrets"]
+    # TODO: Limit this
+    # resource_names = [kubernetes_manifest.cm_client_ca.manifest.metadata.name]
   }
   rule {
-    api_groups = [""]
-    verbs     = ["get"]
-    resources = ["configmap"]
-    resource_names = [ "kube-root-ca.crt" ]
+    api_groups     = [""]
+    verbs          = ["get"]
+    resources      = ["configmap"]
+    resource_names = ["kube-root-ca.crt"]
   }
 }
 
-resource "kubernetes_cluster_role_binding_v1" "cm_global_client_ca" {
+resource "kubernetes_role_binding_v1" "cm_global_client_ca" {
   metadata {
     name      = "external-secrets-client-ca"
+    namespace = helm_release.cert_manager.namespace
   }
   role_ref {
     api_group = "rbac.authorization.k8s.io"
@@ -74,7 +78,7 @@ resource "kubernetes_cluster_role_binding_v1" "cm_global_client_ca" {
 resource "kubernetes_service_account_v1" "cm_global_client_ca" {
   metadata {
     name      = "external-secrets-client-ca"
-    namespace = helm_release.cert_manager.namespace
+    namespace = helm_release.external_secrets.namespace
   }
 }
 
@@ -89,7 +93,7 @@ resource "kubernetes_manifest" "cm_global_client_ca" {
     spec = {
       externalSecretName = "client-ca"
       namespaceSelectors = [
-        { matchLabels: {} }, # Allow all
+        { matchLabels : {} }, # Allow all
       ]
       externalSecretSpec = {
         refreshInterval = "1h"
@@ -100,9 +104,9 @@ resource "kubernetes_manifest" "cm_global_client_ca" {
         data = [{
           secretKey = "ca.crt"
           remoteRef = {
-            key = kubernetes_manifest.cm_client_ca.manifest.spec.secretName
+            key       = kubernetes_manifest.cm_client_ca.manifest.spec.secretName
             namespace = kubernetes_manifest.cm_client_ca.manifest.metadata.namespace
-            property = "ca.crt"
+            property  = "ca.crt"
           }
         }]
       }
