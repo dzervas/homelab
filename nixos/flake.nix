@@ -21,16 +21,23 @@
 
     apps = eachDefaultSystemPassThrough (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      rebuild = name: builtins.concatStringsSep " " [
-        "echo -e '\n🔄 Rebuilding ${name}.dzerv.art...\n';"
+      rebuild = name: ''
+        echo
+        echo "🔄 Rebuilding ${name}.dzerv.art..."
+        echo
 
-        "${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng" "switch"
-        "--flake" ".#${name}"
-        "--no-reexec"
-        "--target-host" "${name}.dzerv.art"
+        ${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng switch \
+          --flake /home/dzervas/Lab/homelab/nixos#${name} \
+          --no-reexec \
+          --target-host ${name}.dzerv.art \
+          && echo "🎉 ${name}.dzerv.art build complete!" \
+          || exit 1
 
-        "&& echo -e '🎉 ${name}.dzerv.art build complete!\n' || exit 1"
-      ];
+        echo "⏱️ Waiting for the node to be marked as ready..."
+        kubectl wait --for=condition=Ready nodes ${name} --timeout=600s \
+          && echo "✅ ${name}.dzerv.art node is ready!\n" \
+          || exit 1
+      '';
     in {
       # Per-machine app
       ${system} = lib.mapAttrs (name: _config:
@@ -39,7 +46,6 @@
         all = let
           commands = lib.mapAttrsToList (name: _config: rebuild name) machines;
         in mkShellApp pkgs ''
-          #!/bin/bash
           set -euo pipefail
           ${builtins.concatStringsSep "\n" commands}
         '';
