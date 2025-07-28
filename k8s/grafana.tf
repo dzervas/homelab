@@ -27,16 +27,27 @@ resource "helm_release" "grafana" {
   namespace  = kubernetes_namespace.grafana.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "grafana"
-  version    = "9.2.10"
+  version    = "9.3.0"
   atomic     = true
 
   values = [yamlencode({
     useStatefulSet = true # OpenEBS doesn't support RWX
+
     persistence = {
       enabled          = true
       storageClassName = "openebs-replicated"
     }
+
     ingress = module.grafana_ingress.host_list
+    networkPolicy = { enabled = true }
+
+    plugins = ["grafana-llm-app"]
+    imageRenderer = {
+      enabled = true
+      # Fixes a bug with the resulting URL returned to the UI
+      renderingCallbackURL = "http://grafana"
+    }
+
     "grafana.ini" = {
       users = { allow_sign_up = false }
       database = {
@@ -46,6 +57,7 @@ resource "helm_release" "grafana" {
         transaction_retries = 5
       }
     }
+
     datasources = {
       "datasources.yaml" = {
         apiVersion = 1

@@ -19,6 +19,7 @@ module "audiobookshelf_ingress" {
     # "nginx.ingress.kubernetes.io/auth-signin" = "http://localhost:8181/login"
 
     "nginx.ingress.kubernetes.io/auth-cache-duration" = "200 202 10m"
+    # XXX: add cookie to avoid cache takeover from the NAT gateway
     "nginx.ingress.kubernetes.io/auth-cache-key"      = "$remote_user$http_authorization"
   }
 }
