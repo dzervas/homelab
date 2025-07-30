@@ -1,4 +1,7 @@
 {
+
+  # nixConfig.builders = ;
+
   outputs = { nixpkgs, disko, flake-utils, ... }: let
     machines = {
       gr0 =  { hostIndex = "100"; publicKey = "IL/4BsJxWB+D+k9tAyz3VaQD4F1J6+C1/FXByrUr9Ak="; role = "server"; };
@@ -21,6 +24,10 @@
 
     apps = eachDefaultSystemPassThrough (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+      builders = lib.mapAttrsToList (name: config: let
+        system = if builtins.hasAttr "system" config then config.system else "x86_64-linux";
+      in "ssh-ng://builder@${name} ${system}"
+      ) machines;
       rebuild = name: ''
         echo
         echo "🔄 Rebuilding ${name}.dzerv.art..."
@@ -30,12 +37,13 @@
           --flake /home/dzervas/Lab/homelab/nixos#${name} \
           --no-reexec \
           --target-host ${name}.dzerv.art \
+          --builders "${builtins.concatStringsSep " ; " builders}" \
           && echo "🎉 ${name}.dzerv.art build complete!" \
           || exit 1
 
         echo "⏱️ Waiting for the node to be marked as ready..."
         kubectl wait --for=condition=Ready nodes ${name} --timeout=600s \
-          && echo "✅ ${name}.dzerv.art node is ready!\n" \
+          && echo "✅ ${name}.dzerv.art node is ready!" \
           || exit 1
       '';
     in {
