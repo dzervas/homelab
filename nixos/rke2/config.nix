@@ -25,6 +25,16 @@ in {
     advertise-address = nodeIP;
     service-node-port-range = "25000-32767";
 
+    etcd-snapshot-compress = true;
+    etcd-snapshot-schedule-cron = "0 */12 * * *";
+    etcd-snapshot-retention = 20; # 10 days worth of snapshots
+
+    kube-apiserver-arg = [
+      # Faster (was 300) dead node pod rescheduling
+      "--default-not-ready-toleration-seconds=30"
+      "--default-unreachable-toleration-seconds=30"
+    ];
+
     enable-servicelb = false;
     # TODO: Check if rke2-ingress-nginx is better
     disable = [ "rke2-ingress-nginx" ];
@@ -36,12 +46,10 @@ in {
       "kube.${config.networking.domain}"
     ];
 
-    oidc = {
-      only_start_if_oidc_is_available = false;
-    };
-
     # TODO: Available in next update v1.31.8+rke2r1:
     # secrets-encryption-provider = "aescbc";
+
+    protect-kernel-defaults = true;
   } else {}));
 
   systemd.services."rke2-${role}".restartTriggers = [ config.environment.etc."rancher/rke2/config.yaml".source ];

@@ -27,6 +27,22 @@ _: {
     "net.ipv6.conf.all.disable_ipv6" = 1;
     "net.ipv6.conf.default.disable_ipv6" = 1;
 
+    # Disable ICMP redirects, could be used to alter the routing tables of other nodes
+    # https://www.tenable.com/audits/items/CIS_Debian_Linux_7_v1.0.0_L1.audit:c120d5af44f5fbed18c683f4c56f12e2
+    "net.ipv4.conf.all.send_redirects" = 0;
+    "net.ipv4.conf.default.send_redirects" = 0;
+    "net.ipv4.conf.default.accept_source_route" = 0;
+    "net.ipv4.conf.all.accept_redirects" = 0;
+    "net.ipv4.conf.default.accept_redirects" = 0;
+
+    # Do nothing about obviously wrong (e.g. crazy saddr) packets, drop them
+    "net.ipv4.conf.all.log_martians" = 1;
+    "net.ipv4.conf.default.log_martians" = 1;
+
+    # Strict reverse path filtering
+    "net.ipv4.conf.all.rp_filter" = 1;
+    "net.ipv4.conf.default.rp_filter" = 1;
+
     # Raise the maximum number of open files
     "fs.inotify.max_queued_events" = 32768;
     "fs.inotify.max_user_instances" = 512;
