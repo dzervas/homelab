@@ -26,7 +26,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
       builders = lib.mapAttrsToList (name: config: let
         system = if builtins.hasAttr "system" config then config.system else "x86_64-linux";
-      in "ssh-ng://builder@${name} ${system}"
+      in "ssh://builder@${name}.dzerv.art ${system}"
       ) machines;
       rebuild = name: ''
         echo
