@@ -68,26 +68,12 @@ resource "helm_release" "grafana" {
             url  = "http://loki-gateway"
           },
           {
-            name                = "Prometheus"
+            name                = "Victoria"
             type                = "prometheus"
-            url                 = "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+            url                 = "http://vmsingle-victoriametrics.victoriametrics.svc.cluster.local:8428"
             incrementalQuerying = "true"
             cacheLevel          = "Medium"
             isDefault           = true
-            # uid                 = "PBFA97CFB590B2093"
-          },
-          {
-            name = "Alertmanager"
-            type = "alertmanager"
-            url  = "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:8080"
-          },
-          {
-            name                = "Victoria"
-            type                = "prometheus"
-            url                 = "http://victoriametrics-victoria-metrics-single-server.victoriametrics.svc.cluster.local:8428"
-            incrementalQuerying = "true"
-            cacheLevel          = "Medium"
-            # isDefault           = true
           },
         ]
       }

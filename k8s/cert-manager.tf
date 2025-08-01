@@ -8,7 +8,7 @@ resource "helm_release" "cert_manager" {
   chart      = "cert-manager"
   # For upgrading: https://cert-manager.io/docs/releases/upgrading/upgrading-1.12-1.13
   # https://github.com/cert-manager/cert-manager/releases/latest
-  version = "v1.17.1"
+  version = "v1.18.2"
 
   values = [yamlencode({
     crds = { enabled = true }
@@ -19,6 +19,12 @@ resource "helm_release" "cert_manager" {
       networkPolicy = {
         enabled = true
       }
+    }
+
+    # Default ingress issuer
+    ingressShim = {
+      defaultIssuerKind = "ClusterIssuer"
+      defaultIssuerName = "letsencrypt"
     }
   })]
 }

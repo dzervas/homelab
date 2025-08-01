@@ -3,65 +3,53 @@ resource "helm_release" "victoriametrics" {
   namespace        = "victoriametrics"
   create_namespace = true
   repository       = "https://victoriametrics.github.io/helm-charts/"
-  chart            = "victoria-metrics-single"
-  version          = "0.24.1"
+  chart            = "victoria-metrics-k8s-stack"
+  # To update: https://github.com/VictoriaMetrics/helm-charts/releases?q=victoria-metrics-k8s-stack&expanded=true
+  # https://docs.victoriametrics.com/helm/victoriametrics-k8s-stack/#upgrade-guide
+  version          = "0.58.2"
   atomic           = true
 
   values = [yamlencode({
-    server = {
-      scrape = {
-        enabled = true
-        # Additional scraping config:
-        # https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-single/values.yaml#L753-L766
-        # extraScrapeConfigs = []
-      }
+    # Produce sensible names
+    fullnameOverride = "victoriametrics"
 
-      nodeSelector = { provider = "oracle" }
-    }
-  })]
-}
-
-resource "helm_release" "victoriametrics_op" {
-  name       = "victoriametrics-operator"
-  namespace  = helm_release.victoriametrics.namespace
-  repository = "https://victoriametrics.github.io/helm-charts/"
-  chart      = "victoria-metrics-operator"
-  version    = "0.51.4"
-  atomic     = true
-
-  set = [{
-    name  = "crds.cleanup.enabled"
-    value = "true"
-  }]
-
-  values = [yamlencode({
-    operator = {
-      # If the serviceMonitor gets deleted, delete VM object too
-      enable_converter_ownership = true
-      # It should reduce  vmagent and vmauth config sync-time and make it predictable.
-      useCustomConfigReloader = false
-    }
-  })]
-}
-
-resource "helm_release" "kube_state_metrics" {
-  name       = "kube-state-metrics"
-  namespace  = helm_release.victoriametrics.namespace
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "kube-state-metrics"
-  version    = "6.1.0"
-  atomic     = true
-
-  values = [yamlencode({
-    admissionWebhooks = {
-      certManager = {
-        enabled = true
+    vmsingle = {
+      spec = {
+        retentionPeriod = "1y"
       }
     }
-    nodeSelector = { provider = "oracle" }
+
+    external = {
+      grafana = {
+        host       = "grafana.dzerv.art"
+        datasource = "Victoria"
+      }
+    }
+
+    defaultRules = {
+      groups = {
+        # https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-k8s-stack/values.yaml#L111
+        # No system controller manager in RKE2
+        kubernetesSystemControllerManager = { enabled = false }
+        # Neither system scheduler
+        kubernetesSystemScheduler = { enabled = false }
+      }
+    }
+    defaultDashboards = {
+      enabled = true
+      labels = {
+        grafana_dashboard = "1"
+      }
+    }
+
+    # NixOS defined
+    prometheus-node-exporter = { enabled = false }
+    # Defined in the grafana tf module
+    grafana = { enabled = false }
   })]
 }
 
+# Add the prometheys CRDs so that vm can scrape servicemonitors, etc.
 resource "helm_release" "prometheus_crds" {
   name       = "prometheus-crds"
   namespace  = helm_release.victoriametrics.namespace
@@ -71,6 +59,7 @@ resource "helm_release" "prometheus_crds" {
   atomic     = true
 }
 
+# Allow for everything (VPN CIDR didn't work!) to reach the operator webhook
 resource "kubernetes_network_policy_v1" "victoriametrics_grafana" {
   metadata {
     name      = "allow-victoriametrics-grafana"
@@ -79,9 +68,10 @@ resource "kubernetes_network_policy_v1" "victoriametrics_grafana" {
   spec {
     pod_selector {
       match_labels = {
-        "app"                        = "server"
-        "app.kubernetes.io/name"     = "victoria-metrics-single"
-        "app.kubernetes.io/instance" = "victoriametrics"
+        "managed-by"                  = "vm-operator"
+        "app.kubernetes.io/name"      = "vmsingle"
+        "app.kubernetes.io/instance"  = "victoriametrics"
+        "app.kubernetes.io/component" = "monitoring"
       }
     }
 
@@ -112,7 +102,7 @@ resource "kubernetes_network_policy_v1" "victoriametrics_op_webhook" {
     pod_selector {
       match_labels = {
         "app.kubernetes.io/name"     = "victoria-metrics-operator"
-        "app.kubernetes.io/instance" = "victoriametrics-operator"
+        "app.kubernetes.io/instance" = "victoriametrics"
       }
     }
 
@@ -124,14 +114,13 @@ resource "kubernetes_network_policy_v1" "victoriametrics_op_webhook" {
       }
       from {
         ip_block {
-          # cidr = "10.20.30.0/24"
           cidr = "0.0.0.0/0"
         }
       }
-      # ports {
-      #   protocol = "TCP"
-      #   port     = 9443
-      # }
+      ports {
+        protocol = "TCP"
+        port     = 9443
+      }
     }
   }
 }
