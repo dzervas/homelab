@@ -13,6 +13,7 @@
     ./etcd.nix
     ./firewall.nix
     ./kernel.nix
+    ./metrics.nix
   ];
 
   # TODO: Add graceful shutdown like the k3s module

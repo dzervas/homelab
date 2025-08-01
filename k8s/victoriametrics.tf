@@ -6,8 +6,8 @@ resource "helm_release" "victoriametrics" {
   chart            = "victoria-metrics-k8s-stack"
   # To update: https://github.com/VictoriaMetrics/helm-charts/releases?q=victoria-metrics-k8s-stack&expanded=true
   # https://docs.victoriametrics.com/helm/victoriametrics-k8s-stack/#upgrade-guide
-  version          = "0.58.2"
-  atomic           = true
+  version = "0.58.2"
+  atomic  = true
 
   values = [yamlencode({
     # Produce sensible names
@@ -47,6 +47,34 @@ resource "helm_release" "victoriametrics" {
     # Defined in the grafana tf module
     grafana = { enabled = false }
   })]
+}
+
+resource "kubernetes_manifest" "node_exporter_scraper" {
+  manifest = {
+    apiVersion = "operator.victoriametrics.com/v1beta1"
+    kind       = "VMNodeScrape"
+
+    metadata = {
+      name      = "nixos-node-exporter"
+      namespace = helm_release.victoriametrics.namespace
+    }
+
+    spec = {
+      scheme = "http"
+      port   = "9100"
+      path   = "/metrics"
+
+      interval = "30s"
+
+      # Got from the default node-exporter: https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-k8s-stack/values.yaml#L972-L987
+      jobLabel = "jobLabel"
+      metricRelabelConfigs = [{
+        action        = "drop"
+        source_labels = ["mountpoint"]
+        regex         = "/var/lib/kubelet/pods.+"
+      }]
+    }
+  }
 }
 
 # Add the prometheys CRDs so that vm can scrape servicemonitors, etc.
