@@ -8,9 +8,9 @@ resource "helm_release" "openebs_monitoring" {
   atomic     = true
 
   values = [yamlencode({
-    "kube-prometheus-stack" = { install = false }
-    "node-problem-detector" = { install = false }
-    "localpv-provisioner"   = { enabled = false }
+    kube-prometheus-stack = { install = false }
+    node-problem-detector = { install = false }
+    localpv-provisioner   = { enabled = false }
 
     openebsMonitoringAddon = {
       lvmLocalPV = { enabled = false }

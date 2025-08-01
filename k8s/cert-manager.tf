@@ -79,7 +79,7 @@ resource "kubernetes_manifest" "cm_letsencrypt_issuer" {
           {
             http01 = {
               ingress = {
-                class = "nginx"
+                ingressClassName = "nginx"
               }
             }
           }
