@@ -31,7 +31,7 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
             # ingress-nginx needs to be able to access the services that have an ingress pointing to them
             # prometheus needs to be able to access pods/services that have a service/podmonitor pointing to them
             # A global network policy would be better suited for this
-            values = ["ingress", "prometheus", "victoriametrics"]
+            values = ["ingress", "victoriametrics"]
           }
         }
       }
@@ -39,25 +39,30 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
   }
 }
 
-resource "kubernetes_network_policy_v1" "default_ingress_system" {
-  # `default` hosts the kubernetes service (kubernetes api)
-  # `kube-system` hosts DNS, the actual kube api server, etc.
-  for_each = toset(["kube-system", "default"])
-  metadata {
-    name      = "default-ingress"
-    namespace = each.value
-  }
-  spec {
-    pod_selector {}
-    policy_types = ["Ingress"]
-    ingress {
-      from {
-        namespace_selector {}
-        pod_selector {}
-      }
-    }
-  }
-}
+# resource "kubernetes_network_policy_v1" "default_ingress_system" {
+#   # `default` hosts the kubernetes service (kubernetes api)
+#   # `kube-system` hosts DNS, the actual kube api server, etc.
+#   for_each = toset(["kube-system", "default"])
+#   metadata {
+#     name      = "default-ingress"
+#     namespace = each.value
+#   }
+#   spec {
+#     pod_selector {}
+#     policy_types = ["Ingress"]
+#     ingress {
+#       from {
+#         namespace_selector {}
+#         pod_selector {}
+#       }
+#       from {
+#         ip_block {
+#           cidr = "10.20.30.0/24"
+#         }
+#       }
+#     }
+#   }
+# }
 
 # resource "kubernetes_manifest" "default_np" {
 #   manifest = {

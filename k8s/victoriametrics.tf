@@ -15,6 +15,8 @@ resource "helm_release" "victoriametrics" {
         # https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-single/values.yaml#L753-L766
         # extraScrapeConfigs = []
       }
+
+      nodeSelector = { provider = "oracle" }
     }
   })]
 }
@@ -49,6 +51,15 @@ resource "helm_release" "kube_state_metrics" {
   chart      = "kube-state-metrics"
   version    = "6.1.0"
   atomic     = true
+
+  values = [yamlencode({
+    admissionWebhooks = {
+      certManager = {
+        enabled = true
+      }
+    }
+    nodeSelector = { provider = "oracle" }
+  })]
 }
 
 resource "helm_release" "prometheus_crds" {
@@ -88,6 +99,39 @@ resource "kubernetes_network_policy_v1" "victoriametrics_grafana" {
           }
         }
       }
+    }
+  }
+}
+
+resource "kubernetes_network_policy_v1" "victoriametrics_op_webhook" {
+  metadata {
+    name      = "victoriametrics-op-webhook"
+    namespace = helm_release.victoriametrics.namespace
+  }
+  spec {
+    pod_selector {
+      match_labels = {
+        "app.kubernetes.io/name"     = "victoria-metrics-operator"
+        "app.kubernetes.io/instance" = "victoriametrics-operator"
+      }
+    }
+
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        namespace_selector {}
+        pod_selector {}
+      }
+      from {
+        ip_block {
+          # cidr = "10.20.30.0/24"
+          cidr = "0.0.0.0/0"
+        }
+      }
+      # ports {
+      #   protocol = "TCP"
+      #   port     = 9443
+      # }
     }
   }
 }

@@ -61,10 +61,10 @@ resource "helm_release" "openebs" {
       mayastor = {
         io_engine = {
           # TODO: Fix RDMA
-          target = { nvmf = {
-            rdma  = { enabled = true }
-            iface = "wg0"
-          } }
+          # target = { nvmf = {
+          #   rdma  = { enabled = true }
+          #   iface = "wg0"
+          # } }
 
           # The default is 2, which is correct but some nodes have 4 cpus they get saturated
           resources = { requests = { cpu = 1 } }
