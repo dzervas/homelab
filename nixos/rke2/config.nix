@@ -49,7 +49,7 @@ in {
     # TODO: Available in next update v1.31.8+rke2r1:
     # secrets-encryption-provider = "aescbc";
 
-    protect-kernel-defaults = true;
+    # protect-kernel-defaults = true;
   } else {}));
 
   systemd.services."rke2-${role}".restartTriggers = [ config.environment.etc."rancher/rke2/config.yaml".source ];
