@@ -2,10 +2,11 @@
   hostIndex,
   node-vpn-prefix,
   ...
-}:
-{
-  services.prometheus.exporters.node = {
-    enable = true;
-    listenAddress = "${node-vpn-prefix}.${hostIndex}";
+}: let
+  listenAddress = "${node-vpn-prefix}.${hostIndex}";
+in {
+  services.prometheus.exporters = {
+    node = { enable = true; inherit listenAddress; };
+    smartctl = { enable = true; inherit listenAddress; };
   };
 }

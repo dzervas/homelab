@@ -77,6 +77,28 @@ resource "kubernetes_manifest" "node_exporter_scraper" {
   }
 }
 
+resource "kubernetes_manifest" "smartctl_exporter_scraper" {
+  manifest = {
+    apiVersion = "operator.victoriametrics.com/v1beta1"
+    kind       = "VMNodeScrape"
+
+    metadata = {
+      name      = "nixos-smartctl-exporter"
+      namespace = helm_release.victoriametrics.namespace
+    }
+
+    spec = {
+      scheme = "http"
+      port   = "9633"
+      path   = "/metrics"
+
+      interval = "1m"
+
+      jobLabel = "jobLabel"
+    }
+  }
+}
+
 # Add the prometheys CRDs so that vm can scrape servicemonitors, etc.
 resource "helm_release" "prometheus_crds" {
   name       = "prometheus-crds"

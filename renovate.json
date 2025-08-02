@@ -1,8 +1,23 @@
 {
-  "extends": [
-    "config:base"
-  ],
-  "schedule": [
-    "before 4pm on Monday"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "schedule": ["before 4pm on Friday"],
+  "terraform": {
+    "enabled": true,
+    "lockFileMaintenance": {
+      "enabled": true
+    }
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["terraform"],
+      "matchDepTypes": ["provider"],
+      "groupName": "terraform-providers"
+    },
+    {
+      "matchManagers": ["helm-values"],
+      "groupName": "helm-release-charts",
+      "enabled": true
+    }
   ]
 }
