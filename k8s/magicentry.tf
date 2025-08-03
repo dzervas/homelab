@@ -18,7 +18,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.6.1"
+  version    = "0.6.6"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {
@@ -58,6 +58,20 @@ resource "helm_release" "magicentry" {
             client_id     = local.op_secrets.magicentry.audiobooks_id
             client_secret = local.op_secrets.magicentry.audiobooks_secret
             redirect_urls = ["https://audiobooks.dzerv.art/auth/openid/callback"]
+          }
+        },
+        {
+          name          = "Retro Games"
+          url           = "https://games.dzerv.art"
+          valid_origins = ["https://games.dzerv.art"]
+          realms        = ["games", "public"]
+
+          auth_url = { origins = ["https://games.dzerv.art"] }
+
+          oidc = {
+            client_id     = local.op_secrets.magicentry.games_id
+            client_secret = local.op_secrets.magicentry.games_secret
+            redirect_urls = ["https://games.dzerv.art/api/oauth/openid"]
           }
         },
       ]

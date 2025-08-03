@@ -4,18 +4,16 @@ module "romm" {
   type      = "deployment"
   name      = "romm"
   namespace = "romm"
-  fqdn      = "retro.${var.domain}"
-  auth      = "mtls"
+  fqdn      = "games.${var.domain}"
+  auth      = "oauth"
 
-  # magicentry_access = true
+  magicentry_access = true
 
   image = "rommapp/romm"
   port  = 8080
 
   ingress_annotations = {
-    "nginx.ingress.kubernetes.io/proxy-body-size" = "10g" # Also defined with env NC_REQUEST_BODY_SIZE, defaults to 1MB
-    # "nginx.ingress.kubernetes.io/auth-url"        = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
-    # "nginx.ingress.kubernetes.io/auth-signin"     = "https://auth.dzerv.art/login"
+    "nginx.ingress.kubernetes.io/proxy-body-size" = "1g"
   }
 
   pvs = {
@@ -50,6 +48,13 @@ module "romm" {
     DB_NAME   = "romm"
     DB_USER   = "romm"
     ROMM_PORT = 8080
+
+    OIDC_ENABLED                = "true"
+    OIDC_PROVIDER               = "magicentry"
+    OIDC_CLIENT_ID              = local.op_secrets.magicentry.games_id
+    OIDC_CLIENT_SECRET          = local.op_secrets.magicentry.games_secret
+    OIDC_REDIRECT_URI           = "https://games.dzerv.art/api/oauth/openid"
+    OIDC_SERVER_APPLICATION_URL = "http://magicentry.auth.svc.cluster.local:8080"
   }
 
   env_secrets = {
@@ -64,7 +69,7 @@ module "romm" {
 
 resource "kubernetes_config_map_v1" "romm_config" {
   metadata {
-    name = "romm-config"
+    name      = "romm-config"
     namespace = "romm"
   }
 
