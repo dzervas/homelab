@@ -50,6 +50,10 @@ resource "helm_release" "loki" {
         enabled = true
         size    = "20Gi"
       }
+
+      nodeSelector = {
+        provider = "oracle"
+      }
     }
     backend = { replicas = 0 }
     read    = { replicas = 0 }

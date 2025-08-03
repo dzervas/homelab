@@ -18,12 +18,13 @@ fi
 storage_class=$(kubectl get pvc "$pvc_name" -n "$namespace" -o jsonpath='{.spec.storageClassName}')
 
 # Check if the storageClass matches openebs-* wildcard
-if grep -q '^openebs-.*' <<< "$storage_class"; then
-	echo "The storage class matches 'openebs-*'. No migration needed."
-fi
+# if grep -q '^openebs-.*' <<< "$storage_class"; then
+# 	echo "The storage class matches 'openebs-*'. No migration needed."
+# fi
 
 echo "PVC: $pvc_name Namespace: $namespace"
-echo "The storage class '$storage_class' does not match the 'openebs-*' wildcard. Continue (only 'yes' will be accepted)?"
+# echo "The storage class '$storage_class' does not match the 'openebs-*' wildcard. Continue (only 'yes' will be accepted)?"
+echo "Continue? (only 'yes' will be accepted)"
 read -r answer
 
 if [ "$answer" != "yes" ]; then

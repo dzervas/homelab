@@ -16,6 +16,9 @@ resource "helm_release" "victoriametrics" {
     vmsingle = {
       spec = {
         retentionPeriod = "1y"
+        nodeSelector = {
+          provider = "oracle"
+        }
       }
     }
 

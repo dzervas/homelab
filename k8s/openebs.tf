@@ -246,27 +246,28 @@ resource "kubernetes_network_policy_v1" "openebs_api_access" {
 
 # Not needed since mayastor finds block devices on its own
 # TODO: drain & recreate pools
-# resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
-#   depends_on = [helm_release.openebs]
-#
-#   for_each = toset(["gr0", "gr1", "fra0", "fra1", "srv0"])
-#
-#   manifest = {
-#     apiVersion = "openebs.io/v1beta3"
-#     kind       = "DiskPool"
-#     metadata = {
-#       name      = "${each.key}.${var.domain}"
-#       namespace = kubernetes_namespace_v1.openebs.metadata[0].name
-#       labels = {
-#         managed_by = "terraform"
-#       }
-#     }
-#     spec = {
-#       node = each.key
-#       disks = [ "/dev/mapper/mainpool-storage" ]
-#     }
-#   }
-# }
+resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
+  depends_on = [helm_release.openebs]
+
+  # for_each = toset(["gr0", "gr1", "fra0", "fra1", "srv0"])
+  for_each = toset(["gr0", "gr1", "srv0"])
+
+  manifest = {
+    apiVersion = "openebs.io/v1beta3"
+    kind       = "DiskPool"
+    metadata = {
+      name      = "${each.key}.${var.domain}"
+      namespace = kubernetes_namespace_v1.openebs.metadata[0].name
+      labels = {
+        managed_by = "terraform"
+      }
+    }
+    spec = {
+      node = each.key
+      disks = [ "/dev/mapper/mainpool-storage" ]
+    }
+  }
+}
 
 # Node rename (cluster rebuild) notes: https://github.com/openebs/openebs/issues/3775#issuecomment-3068847343
 
