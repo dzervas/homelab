@@ -21,6 +21,14 @@ resource "helm_release" "cert_manager" {
       }
     }
 
+    config = {
+      featureGates = {
+        # Disable the use of Exact PathType in Ingress resources, to work around a bug in ingress-nginx
+        # https://github.com/kubernetes/ingress-nginx/issues/11176
+        ACMEHTTP01IngressPathTypeExact = false
+      }
+    }
+
     # Default ingress issuer
     ingressShim = {
       defaultIssuerKind = "ClusterIssuer"
@@ -48,6 +56,8 @@ resource "kubernetes_manifest" "cm_cluster_issuer" {
 
 # Normal, dzerv.art issuer
 resource "kubernetes_manifest" "cm_letsencrypt_issuer" {
+  field_manager { force_conflicts = true }
+
   manifest = {
     apiVersion = "cert-manager.io/v1"
     kind       = "ClusterIssuer"

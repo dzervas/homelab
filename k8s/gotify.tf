@@ -25,7 +25,7 @@ module "gotify" {
     "nginx.ingress.kubernetes.io/proxy-read-timeout"    = "1m"
     "nginx.ingress.kubernetes.io/proxy-send-timeout"    = "1m"
     # https://gotify.net/docs/nginx
-    "nginx.ingress.kubernetes.io/server-snippets"       = <<EOF
+    "nginx.ingress.kubernetes.io/server-snippets" = <<EOF
       location / {
         proxy_http_version 1.1;
 
@@ -53,14 +53,8 @@ module "gotify" {
   }
 
   env_secrets = {
-    GOTIFY_DEFAULTUSER_NAME = {
-      secret = "gotify-op"
-      key    = "username"
-    }
-    GOTIFY_DEFAULTUSER_PASS = {
-      secret = "gotify-op"
-      key    = "password"
-    }
+    GOTIFY_DEFAULTUSER_NAME = { key = "username", secret = "gotify-op" }
+    GOTIFY_DEFAULTUSER_PASS = { key = "password", secret = "gotify-op" }
   }
 }
 

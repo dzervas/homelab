@@ -65,7 +65,7 @@ resource "kubernetes_manifest" "cm_client_issuer" {
 }
 
 resource "kubernetes_manifest" "cm_certificates" {
-  for_each = toset(["desktop", "laptop", "mobile", "tablet"])
+  for_each = toset(["desktop", "laptop", "mobile"])
 
   manifest = {
     apiVersion = "cert-manager.io/v1"
