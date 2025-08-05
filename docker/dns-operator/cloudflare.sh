@@ -7,21 +7,21 @@ if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
 fi
 
 function cf() {
-	endpoint=$1
+	local endpoint=$1
 
-	result="$(curl -sL \
+	local result="$(curl -sL \
 		-H "Content-Type: application/json" \
 		-H "$CLOUDFLARE_HEADER" \
 		"$CLOUDFLARE_BASE/$endpoint" \
 		${@:2})"
 
-	errors=$(echo "$result" | jq -r '.errors[]? | @base64')
+	local errors=$(echo "$result" | jq -r '.errors[]? | @base64')
 
 	if [ -n "$errors" ]; then
-		echo "Errors encountered:"
+		error "Errors encountered:"
 		for error in $errors; do
 			error_json=$(echo "$error" | base64 --decode)
-			echo "$error_json"
+			echo "$error_json" >&2
 		done
 		exit 1
 	fi

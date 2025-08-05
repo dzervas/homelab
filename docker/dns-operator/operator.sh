@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$(dirname "$0")/log.sh"
 source "$(dirname "$0")/cloudflare.sh"
 source "$(dirname "$0")/kube-api.sh"
 
@@ -16,4 +17,5 @@ source "$(dirname "$0")/kube-api.sh"
 # 	echo "- $zone_name (ID: $zone_id)"
 # done
 
+info "Starting DNS Operator"
 watch-ingress
