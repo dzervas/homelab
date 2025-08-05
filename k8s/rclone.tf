@@ -19,12 +19,13 @@ module "rclone" {
 
   command = ["sh", "-c"]
   args = [join(" ", [
+    "cp", "/secret/rclone.conf", "/tmp/rclone.conf", "&&",
     "rclone", "serve", "webdav", "remote:",
     "--cache-dir", "/tmp/.cache",
     # VFS Cache results in a horrible performance drop for round-trip write-read operations
     "--vfs-cache-mode", "full",
     "--addr", "0.0.0.0:80",
-    "--config", "/secret/rclone.conf",
+    "--config", "/tmp/rclone.conf",
     "--temp-dir", "/tmp",
     "--metrics-addr", "0.0.0.0:9090",
   ])]
