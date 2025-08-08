@@ -54,9 +54,16 @@ resource "kubernetes_config_map_v1" "headscale_config" {
       }
 
       dns = {
-        base_domain        = "vpn.${var.domain}"
-        override_local_dns = false
+        base_domain        = "ts.${var.domain}"
         extra_records_path = "/etc/headscale/dns.json"
+
+        override_local_dns = false
+        nameservers = {
+          global = [
+            "1.1.1.1",
+            "1.0.0.1",
+          ]
+        }
       }
 
       prefixes = {
