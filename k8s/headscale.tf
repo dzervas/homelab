@@ -39,9 +39,6 @@ resource "kubernetes_config_map_v1" "headscale_config" {
       listen_addr           = "0.0.0.0:8080"
       metrics_listen_addr   = "0.0.0.0:9090"
 
-      # grpc_listen_addr    = "0.0.0.0:50443"
-      # grpc_allow_insecure = true
-
       noise = {
         private_key_path = "/var/lib/headscale/noise_private.key"
       }
