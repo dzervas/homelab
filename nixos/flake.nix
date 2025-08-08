@@ -42,9 +42,9 @@
           || exit 1
 
         echo "⏱️ Waiting for the node to be marked as ready..."
-        kubectl wait --for=condition=Ready nodes ${name} --timeout=600s \
-          && echo "✅ ${name}.dzerv.art node is ready!" \
-          || exit 1
+        # kubectl wait --for=condition=Ready nodes ${name} --timeout=600s \
+        #   && echo "✅ ${name}.dzerv.art node is ready!" \
+        #   || exit 1
       '';
     in {
       # Per-machine app

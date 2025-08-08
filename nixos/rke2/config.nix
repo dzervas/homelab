@@ -1,5 +1,6 @@
 {
   config,
+  hostName,
   hostIndex,
   home-vpn-prefix,
   node-vpn-prefix,
@@ -44,6 +45,8 @@ in {
       nodeIP
       config.networking.fqdn
       "kube.${config.networking.domain}"
+      "${hostName}.ts.${config.networking.domain}"
+      "${hostName}.vpn.${config.networking.domain}"
     ];
 
     # TODO: Available in next update v1.31.8+rke2r1:

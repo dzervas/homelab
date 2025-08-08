@@ -3,7 +3,6 @@ _: {
     ./bash.nix
     ./boot.nix
     ./disk.nix
-    ./headscale.nix
     ./network.nix
     ./nix.nix
     ./options.nix

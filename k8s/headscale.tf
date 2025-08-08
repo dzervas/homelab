@@ -8,9 +8,10 @@ module "headscale" {
   image = "ghcr.io/juanfont/headscale"
   port  = 8080
   args  = ["serve"]
-  # TODO: Don't terminate the SSL at the ingress
 
   metrics_port = 9090
+
+  # TODO: Don't terminate the SSL at the ingress
 
   # liveness_http_path = "/"
 
@@ -53,7 +54,7 @@ resource "kubernetes_config_map_v1" "headscale_config" {
       }
 
       dns = {
-        base_domain        = "ts.${var.domain}"
+        base_domain        = "vpn.${var.domain}"
         override_local_dns = false
         extra_records_path = "/etc/headscale/dns.json"
       }

@@ -52,7 +52,7 @@ in {
 
   services = {
     # Needs to be manually initialized with:
-    # tailscale up --login-server https://vpn.dzerv.art:9999
+    # tailscale up --login-server https://vpn.dzerv.art
     tailscale = {
       enable = true;
       # Disable DNS takeover as it fucks up the cluster DNS too
