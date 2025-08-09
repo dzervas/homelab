@@ -19,6 +19,10 @@ module "prowlarr" {
     }
   }
 
+  node_selector = {
+    "kubernetes.io/arch" = "amd64"
+  }
+
   env = {
     TZ   = var.timezone
   }
