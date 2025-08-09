@@ -1,3 +1,7 @@
+locals {
+  run_as_group = var.run_as_group < 0 ? var.run_as_user : var.run_as_group
+}
+
 resource "kubernetes_deployment_v1" "docker" {
   count = var.type == "deployment" ? 1 : 0
 
@@ -94,7 +98,7 @@ resource "kubernetes_deployment_v1" "docker" {
           content {
             run_as_non_root = true
             run_as_user     = var.run_as_user
-            run_as_group    = var.run_as_user
+            run_as_group    = local.run_as_group
             fs_group        = var.run_as_user
             seccomp_profile {
               type = "RuntimeDefault"
@@ -190,7 +194,7 @@ resource "kubernetes_deployment_v1" "docker" {
               privileged                 = false
               run_as_non_root            = true
               run_as_user                = var.run_as_user
-              run_as_group               = var.run_as_user
+              run_as_group               = local.run_as_group
               capabilities {
                 drop = ["ALL"]
               }
@@ -202,13 +206,21 @@ resource "kubernetes_deployment_v1" "docker" {
         }
 
         dynamic "volume" {
-          for_each = var.pvs
+          for_each = local.pvs_nonemptydir
           content {
             name = volume.value.name
             persistent_volume_claim {
               claim_name = kubernetes_persistent_volume_claim_v1.docker[volume.key].metadata[0].name
               read_only  = volume.value.read_only
             }
+          }
+        }
+
+        dynamic "volume" {
+          for_each = local.pvs_emptydir
+          content {
+            name = volume.value.name
+            empty_dir {}
           }
         }
 
@@ -235,5 +247,5 @@ resource "kubernetes_deployment_v1" "docker" {
     }
   }
 
-  depends_on = [kubernetes_namespace.docker, kubernetes_persistent_volume_claim_v1.docker]
+  depends_on = [kubernetes_namespace.docker]
 }

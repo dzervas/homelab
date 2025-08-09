@@ -141,6 +141,7 @@ variable "pvs" {
     size         = string
     access_modes = optional(list(string), ["ReadWriteOnce"])
     read_only    = optional(bool, false)
+    empty_dir    = optional(bool, false)
   }))
 }
 
@@ -198,4 +199,9 @@ variable "enable_security_context" {
 variable "run_as_user" {
   type    = number
   default = 1000
+}
+
+variable "run_as_group" {
+  type    = number
+  default = -1
 }

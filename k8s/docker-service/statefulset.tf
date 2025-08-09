@@ -96,7 +96,7 @@ resource "kubernetes_stateful_set" "docker" {
           content {
             run_as_non_root = true
             run_as_user     = var.run_as_user
-            run_as_group    = var.run_as_user
+            run_as_group    = local.run_as_group
             fs_group        = var.run_as_user
             seccomp_profile {
               type = "RuntimeDefault"
@@ -192,7 +192,7 @@ resource "kubernetes_stateful_set" "docker" {
               privileged                 = false
               run_as_non_root            = true
               run_as_user                = var.run_as_user
-              run_as_group               = var.run_as_user
+              run_as_group               = local.run_as_group
               capabilities {
                 drop = ["ALL"]
               }
@@ -200,6 +200,14 @@ resource "kubernetes_stateful_set" "docker" {
                 type = "RuntimeDefault"
               }
             }
+          }
+        }
+
+        dynamic "volume" {
+          for_each = local.pvs_emptydir
+          content {
+            name = volume.value.name
+            empty_dir {}
           }
         }
 
@@ -230,7 +238,7 @@ resource "kubernetes_stateful_set" "docker" {
       when_scaled  = var.retain_pvs ? "Retain" : "Delete"
     }
     dynamic "volume_claim_template" {
-      for_each = var.pvs
+      for_each = local.pvs_nonemptydir
 
       content {
         metadata {
