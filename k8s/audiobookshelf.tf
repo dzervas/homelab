@@ -20,7 +20,7 @@ module "audiobookshelf_ingress" {
 
     "nginx.ingress.kubernetes.io/auth-cache-duration" = "200 202 10m"
     # XXX: add cookie to avoid cache takeover from the NAT gateway
-    "nginx.ingress.kubernetes.io/auth-cache-key"      = "$remote_user$http_authorization"
+    "nginx.ingress.kubernetes.io/auth-cache-key" = "$remote_user$http_authorization"
   }
 }
 
@@ -45,22 +45,27 @@ resource "helm_release" "audiobookshelf" {
   })]
 }
 
-resource "kubernetes_network_policy_v1" "audiobookshelf_n8n" {
-  metadata {
-    name      = "audiobookshelf-n8n"
-    namespace = helm_release.audiobookshelf.namespace
-  }
-  spec {
-    pod_selector {}
-    policy_types = ["Ingress"]
-    ingress {
-      from {
-        namespace_selector {
-          match_labels = {
-            "kubernetes.io/metadata.name" = "n8n"
-          }
-        }
-      }
+module "audiobookrequest" {
+  source = "./docker-service"
+
+  type  = "statefulset"
+  name  = "audiobookrequest"
+  fqdn  = "add.audiobooks.${var.domain}"
+  auth  = "mtls"
+  image = "markbeep/audiobookrequest"
+  port  = 8000
+
+  namespace        = helm_release.audiobookshelf.namespace
+  create_namespace = false
+
+  pvs = {
+    "/config" = {
+      name = "config"
+      size = "512Mi"
     }
+  }
+
+  env = {
+    TZ = var.timezone
   }
 }

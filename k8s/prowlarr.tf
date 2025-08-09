@@ -1,16 +1,16 @@
-module "jackett" {
+module "prowlarr" {
   source = "./docker-service"
 
   type  = "statefulset"
-  name  = "jackett"
+  name  = "prowlarr"
   fqdn  = "search.${var.domain}"
   auth  = "mtls"
-  image = "ghcr.io/elfhosted/jackett:rolling"
-  port  = 9117
+  image = "ghcr.io/elfhosted/prowlarr-develop:rolling"
+  port  = 9696
 
   image_pull_policy = true
 
-  liveness_http_path = "/health"
+  liveness_http_path = "/"
 
   pvs = {
     "/config" = {
@@ -27,7 +27,7 @@ module "jackett" {
 module "flaresolverr" {
   source = "./docker-service"
 
-  namespace = module.jackett.namespace
+  namespace = module.prowlarr.namespace
   create_namespace = false
 
   type  = "deployment"
@@ -43,5 +43,25 @@ module "flaresolverr" {
 
     PROMETHEUS_ENABLED = "true"
     PROMETHEUS_PORT    = "9191"
+  }
+}
+
+resource "kubernetes_network_policy_v1" "audiobookshelf_access" {
+  metadata {
+    name      = "audiobookshelf-access"
+    namespace = module.prowlarr.namespace
+  }
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress"]
+    ingress {
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "audiobookshelf"
+          }
+        }
+      }
+    }
   }
 }
