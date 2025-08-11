@@ -38,7 +38,7 @@ resource "helm_release" "grafana" {
       storageClassName = "openebs-replicated"
     }
 
-    ingress = module.grafana_ingress.host_list
+    ingress       = module.grafana_ingress.host_list
     networkPolicy = { enabled = true }
 
     plugins = ["grafana-llm-app"]
@@ -49,7 +49,8 @@ resource "helm_release" "grafana" {
     }
 
     "grafana.ini" = {
-      users = { allow_sign_up = false }
+      users  = { allow_sign_up = false }
+      server = { root_url = "https://grafana.${var.domain}" }
       database = {
         # Database locked workarounds: https://github.com/grafana/grafana/issues/68941#issuecomment-1567941013
         wal                 = true
