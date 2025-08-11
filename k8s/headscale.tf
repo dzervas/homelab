@@ -54,6 +54,7 @@ resource "kubernetes_config_map_v1" "headscale_config" {
       }
 
       dns = {
+        magic_dns          = true
         base_domain        = "ts.${var.domain}"
         extra_records_path = "/etc/headscale/dns.json"
 

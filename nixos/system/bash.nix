@@ -6,6 +6,8 @@
     dnslookup
     git
     jq
+
+    kubectx
   ]);
 
   programs = {
@@ -36,12 +38,13 @@
         watch = "watch --color --beep";
         htop = "btop";
 
-        ll = "ls -Falh";
-        k = "kubectl";
-        v = "vim";
         hh = "history | grep";
-        rg = "grep --color=always";
         ipa = "ip -br -c a";
+        k = "kubectl";
+        kn = "kubens";
+        ll = "ls -Falh";
+        rg = "grep --color=always";
+        v = "vim";
       };
     };
     vim = {

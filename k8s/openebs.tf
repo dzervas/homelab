@@ -61,10 +61,10 @@ resource "helm_release" "openebs" {
       mayastor = {
         io_engine = {
           # TODO: Fix RDMA
-          # target = { nvmf = {
-          #   rdma  = { enabled = true }
-          #   iface = "wg0"
-          # } }
+          target = { nvmf = {
+            rdma  = { enabled = true }
+            iface = "wg0"
+          } }
 
           # The default is 2, which is correct but some nodes have 4 cpus they get saturated
           resources = { requests = { cpu = 1 } }
@@ -80,6 +80,32 @@ resource "helm_release" "openebs" {
         # Redefine it with reatin by default
         storageClass = { enabled = false }
 
+        nats = {
+          affinity = {
+            nodeAffinity = {
+              requiredDuringSchedulingIgnoredDuringExecution = {
+                nodeSelectorTerms = [{
+                  matchExpressions = [{
+                    key      = "provider"
+                    operator = "NotIn"
+                    values   = ["homelab"]
+                  }]
+                }]
+              }
+            }
+            podAntiAffinity = {
+              requiredDuringSchedulingIgnoredDuringExecution = [{
+                topologyKey = "kubernetes.io/hostname"
+                labelSelector = {
+                  matchLabels = {
+                    "app.kubernetes.io/name" = "nats"
+                  }
+                }
+              }]
+            }
+          }
+        }
+
         # Do not create a new storage class just for etcd, localpv-provisioner is already deployed
         localpv-provisioner = { enabled = false }
         etcd = {
@@ -89,6 +115,31 @@ resource "helm_release" "openebs" {
           persistence = {
             storageClass  = "openebs-hostpath"
             reclaimPolicy = "Retain"
+          }
+
+          affinity = {
+            nodeAffinity = {
+              requiredDuringSchedulingIgnoredDuringExecution = {
+                nodeSelectorTerms = [{
+                  matchExpressions = [{
+                    key      = "provider"
+                    operator = "NotIn"
+                    values   = ["homelab"]
+                  }]
+                }]
+              }
+            }
+            podAntiAffinity = {
+              requiredDuringSchedulingIgnoredDuringExecution = [{
+                topologyKey = "kubernetes.io/hostname"
+                labelSelector = {
+                  matchLabels = {
+                    "app.kubernetes.io/instance" = "openebs"
+                    "app.kubernetes.io/name"     = "etcd"
+                  }
+                }
+              }]
+            }
           }
         }
       }
@@ -263,8 +314,8 @@ resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
       }
     }
     spec = {
-      node = each.key
-      disks = [ "/dev/mapper/mainpool-storage" ]
+      node  = each.key
+      disks = ["/dev/mapper/mainpool-storage"]
     }
   }
 }

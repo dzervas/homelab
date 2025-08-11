@@ -55,11 +55,18 @@ in {
     # tailscale up --login-server https://vpn.dzerv.art
     tailscale = {
       enable = true;
-      # Disable DNS takeover as it fucks up the cluster DNS too
-      extraSetFlags = [
+      openFirewall = true;
+
+      extraUpFlags = [
+        # Disable DNS takeover as it fucks up the cluster DNS too
         "--accept-dns=false"
+        "--accept-routes=false"
+
         "--advertise-exit-node"
       ];
+
+      # Needed to advertise exit nodes
+      useRoutingFeatures = "server";
     };
 
     wgautomesh = {
