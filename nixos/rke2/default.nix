@@ -39,19 +39,10 @@
     };
 
   # Add RKE2 utilities to path (kubectl and friends)
-  environment = {
-    sessionVariables = {
-      KUBECONFIG = "/etc/rancher/rke2/rke2.yaml";
-      PATH = "/var/lib/rancher/rke2/bin";
-      CRI_CONFIG_FILE = "/var/lib/rancher/rke2/agent/etc/crictl.yaml";
-    };
-    systemPackages = with pkgs; [ rdma-core ];
-  };
-
-  # OpenEBS RDMA
-  networking.rxe = {
-    enable = true;
-    interfaces = [ node-vpn-iface ];
+  environment.sessionVariables = {
+    KUBECONFIG = "/etc/rancher/rke2/rke2.yaml";
+    PATH = "/var/lib/rancher/rke2/bin";
+    CRI_CONFIG_FILE = "/var/lib/rancher/rke2/agent/etc/crictl.yaml";
   };
 
   # Remove old k3s container images daily

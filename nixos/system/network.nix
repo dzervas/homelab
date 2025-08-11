@@ -57,7 +57,7 @@ in {
       enable = true;
       openFirewall = true;
 
-      extraUpFlags = [
+      extraSetFlags = [
         # Disable DNS takeover as it fucks up the cluster DNS too
         "--accept-dns=false"
         "--accept-routes=false"
