@@ -29,19 +29,33 @@ resource "helm_release" "victoriametrics" {
       }
     }
 
-    defaultRules = {
-      groups = {
-        # https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-k8s-stack/values.yaml#L111
-        # No system controller manager in RKE2
-        kubernetesSystemControllerManager = { enabled = false }
-        # Neither system scheduler
-        kubernetesSystemScheduler = { enabled = false }
-      }
-    }
     defaultDashboards = {
       enabled = true
       labels = {
         grafana_dashboard = "1"
+      }
+    }
+
+    # kubeProxy = {
+    #   enabled = true
+    #   service = {
+    #     selector = {
+    #       component = "kube-proxy"
+    #     }
+    #   }
+    # }
+    # https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-k8s-stack/values.yaml#L111
+
+    # TODO: The following listen at pod-localhost by default so we can't scrape them
+    # TODO: Scrape RKE2 metrics too: https://docs.rke2.io/reference/metrics
+    kubeEtcd = { enabled = false }
+    kubeScheduler = { enabled = false }
+    kubeControllerManager = { enabled = false }
+    defaultRules = {
+      groups = {
+        etcd = { enabled = false }
+        kubernetesSystemScheduler = { enabled = false }
+        kubernetesSystemControllerManager = { enabled = false }
       }
     }
 
