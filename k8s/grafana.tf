@@ -41,7 +41,11 @@ resource "helm_release" "grafana" {
     ingress       = module.grafana_ingress.host_list
     networkPolicy = { enabled = true }
 
-    plugins = ["grafana-llm-app"]
+    plugins = [
+      "grafana-llm-app",
+      "victoriametrics-logs-datasource",
+      "victoriametrics-metrics-datasource",
+    ]
     imageRenderer = {
       enabled = true
       # Fixes a bug with the resulting URL returned to the UI
@@ -67,14 +71,6 @@ resource "helm_release" "grafana" {
             name = "Loki"
             type = "loki"
             url  = "http://loki-gateway"
-          },
-          {
-            name                = "Victoria"
-            type                = "prometheus"
-            url                 = "http://vmsingle-victoriametrics.victoriametrics.svc.cluster.local:8428"
-            incrementalQuerying = "true"
-            cacheLevel          = "Medium"
-            isDefault           = true
           },
         ]
       }

@@ -48,13 +48,13 @@ resource "helm_release" "victoriametrics" {
 
     # TODO: The following listen at pod-localhost by default so we can't scrape them
     # TODO: Scrape RKE2 metrics too: https://docs.rke2.io/reference/metrics
-    kubeEtcd = { enabled = false }
-    kubeScheduler = { enabled = false }
+    kubeEtcd              = { enabled = false }
+    kubeScheduler         = { enabled = false }
     kubeControllerManager = { enabled = false }
     defaultRules = {
       groups = {
-        etcd = { enabled = false }
-        kubernetesSystemScheduler = { enabled = false }
+        etcd                              = { enabled = false }
+        kubernetesSystemScheduler         = { enabled = false }
         kubernetesSystemControllerManager = { enabled = false }
       }
     }
@@ -62,7 +62,10 @@ resource "helm_release" "victoriametrics" {
     # NixOS defined
     prometheus-node-exporter = { enabled = false }
     # Defined in the grafana tf module
-    grafana = { enabled = false }
+    grafana = {
+      enabled               = false
+      forceDeployDatasource = true
+    }
   })]
 }
 
