@@ -85,6 +85,11 @@ module "n8n" {
     N8N_DIAGNOSTICS_ENABLED         = "false"
     N8N_DIAGNOSTICS_CONFIG_FRONTEND = ""
     N8N_DIAGNOSTICS_CONFIG_BACKEND  = ""
+
+    N8N_PUBLIC_API_DISABLED = "false"
+
+    DB_SQLITE_POOL_SIZE = "10"
+    DB_SQLITE_VACUUM_ON_STARTUP = "true"
   }
 
   env_secrets = {
