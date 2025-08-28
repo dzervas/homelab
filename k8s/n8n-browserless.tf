@@ -20,6 +20,23 @@ module "n8n_browserless" {
   node_selector    = { "provider" = "grnet" }
 
   ingress_enabled = true
+  ingress_annotations = {
+    "nginx.ingress.kubernetes.io/proxy-connect-timeout" = "3600"
+    "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
+    "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
+
+    # From https://docs.browserless.io/enterprise/nginx-docker#nginxconf
+    "nginx.ingress.kubernetes.io/server-snippets" = <<EOF
+      location / {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_cache_bypass $http_upgrade;
+      }
+    EOF
+  }
   # ingress_annotations = {
   #   "nginx.ingress.kubernetes.io/server-snippet" = <<EOF
   #     location = /debugger {
@@ -40,6 +57,7 @@ module "n8n_browserless" {
     PROXY_SSL  = false
     CONCURRENT = 5
     QUEUED     = 10
+    TIMEOUT    = 15*60*1000
   }
 
   env_secrets = {

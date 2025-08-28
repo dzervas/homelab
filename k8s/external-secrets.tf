@@ -32,7 +32,7 @@ resource "kubernetes_manifest" "password_generator" {
       generator = {
         passwordSpec = {
           length           = 42
-          symbolCharacters = "-_+=~<>,."
+          symbolCharacters = "-_,."
           allowRepeat      = true
         }
       }
