@@ -15,22 +15,28 @@ terraform {
     }
   }
 
+  required_version = ">= 1.13"
+
   required_providers {
     cloudflare = {
       source = "cloudflare/cloudflare"
-      version = "~> 4"
+      version = "~> 5"
     }
     oci = {
       source = "oracle/oci"
+      version = "~> 7"
     }
     onepassword = {
       source = "1Password/onepassword"
+      version = "~> 2"
     }
     template = {
       source = "hashicorp/template"
+      version = "~> 2"
     }
     zerotier = {
       source = "zerotier/zerotier"
+      version = "~> 1"
     }
   }
 }

@@ -18,6 +18,10 @@ variable "region" {
   type = string
 }
 
+variable "index" {
+  type = number
+}
+
 variable "availability_domain" {
   type = string
 }

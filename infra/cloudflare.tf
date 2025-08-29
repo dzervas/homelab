@@ -1,5 +1,12 @@
-data "cloudflare_zones" "main" {
-  filter {
+locals {
+  zones = [
+    "modem",
+    "hass",
+  ]
+}
+
+data "cloudflare_zone" "main" {
+  filter = {
     name = var.domain
   }
 }

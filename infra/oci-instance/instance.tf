@@ -12,7 +12,7 @@ data "template_file" "oracle_k3s" {
 
 resource "oci_core_instance" "k3s" {
   availability_domain = var.availability_domain
-  display_name        = var.fqdn
+  display_name        = local.name
   compartment_id      = var.compartment_ocid
   shape               = var.shape # Free tier allowance
   state               = "RUNNING"

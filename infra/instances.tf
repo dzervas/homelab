@@ -6,6 +6,7 @@ module "oci_instances_arm" {
     oci = oci
   }
 
+  index                 = count.index
   fqdn                  = "${split("-", var.region)[1]}${count.index}.${var.domain}"
   apex_record           = false
   wildcard_record       = true
@@ -21,7 +22,7 @@ module "oci_instances_arm" {
   ssh_public_key        = var.ssh_public_key
   auto_assign_public_ip = false
 
-  cloudflare_zone_id = data.cloudflare_zones.main.zones[0].id
+  cloudflare_zone_id = "76fd13e14cdcbe43cff8816f852d2e24"
 
   zerotier_index      = 200 + count.index
   zerotier_network_id = zerotier_network.homelab.id
@@ -36,7 +37,8 @@ module "oci_instances_arm_alt" {
     oci = oci.alt
   }
 
-  fqdn                  = "${split("-", var.region)[1]}${count.index + length(module.oci_instances_arm)}.${var.domain}"
+  index                 = count.index + length(module.oci_instances_arm)
+  fqdn                  = "${split("-", var.region_alt)[1]}${count.index + length(module.oci_instances_arm)}.${var.domain}"
   apex_record           = false
   wildcard_record       = true
   region                = var.region_alt
@@ -51,7 +53,7 @@ module "oci_instances_arm_alt" {
   ssh_public_key        = var.ssh_public_key
   auto_assign_public_ip = false
 
-  cloudflare_zone_id = data.cloudflare_zones.main.zones[0].id
+  cloudflare_zone_id = "76fd13e14cdcbe43cff8816f852d2e24"
 
   zerotier_index      = 200 + count.index + length(module.oci_instances_arm)
   zerotier_network_id = zerotier_network.homelab.id
