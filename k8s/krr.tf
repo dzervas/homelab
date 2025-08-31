@@ -32,6 +32,8 @@ resource "kubernetes_job_v1" "krr" {
       }
     }
   }
+
+  wait_for_completion = false
 }
 
 resource "kubernetes_service_account_v1" "krr_service_account" {
