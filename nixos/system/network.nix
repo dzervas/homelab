@@ -22,6 +22,11 @@ in {
     firewall = {
       enable = true;
       allowedUDPPorts = [ wireguard-port ]; # WireGuard
+
+      extraForwardRules = ''
+        # VPN exit node
+        iifname ${node-vpn-iface} oifname eth0 ip saddr ${node-vpn-prefix}.0/24 accept
+      '';
     };
 
     # Cilium is NOT compatible with nftables!

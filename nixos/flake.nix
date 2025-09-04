@@ -36,7 +36,7 @@
         ${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng switch \
           --flake /home/dzervas/Lab/homelab/nixos#${name} \
           --no-reexec \
-          --target-host ${name}.dzerv.art \
+          --target-host ${name}.ts.dzerv.art \
           --builders "${builtins.concatStringsSep " ; " builders}" \
           && echo "🎉 ${name}.dzerv.art build complete!" \
           || exit 1
