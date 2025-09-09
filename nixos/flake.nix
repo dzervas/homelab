@@ -1,8 +1,5 @@
 {
-
-  # nixConfig.builders = ;
-
-  outputs = { nixpkgs, disko, flake-utils, ... }: let
+  outputs = { self, nixpkgs, deploy-rs, disko, ... }: let
     machines = {
       gr0 =  { hostIndex = "100"; publicKey = "IL/4BsJxWB+D+k9tAyz3VaQD4F1J6+C1/FXByrUr9Ak="; role = "server"; };
       gr1 =  { hostIndex = "101"; publicKey = "Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8="; };
@@ -11,9 +8,7 @@
       fra1 = { hostIndex = "201"; publicKey = "gdS1om0jFmLu3omuE+aMwFpW1iMse0wjVEkPgZB67xs="; role = "server"; system = "aarch64-linux"; };
     };
 
-    inherit (import ./mkMachines.nix { inherit disko nixpkgs; }) mkMachines mkShellApp;
-    inherit (flake-utils.lib) eachDefaultSystemPassThrough;
-    inherit (nixpkgs) lib;
+    inherit (import ./mkMachines.nix { inherit disko nixpkgs; }) mkMachines mkNode;
   in {
     # For a fresh install:
     # nixos-anywhere --flake .#local0 --target-host root@<host> --generate-hardware-config nixos-generate-config ./hosts/srv0.nix
@@ -22,52 +17,17 @@
     # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
     nixosConfigurations = mkMachines machines;
 
-    apps = eachDefaultSystemPassThrough (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-      builders = lib.mapAttrsToList (name: config: let
-        system = if builtins.hasAttr "system" config then config.system else "x86_64-linux";
-      in "ssh://builder@${name}.dzerv.art ${system}"
-      ) machines;
-      rebuild = name: ''
-        echo
-        echo "🔄 Rebuilding ${name}.dzerv.art..."
-        echo
-
-        ${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng switch \
-          --flake /home/dzervas/Lab/homelab/nixos#${name} \
-          --no-reexec \
-          --target-host ${name}.ts.dzerv.art \
-          --builders "${builtins.concatStringsSep " ; " builders}" \
-          && echo "🎉 ${name}.dzerv.art build complete!" \
-          || exit 1
-
-        # echo "⏱️ Waiting for the node to be marked as ready..."
-        # kubectl wait --for=condition=Ready nodes ${name} --timeout=600s \
-        #   && echo "✅ ${name}.dzerv.art node is ready!" \
-        #   || exit 1
-      '';
-    in {
-      # Per-machine app
-      ${system} = lib.mapAttrs (name: _config:
-        mkShellApp pkgs (rebuild name)
-      ) machines // rec {
-        all = let
-          commands = lib.mapAttrsToList (name: _config: rebuild name) machines;
-        in mkShellApp pkgs ''
-          set -euo pipefail
-          ${builtins.concatStringsSep "\n" commands}
-        '';
-        default = all;
-      };
-    });
+    # deploy-rs stuff
+    deploy.nodes = builtins.mapAttrs (name: machine: mkNode deploy-rs self name machine) machines;
+    checks = builtins.mapAttrs (_system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
   };
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
+    deploy-rs.url = "github:serokell/deploy-rs";
+
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
-
-    flake-utils.url = "github:numtide/flake-utils";
   };
 }

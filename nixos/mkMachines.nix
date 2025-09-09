@@ -5,9 +5,10 @@
     machines ? {},
     role ? "agent",
     system ? "x86_64-linux",
-    publicKey ? null,
+    ...
   }: nixpkgs.lib.nixosSystem {
     inherit system;
+
     specialArgs = {
       inherit hostName hostIndex machines role;
 
@@ -17,6 +18,7 @@
       home-vpn-prefix = "100.100.50";
       home-vpn-iface = "tailscale0";
     };
+
     modules = [
       disko.nixosModules.disko
 
@@ -30,9 +32,14 @@
     (name: machine: mkMachine (machine // { inherit machines; hostName = name; }))
     machines;
 
-  # Create a map compatible with the `apps.<system>.<whatever>` variable that is just a shell script
-  mkShellApp = pkgs: script: {
-    type = "app";
-    program = builtins.toString (pkgs.writeShellScript "script" script);
+  mkNode = deploy-rs: self: name: machine: let
+    system = if builtins.hasAttr "system" machine then builtins.getAttr "system" machine else "x86_64-linux";
+  in {
+      hostname = "${name}.dzerv.art";
+      profiles.system = {
+        user = "root";
+        sshUser = "root";
+        path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${name};
+      };
   };
 }
