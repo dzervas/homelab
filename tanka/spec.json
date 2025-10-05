@@ -1,0 +1,12 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "homelab"
+  },
+  "spec": {
+    "contextNames": ["gr"],
+    "namespace": "_ignored_",
+    "injectLabels": true
+  }
+}

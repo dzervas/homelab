@@ -6,6 +6,7 @@
     dnslookup
     git
     jq
+    nvme-cli # For OpenEBS management
 
     kubectx
   ]);

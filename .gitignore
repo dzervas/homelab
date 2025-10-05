@@ -9,3 +9,4 @@ alertmanager.yaml
 *.zip
 *.tar.gz
 *.tar.bz2
+vendor
