@@ -26,7 +26,10 @@ local ingressLib = import "docker-service/ingress.libsonnet";
     local cfg = defaults + config;
 
     {
-      namespace: namespace.new(cfg.namespace),
+      namespace: namespace.new(cfg.namespace)
+        + namespace.metadata.withLabels({
+          ghcrCreds: if std.startsWith(image, "ghcr.io/dzervas/") then "enabled" else "disabled"
+        }),
       deployment: deploymentLib.new(name, image, cfg),
       service: serviceLib.new(name, cfg),
     }

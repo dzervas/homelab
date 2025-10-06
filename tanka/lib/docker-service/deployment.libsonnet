@@ -40,7 +40,7 @@ local volume = k.core.v1.volume;
       replicas=cfg.replicas,
       containers=[
         container.new(name, image)
-        + container.withPorts([ port.newNamed("http", cfg.port) ])
+        + container.withPorts([ port.newNamed(cfg.port, "http") ])
         + container.withImagePullPolicy("Always")
         + (if std.length(volumeMounts) > 0 then container.withVolumeMounts(volumeMounts) else {})
         + (if std.length(envVars) > 0 then container.withEnv(envVars) else {})
@@ -53,6 +53,7 @@ local volume = k.core.v1.volume;
     )
     + deployment.metadata.withNamespace(cfg.namespace)
     + (if std.length(volumes) > 0 then deployment.spec.template.spec.withVolumes(volumes) else {})
+    + (if std.startsWith(image, "ghcr.io/dzervas/") then deployment.spec.template.spec.withImagePullSecrets([ { name: "ghcr-cluster-secret" } ]) else {})
     + deployment.spec.template.spec.securityContext.withFsGroup(cfg.runAsUser)
     + deployment.spec.template.spec.securityContext.withRunAsNonRoot(true)
     + deployment.spec.template.metadata.withLabels(cfg.labels)
