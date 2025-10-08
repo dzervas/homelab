@@ -74,6 +74,20 @@ resource "helm_release" "magicentry" {
             redirect_urls = ["https://games.dzerv.art/api/oauth/openid"]
           }
         },
+        {
+          name          = "N8N"
+          url           = "https://auto.dzerv.art"
+          valid_origins = ["https://auto.dzerv.art"]
+          realms        = ["n8n"]
+
+          auth_url = { origins = ["https://auto.dzerv.art"] }
+
+          oidc = {
+            client_id     = local.op_secrets.magicentry.n8n_id
+            client_secret = local.op_secrets.magicentry.n8n_secret
+            redirect_urls = ["https://auto.dzerv.art/rest/sso/oidc/callback"]
+          }
+        },
       ]
 
       users = [

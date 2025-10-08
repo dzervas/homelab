@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>503 Service Unavailable</title>
+  <meta name="description" content="The server is temporarily unable to handle the request." />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="refresh" content="30">
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --panel: #131316;
+      --text: #e7e7ea;
+      --muted: #a2a2ad;
+      --accent: #7c5cff;
+      --accent-2: #1ee3cf;
+      --danger: #ff5c7c;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 10% 10%, #11111a 0%, var(--bg) 55%),
+                  radial-gradient(1000px 700px at 90% 30%, #0f0f18 0%, var(--bg) 60%),
+                  var(--bg);
+      display: grid;
+      place-items: center;
+    }
+
+    main {
+      width: min(760px, 92vw);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 36px);
+    }
+
+    h1 {
+      margin: 0.2rem 0 0.6rem;
+      font-size: clamp(28px, 4.8vw, 40px);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    p { margin: 0 0 1rem; color: var(--muted); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+    @media (prefers-reduced-motion: reduce) {
+      button, a.button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main role="main" aria-labelledby="page-title">
+    <h1 id="page-title">503 — We’re a bit overloaded</h1>
+    <p>
+      The server is temporarily unable to handle the request. This usually clears up quickly.
+      You can retry now, or come back later if the stampede continues.
+    </p>
+
+    <p class="mono">Error code: 503</p>
+  </main>
+</body>
+</html>

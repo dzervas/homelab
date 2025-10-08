@@ -22,9 +22,11 @@ module "n8n" {
   image            = "ghcr.io/dzervas/n8n:latest"
 
   fqdn         = "auto.${var.domain}"
-  auth         = "mtls"
+  auth         = "oauth"
   port         = 5678
   metrics_port = 5678
+
+  magicentry_access = true
 
   ingress_enabled = true
   ingress_annotations = {
