@@ -18,7 +18,7 @@ resource "helm_release" "magicentry" {
 
   repository = "oci://ghcr.io/dzervas/charts"
   chart      = "magicentry"
-  version    = "0.6.6"
+  version    = "0.7.1"
   values = [yamlencode({
     ingress = module.magicentry_ingress.host_obj
     persistence = {

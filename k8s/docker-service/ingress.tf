@@ -5,12 +5,15 @@ locals {
     "nginx.ingress.kubernetes.io/auth-tls-verify-client" = "on"
   }
   oauth_annotations = {
-    "magicentry.rs/name"                      = var.name
-    "magicentry.rs/realms"                    = var.name
-    "magicentry.rs/auth-url"                  = "true"
-    "magicentry.rs/manage-ingress-nginx"      = "true"
-    "nginx.ingress.kubernetes.io/auth-url"    = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
-    "nginx.ingress.kubernetes.io/auth-signin" = "https://auth.dzerv.art/login"
+    "magicentry.rs/name"                              = var.name
+    "magicentry.rs/realms"                            = var.name
+    "magicentry.rs/auth-url"                          = "true"
+    "magicentry.rs/manage-ingress-nginx"              = "true"
+    "nginx.ingress.kubernetes.io/auth-url"            = "http://magicentry.auth.svc.cluster.local:8080/auth-url/status"
+    "nginx.ingress.kubernetes.io/auth-signin"         = "https://auth.dzerv.art/login"
+    "nginx.ingress.kubernetes.io/auth-cache-duration" = "200 202 10m"
+    # XXX: add cookie to avoid cache takeover from the NAT gateway
+    "nginx.ingress.kubernetes.io/auth-cache-key" = "$remote_user$http_authorization"
   }
 }
 
