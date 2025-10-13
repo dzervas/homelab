@@ -1,3 +1,4 @@
+# TODO: Disable automatic SA mounting to pods
 resource "kubernetes_stateful_set" "docker" {
   count = var.type == "statefulset" ? 1 : 0
 

@@ -2,6 +2,8 @@ locals {
   run_as_group = var.run_as_group < 0 ? var.run_as_user : var.run_as_group
 }
 
+# TODO: Disable automatic SA mounting to pods
+
 resource "kubernetes_deployment_v1" "docker" {
   count = var.type == "deployment" ? 1 : 0
 

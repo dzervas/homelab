@@ -1,3 +1,4 @@
+# TODO: Disable automatic SA mounting to pods
 local k = import "k.libsonnet";
 
 local deployment = k.apps.v1.deployment;
