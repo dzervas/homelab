@@ -5,7 +5,7 @@ module "prowlarr" {
   name  = "prowlarr"
   fqdn  = "search.${var.domain}"
   auth  = "mtls"
-  image = "ghcr.io/elfhosted/prowlarr-develop:rolling"
+  image = "ghcr.io/elfhosted/prowlarr-nightly:rolling"
   port  = 9696
 
   image_pull_policy = true
