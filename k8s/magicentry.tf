@@ -103,6 +103,7 @@ resource "helm_release" "magicentry" {
         { name = "Darina Golos", email = "darinagolos@gmail.com", username = "darina", realms = ["audiobooks"] },
         { name = "Endri Meto", email = "audiobooks@endme.gr", username = "endme", realms = ["public"] },
         { name = "psof", email = "polidoros.sofikitis@gmail.com", username = "psof", realms = ["public", "cook"] },
+        { name = "John", email = "john.torakis@gmail.com", username = "john", realms = ["public"] },
       ]
     }
   })]
