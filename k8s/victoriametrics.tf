@@ -15,7 +15,7 @@ resource "helm_release" "victoriametrics" {
 
     vmsingle = {
       spec = {
-        retentionPeriod = "16w" # 4 months, 6 months is more than 50G
+        retentionPeriod = "8w" # 4 months, 6 months is more than 50G
         storage = { rsources = { requests = { storage = "50Gi" } } }
         nodeSelector = {
           provider = "oracle"

@@ -187,9 +187,9 @@ resource "kubernetes_manifest" "n8n_backup" {
     spec = {
       persistentVolumeClaim = { claimName = "backups-n8n-0" }
       schedule = [
-        { every = "day", keep = 7 },
+        { every = "day", keep = 3 },
         { every = "week", keep = 4 },
-        { every = "month", keep = 3 }
+        { every = "month", keep = 1 }
       ]
     }
   }

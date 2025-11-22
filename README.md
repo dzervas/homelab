@@ -35,6 +35,7 @@ kubectl --kubeconfig /tmp/newkubeconfig config set clusters.default.certificate-
 ln -s /etc/opkg/openwrt/distfeeds.conf /etc/opkg/
 opkg update
 opkg install acme acme-dnsapi
+sed -i 's#/usr/lib/acme/#/usr/local/lib/acme/#' /etc/init.d/acme /usr/local/lib/acme/run-acme 
 /etc/init.d/acme restart
 /etc/init.d/acme enable
 opkg install prometheus-node-exporter-lua-openwrt
