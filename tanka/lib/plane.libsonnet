@@ -1,15 +1,26 @@
+local dockerService = import 'docker-service.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'plane';
 local domain = 'projects.dzerv.art';
+local prime_server = 'http://plane-prime:8000';
 
 {
-  namespace: k.core.v1.namespace.new(namespace),
-  plane: helm.template('plane', '../charts/plane-ce', {
+  // NOTE: Creates the namespace
+  planePrime: dockerService.new('plane-prime', 'ghcr.io/dzervas/plane-prime:latest', {
+    namespace: namespace,
+    port: 8000,
+  }),
+  plane: helm.template('plane', '../charts/plane-enterprise', {
     namespace: namespace,
     values: {
+      // TODO: Add timezone
+      license: {
+        licenseDomain: domain,
+        licenseServer: prime_server,
+      },
       planeVersion: 'stable',
       ingress: {
         enabled: true,
@@ -32,6 +43,11 @@ local domain = 'projects.dzerv.art';
       env: {
         storageClass: 'openebs-replicated',
       },
+      extraEnv: [
+        { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
+        { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
+        { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
+      ],
     },
   }),
 }
