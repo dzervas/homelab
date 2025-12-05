@@ -1,0 +1,10 @@
+directory: charts
+repositories:
+  - name: stable
+    url: https://charts.helm.sh/stable
+  - name: plane
+    url: https://helm.plane.so
+requires:
+  - chart: plane/plane-ce
+    version: v1.4.0
+version: 1
