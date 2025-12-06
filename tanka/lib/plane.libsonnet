@@ -1,6 +1,7 @@
 local dockerService = import 'docker-service.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
+local gemini = import 'lib/gemini.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'plane';
@@ -50,4 +51,16 @@ local prime_server = 'http://plane-prime:8000';
       ],
     },
   }),
+
+  // Backup configurations for all Plane PVCs using the wrapper function
+  planeBackups: gemini.backupMany(
+    namespace=namespace,
+    pvcClaimNames=[
+      'pvc-plane-minio-vol-plane-minio-wl-0',
+      'pvc-plane-monitor-vol-plane-monitor-wl-0',
+      'pvc-plane-pgdb-vol-plane-pgdb-wl-0',
+      'pvc-plane-rabbitmq-vol-plane-rabbitmq-wl-0',
+      'pvc-plane-redis-vol-plane-redis-wl-0',
+    ]
+  ),
 }
