@@ -88,11 +88,28 @@ resource "helm_release" "magicentry" {
             redirect_urls = ["https://auto.dzerv.art/rest/sso/oidc/callback"]
           }
         },
+        {
+          name          = "Plane"
+          url           = "https://projects.dzerv.art"
+          valid_origins = ["https://projects.dzerv.art"]
+          realms        = ["plane"]
+
+          auth_url = { origins = ["https://projects.dzerv.art"] }
+
+          oidc = {
+            client_id     = local.op_secrets.magicentry.plane_id
+            client_secret = local.op_secrets.magicentry.plane_secret
+            redirect_urls = [
+              "https://projects.dzerv.art/auth/oidc/callback/",
+              "https://projects.dzerv.art/auth/mobile/oidc/callback/"
+            ]
+          }
+        },
       ]
 
       users = [
         { name = "Dimitris Zervas", email = "dzervas@dzervas.gr", username = "dzervas", realms = ["all"] },
-        { name = "Fani", email = "fani-garouf@hotmail.com", username = "fani", realms = ["audiobooks", "cook"] },
+        { name = "Fani", email = "fani-garouf@hotmail.com", username = "fani", realms = ["public", "audiobooks", "cook", "plane", "n8n"] },
         { name = "test", email = "dzervas@protonmail.com", username = "test", realms = ["audiobooks", "cook"] },
 
         { name = "Lilaki", email = "liliagkounisofikiti@hotmail.com", username = "lilia", realms = ["audiobooks"] },
@@ -102,7 +119,7 @@ resource "helm_release" "magicentry" {
         { name = "Alextrical", email = "benjackson990@gmail.com", username = "alextrical", realms = ["audiobooks"] },
         { name = "Darina Golos", email = "darinagolos@gmail.com", username = "darina", realms = ["audiobooks"] },
         { name = "Endri Meto", email = "audiobooks@endme.gr", username = "endme", realms = ["public"] },
-        { name = "psof", email = "polidoros.sofikitis@gmail.com", username = "psof", realms = ["public", "cook"] },
+        { name = "psof", email = "polidoros.sofikitis@gmail.com", username = "psof", realms = ["public", "cook", "n8n"] },
         { name = "John", email = "john.torakis@gmail.com", username = "john", realms = ["public"] },
       ]
     }

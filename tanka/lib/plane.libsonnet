@@ -1,7 +1,8 @@
 local dockerService = import 'docker-service.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
+local gemini = import 'helpers/gemini.libsonnet';
+local ingress = import 'helpers/ingress.libsonnet';
 local k = import 'k.libsonnet';
-local gemini = import 'lib/gemini.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'plane';
@@ -27,14 +28,8 @@ local prime_server = 'http://plane-prime:8000';
         enabled: true,
         ingressClass: 'nginx',
         ingress_annotations: {
-          'cert-manager.io/cluster-issuer': 'letsencrypt',
-          'nginx.ingress.kubernetes.io/ssl-redirect': 'true',
-          'nginx.ingress.kubernetes.io/auth-tls-verify-client': 'on',
-          'nginx.ingress.kubernetes.io/auth-tls-secret': '%s/client-ca' % namespace,
-          'nginx.ingress.kubernetes.io/auth-tls-verify-depth': '1',
-          'nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream': 'true',
           'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
-        },
+        } + ingress.oidcAnnotations('plane'),
 
         appHost: domain,
       },
@@ -50,7 +45,21 @@ local prime_server = 'http://plane-prime:8000';
         { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
       ],
     },
-  }),
+  }) + {
+    // Add the magicentry.rs/enable label to the plane-api-wl deployment
+    // by patching the deployment template in the Helm output
+    deployment_plane_api_wl+: {
+      spec+: {
+        template+: {
+          metadata+: {
+            labels+: {
+              'magicentry.rs/enable': 'true',
+            },
+          },
+        },
+      },
+    },
+  },
 
   // Backup configurations for all Plane PVCs using the wrapper function
   planeBackups: gemini.backupMany(
