@@ -19,7 +19,6 @@ local sslOnlyAnnotations = {
     'nginx.ingress.kubernetes.io/auth-url': 'http://magicentry.auth.svc.cluster.local:8080/auth-url/status',
     'nginx.ingress.kubernetes.io/auth-signin': 'https://auth.dzerv.art/login',
     'nginx.ingress.kubernetes.io/auth-cache-duration': '200 202 10m',
-    // XXX: add cookie to avoid cache takeover from the NAT gateway
-    'nginx.ingress.kubernetes.io/auth-cache-key': '$remote_user$http_authorization',
+    'nginx.ingress.kubernetes.io/auth-cache-key': '$remote_user$http_authorization$http_cookie',
   } + sslOnlyAnnotations,
 }

@@ -26,11 +26,11 @@ resource "helm_release" "magicentry" {
       size    = "1Gi"
     }
 
-    # image = {
-    #   repository  = "ghcr.io/dzervas/magicentry"
-    #   tag         = "kube-main"
-    #   pull_policy = "Always"
-    # }
+    image = {
+      repository  = "ghcr.io/dzervas/magicentry"
+      tag         = "sha-b84a67b-kube"
+      pull_policy = "Always"
+    }
 
     config = {
       title          = "DZerv.Art Auth Service"
@@ -94,7 +94,11 @@ resource "helm_release" "magicentry" {
           valid_origins = ["https://projects.dzerv.art"]
           realms        = ["plane"]
 
-          auth_url = { origins = ["https://projects.dzerv.art"] }
+          auth_url = {
+            origins       = ["https://projects.dzerv.art"]
+            status_url    = "http://plane-api.plane.svc:8000/api/users/me/"
+            status_cookie = "session-id"
+          }
 
           oidc = {
             client_id     = local.op_secrets.magicentry.plane_id

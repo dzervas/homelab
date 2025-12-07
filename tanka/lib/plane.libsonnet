@@ -61,6 +61,38 @@ local prime_server = 'http://plane-prime:8000';
     },
   },
 
+  // Allow magicentry (auth namespace) to reach Plane pods
+  planeMagicentryNetworkPolicy: {
+    apiVersion: 'networking.k8s.io/v1',
+    kind: 'NetworkPolicy',
+    metadata: {
+      name: 'allow-plane-magicentry',
+      namespace: namespace,
+    },
+    spec: {
+      podSelector: {},
+      policyTypes: ['Ingress'],
+      ingress: [
+        {
+          from: [
+            {
+              namespaceSelector: {
+                matchLabels: {
+                  'kubernetes.io/metadata.name': 'auth',
+                },
+              },
+              podSelector: {
+                matchLabels: {
+                  'app.kubernetes.io/name': 'magicentry',
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Backup configurations for all Plane PVCs using the wrapper function
   planeBackups: gemini.backupMany(
     namespace=namespace,
