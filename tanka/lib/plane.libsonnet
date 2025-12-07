@@ -23,7 +23,6 @@ local prime_server = 'http://plane-prime:8000';
         licenseDomain: domain,
         licenseServer: prime_server,
       },
-      planeVersion: 'stable',
       ingress: {
         enabled: true,
         ingressClass: 'nginx',
@@ -42,6 +41,7 @@ local prime_server = 'http://plane-prime:8000';
       extraEnv: [
         { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
         { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
+        { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
         { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
       ],
     },

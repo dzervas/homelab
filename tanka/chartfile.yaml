@@ -5,6 +5,7 @@ repositories:
   - name: plane
     url: https://helm.plane.so
 requires:
+  # https://github.com/makeplane/helm-charts/releases
   - chart: plane/plane-enterprise
     version: 1.6.5
 version: 1
