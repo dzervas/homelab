@@ -28,7 +28,7 @@ resource "helm_release" "magicentry" {
 
     image = {
       repository  = "ghcr.io/dzervas/magicentry"
-      tag         = "sha-b84a67b-kube"
+      tag         = "sha-48be7c5-kube"
       pull_policy = "Always"
     }
 
@@ -95,9 +95,10 @@ resource "helm_release" "magicentry" {
           realms        = ["plane"]
 
           auth_url = {
-            origins       = ["https://projects.dzerv.art"]
-            status_url    = "http://plane-api.plane.svc:8000/api/users/me/"
-            status_cookie = "session-id"
+            origins        = ["https://projects.dzerv.art"]
+            status_url     = "http://plane-api.plane.svc:8000/api/users/me/"
+            status_cookies = ["session-id"]
+            status_headers = ["authorization"]
           }
 
           oidc = {
@@ -123,8 +124,8 @@ resource "helm_release" "magicentry" {
         { name = "Alextrical", email = "benjackson990@gmail.com", username = "alextrical", realms = ["audiobooks"] },
         { name = "Darina Golos", email = "darinagolos@gmail.com", username = "darina", realms = ["audiobooks"] },
         { name = "Endri Meto", email = "audiobooks@endme.gr", username = "endme", realms = ["public"] },
-        { name = "psof", email = "polidoros.sofikitis@gmail.com", username = "psof", realms = ["public", "cook", "n8n"] },
-        { name = "John", email = "john.torakis@gmail.com", username = "john", realms = ["public"] },
+        { name = "psof", email = "polidoros.sofikitis@gmail.com", username = "psof", realms = ["public", "cook", "n8n", "plane"] },
+        { name = "John", email = "john.torakis@gmail.com", username = "john", realms = ["public", "plane"] },
       ]
     }
   })]

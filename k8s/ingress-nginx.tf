@@ -41,7 +41,10 @@ resource "helm_release" "ingress_nginx" {
       # hostNetwork = true
       # dnsPolicy   = "ClusterFirstWithHostNet" # Use cluster DNS, even in host network
 
-      config = { custom-http-errors = "503" }
+      config = {
+        custom-http-errors     = "503"
+        annotations-risk-level = "Critical"
+      }
 
       metrics = {
         enabled = true
@@ -55,8 +58,8 @@ resource "helm_release" "ingress_nginx" {
       enabled = true
       image = {
         registry = "registry.k8s.io"
-        image = "ingress-nginx/custom-error-pages"
-        tag = "v1.2.3"
+        image    = "ingress-nginx/custom-error-pages"
+        tag      = "v1.2.3"
       }
       extraVolumes = [{
         name = "custom-error-pages"
@@ -68,7 +71,7 @@ resource "helm_release" "ingress_nginx" {
         }
       }]
       extraVolumeMounts = [{
-        name = "custom-error-pages"
+        name      = "custom-error-pages"
         mountPath = "/www"
       }]
     }
@@ -77,7 +80,7 @@ resource "helm_release" "ingress_nginx" {
 
 resource "kubernetes_config_map_v1" "ingress_custom_error_pages" {
   metadata {
-    name = "custom-error-pages"
+    name      = "custom-error-pages"
     namespace = kubernetes_namespace_v1.ingress.metadata[0].name
   }
 

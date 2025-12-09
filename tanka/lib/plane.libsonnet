@@ -28,6 +28,8 @@ local prime_server = 'http://plane-prime:8000';
         ingressClass: 'nginx',
         ingress_annotations: {
           'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
+          // Required to get mobile app to work
+          'nginx.ingress.kubernetes.io/auth-snippet': 'if ($request_uri ~ "(/auth/get-csrf-token/|/auth/mobile/(token-check|session-token)/)") { return 200; }',
         } + ingress.oidcAnnotations('plane'),
 
         appHost: domain,
