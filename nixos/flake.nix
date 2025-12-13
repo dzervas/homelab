@@ -18,12 +18,12 @@
     nixosConfigurations = mkMachines machines;
 
     # deploy-rs stuff
-    deploy.nodes = builtins.mapAttrs (name: machine: mkNode deploy-rs self name machine) machines;
+    deploy.nodes = builtins.mapAttrs (name: machine: mkNode self nixpkgs deploy-rs name machine) machines;
     checks = builtins.mapAttrs (_system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
     deploy-rs.url = "github:serokell/deploy-rs";
 

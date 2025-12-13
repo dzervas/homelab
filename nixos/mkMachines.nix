@@ -32,14 +32,22 @@
     (name: machine: mkMachine (machine // { inherit machines; hostName = name; }))
     machines;
 
-  mkNode = deploy-rs: self: name: machine: let
+  mkNode = self: nixpkgs: deploy-rs: name: machine: let
     system = if builtins.hasAttr "system" machine then builtins.getAttr "system" machine else "x86_64-linux";
+    pkgs = import nixpkgs { inherit system; };
+    deployPkgs = import nixpkgs {
+      inherit system;
+      overlays = [
+        deploy-rs.overlays.default
+        (self: super: { deploy-rs = { inherit (pkgs) deploy-rs; lib = super.deploy-rs.lib; }; })
+      ];
+    };
   in {
       hostname = "${name}.dzerv.art";
       profiles.system = {
         user = "root";
         sshUser = "root";
-        path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${name};
+        path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.${name};
       };
   };
 }

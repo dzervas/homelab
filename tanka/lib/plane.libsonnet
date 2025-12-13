@@ -2,6 +2,7 @@ local dockerService = import 'docker-service.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local gemini = import 'helpers/gemini.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
+local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
@@ -74,6 +75,7 @@ local normalizeJobNames(obj) =
           { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
           { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
           { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
+          { name: 'TZ', value: timezone },
         ],
       },
     })

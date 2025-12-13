@@ -90,7 +90,7 @@ module "n8n" {
 
     N8N_PUBLIC_API_DISABLED = "false"
 
-    DB_SQLITE_POOL_SIZE = "10"
+    DB_SQLITE_POOL_SIZE         = "10"
     DB_SQLITE_VACUUM_ON_STARTUP = "true"
   }
 
