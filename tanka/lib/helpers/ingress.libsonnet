@@ -3,6 +3,17 @@ local sslOnlyAnnotations = {
   'nginx.ingress.kubernetes.io/ssl-redirect': 'true',
 };
 
+local common(domain) = {
+  enabled: true,
+  annotations: sslOnlyAnnotations,
+  tls: [{
+    hosts: [domain],
+    secretName: '%s-cert' % std.strReplace(domain, '.', '-'),
+  }],
+};
+
+local className = 'nginx';
+
 {
   sslOnlyAnnotations: sslOnlyAnnotations,
   mtlsAnnotations(namespace): {
@@ -21,4 +32,35 @@ local sslOnlyAnnotations = {
     'nginx.ingress.kubernetes.io/auth-cache-duration': '200 202 10m',
     'nginx.ingress.kubernetes.io/auth-cache-key': '$remote_user$http_authorization$http_cookie',
   } + sslOnlyAnnotations,
+
+  hostString(domain, annotations={}): common(domain) {
+    ingressClassName: className,
+    host: domain,
+    annotations: annotations,
+  },
+  hostList(domain, annotations={}): common(domain) {
+    ingressClassName: className,
+    hosts: [domain],
+    annotations: annotations,
+  },
+  hostObj(domain, annotations={}): common(domain) {
+    className: className,
+    annotations: annotations,
+    hosts: [{
+      host: domain,
+      paths: [{
+        path: '/',
+        pathType: 'ImplementationSpecific',
+      }],
+    }],
+  },
+  hostObjSingle(domain, annotations={}): common(domain) {
+    className: className,
+    annotations: annotations,
+    host: {
+      name: domain,
+      path: '/',
+      pathType: 'ImplementationSpecific',
+    },
+  },
 }

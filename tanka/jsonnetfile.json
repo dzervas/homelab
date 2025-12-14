@@ -1,33 +1,42 @@
 {
-	"version": 1,
-	"dependencies": [
-		{
-			"source": {
-				"git": {
-					"remote": "https://github.com/grafana/jsonnet-libs.git",
-					"subdir": "ksonnet-util"
-				}
-			},
-			"version": "master"
-		},
-		{
-			"source": {
-				"git": {
-					"remote": "https://github.com/jsonnet-libs/k8s-libsonnet.git",
-					"subdir": "1.33"
-				}
-			},
-			"version": "main"
-		},
-		{
-			"source": {
-				"git": {
-					"remote": "https://github.com/grafana/jsonnet-libs.git",
-					"subdir": "tanka-util"
-				}
-			},
-			"version": "master"
-		}
-	],
-	"legacyImports": true
+  "version": 1,
+  "dependencies": [
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "ksonnet-util"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "tanka-util"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/jsonnet-libs/cert-manager-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "main"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/jsonnet-libs/k8s-libsonnet.git",
+          "subdir": "1.33"
+        }
+      },
+      "version": "main"
+    }
+  ],
+  "legacyImports": true
 }

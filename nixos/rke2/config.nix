@@ -17,7 +17,7 @@ in {
     node-taint = config.setup.taints;
     node-label = [
       "provider=${config.setup.provider}"
-      "openebs.io/engine=mayastor"
+      "linstor/enable=true"
     ];
 
     resolv-conf = "/etc/rancher/rke2/resolv.conf";

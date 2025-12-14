@@ -47,6 +47,8 @@ _: {
     "fs.inotify.max_user_instances" = 512;
     "fs.inotify.max_user_watches" = 524288;
   };
+  # LVM stuff
+  boot.kernelModules = [ "dm-thin-pool" "dm-snapshot" ];
 
   time.timeZone = "Europe/Athens";
 

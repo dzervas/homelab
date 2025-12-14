@@ -1,7 +1,19 @@
-{ pkgs, ... }: {
+{ config, pkgs, ... }: {
+  environment.systemPackages = [ pkgs.drbd ];
+
   boot = {
-    # Required by openebs
-    kernelModules = ["nvme_tcp" "dm_snapshot"];
+    # Use newer version of the module
+    extraModulePackages = with config.boot.kernelPackages; [ drbd ];
+    extraModprobeConfig = "options drbd usermode_helper=disabled";
+
+    kernelModules = [
+      # Required by openebs
+      "nvme_tcp" "dm_snapshot"
+
+      # Required by linstor
+      "drbd"
+      "dm_cache" "dm_writecache"
+    ];
 
     # Why not?
     kernelPackages = pkgs.linuxPackages_hardened;
@@ -15,6 +27,9 @@
       "net.core.somaxconn" = 32768; # Maximum number of connections in the listen queue
       # This is not valid in nix:
       # "net.ipv4.ip_local_port_range" = "1024 65000"; # Range of ports for ephemeral (client) connections
+
+      # Linstor
+      "net.core.rmem_max"	= 1048576;
     };
   };
 }

@@ -1,9 +1,7 @@
 {
   config,
   hostIndex,
-  node-vpn-iface,
   node-vpn-prefix,
-  pkgs,
   role,
   ...
 }:

@@ -69,8 +69,10 @@
         };
 
         # Due to the thin provisioned root & nix, this lv can be oversized but disko doesn't do that
-        storage = {
-          size = "100%";
+        # This could be VDO to add compression and dedup but it comes with a performance penalty
+        thinpool = {
+          size = "99%";
+          lvm_type = "thin-pool";
         };
       };
     };

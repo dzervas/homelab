@@ -1,11 +1,18 @@
 directory: charts
 repositories:
-  - name: stable
-    url: https://charts.helm.sh/stable
-  - name: plane
-    url: https://helm.plane.so
+- name: stable
+  url: https://charts.helm.sh/stable
+- name: plane
+  url: https://helm.plane.so
+- name: piraeus
+  url: oci://ghcr.io/piraeusdatastore/piraeus-operator
+- name: linstor
+  url: oci://ghcr.io/piraeusdatastore/helm-charts
 requires:
-  # https://github.com/makeplane/helm-charts/releases
-  - chart: plane/plane-enterprise
-    version: 1.6.5
+- chart: plane/plane-enterprise
+  version: 1.6.5
+- chart: piraeus/piraeus
+  version: 2.10.3
+- chart: linstor/linstor-cluster
+  version: 1.1.1
 version: 1

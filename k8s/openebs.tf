@@ -26,6 +26,9 @@ resource "helm_release" "openebs" {
     # Disable amd64 nodeSelectors - for the life of me, I can't get theme to work in the values
     { name = "mayastor.nodeSelector.kubernetes\\.io/arch", value = "null" },
     { name = "mayastor.io_engine.nodeSelector.kubernetes\\.io/arch", value = "null" },
+
+    { name = "mayastor.nodeSelector.kubernetes\\.io/arch", value = "null" },
+    { name = "mayastor.io_engine.nodeSelector.kubernetes\\.io/arch", value = "null" },
   ]
 
   values = [
@@ -315,6 +318,12 @@ resource "kubernetes_manifest" "openebs_mayastor_diskpool" {
 }
 
 # Node rename (cluster rebuild) notes: https://github.com/openebs/openebs/issues/3775#issuecomment-3068847343
+#
+# labels:
+# openebs.io/nodename=fra1
+# openebs.io/csi-node.nvme-ana=true
+# openebs.io/engine=mayastor
+# openebs.io/csi-node=mayastor
 
 
 resource "kubernetes_manifest" "opensebs_snapshot_class" {
