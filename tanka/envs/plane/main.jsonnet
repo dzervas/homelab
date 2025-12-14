@@ -42,7 +42,7 @@ local normalizeJobNames(obj) =
   }),
   // Normalize job names so they stay stable across renders
   plane: std.prune(normalizeJobNames(
-    helm.template('plane', '../charts/plane-enterprise', {
+    helm.template('plane', '../../charts/plane-enterprise', {
       namespace: namespace,
       values: {
         // TODO: Add timezone

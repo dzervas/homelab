@@ -2,14 +2,13 @@
   "apiVersion": "tanka.dev/v1alpha1",
   "kind": "Environment",
   "metadata": {
-    "name": "homelab",
-    "namespace": "main.jsonnet"
+    "name": "envs/plane"
   },
   "spec": {
     "contextNames": [
       "gr"
     ],
-    "namespace": "default",
+    "namespace": "plane",
     "injectLabels": true,
     "resourceDefaults": {},
     "expectVersions": {}
