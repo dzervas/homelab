@@ -13,19 +13,9 @@ local nodeSelector = {
 };
 
 {
-  setNamespace(object, namespace)::
-    tk.k8s.patchKubernetesObjects(
-      object,
-      {
-        metadata+: {
-          namespace: namespace,
-        },
-      }
-    ),
-
   namespace: k.core.v1.namespace.new(namespace),
 
-  operator: $.setNamespace(helm.template('piraeus', '../../charts/piraeus', {
+  operator: helm.template('piraeus', '../../charts/piraeus', {
     namespace: namespace,
     values: {
       installCRDs: true,
@@ -36,10 +26,9 @@ local nodeSelector = {
         },
       },
     },
-  }), namespace),
+  }),
 
-  cluster: $.setNamespace(helm.template('linstor-cluster', '../../charts/linstor-cluster', {
-    namespace: namespace,
+  cluster: helm.template('linstor-cluster', '../../charts/linstor-cluster', {
     values: {
       // ingress: ingress.hostString(domain, ingress.mtlsAnnotations(namespace)),
       linstorCluster: {
@@ -63,33 +52,33 @@ local nodeSelector = {
       createApiTLS: 'cert-manager',
       createInternalTLS: 'cert-manager',
 
-      // linstorSatelliteConfigurations: [{
-      //   name: 'satellite-config',
-      //   nodeSelector: nodeSelector,
-      //   storagePools: [{
-      //     name: 'lvm-thin',
-      //     lvmThinPool: {
-      //       volumeGroup: 'mainpool',
-      //       thinPool: 'thinpool',
-      //     },
-      //   }],
-      //   // internalTLS: {
-      //   //   certManager: {
-      //   //     name: 'selfsigned',
-      //   //     kind: 'ClusterIssuer',
-      //   //   },
-      //   // },
-      //   deletionPolicy: 'Evacuate',
+      linstorSatelliteConfigurations: [{
+        name: 'satellite-config',
+        nodeSelector: nodeSelector,
+        storagePools: [{
+          name: 'lvm-thin',
+          lvmThinPool: {
+            volumeGroup: 'mainpool',
+            thinPool: 'thinpool',
+          },
+        }],
+        // internalTLS: {
+        //   certManager: {
+        //     name: 'selfsigned',
+        //     kind: 'ClusterIssuer',
+        //   },
+        // },
+        deletionPolicy: 'Evacuate',
 
-      //   podTemplate: {
-      //     spec: {
-      //       initContainers: [{
-      //         name: 'drbd-module-loader',
-      //         '$patch': 'delete',
-      //       }],
-      //     },
-      //   },
-      // }],
+        podTemplate: {
+          spec: {
+            initContainers: [{
+              name: 'drbd-module-loader',
+              '$patch': 'delete',
+            }],
+          },
+        },
+      }],
 
       linstorNodeConnections: [],
 
@@ -120,5 +109,5 @@ local nodeSelector = {
         enabled: true,
       },
     },
-  }), namespace),
+  }),
 }
