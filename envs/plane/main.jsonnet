@@ -45,7 +45,6 @@ local normalizeJobNames(obj) =
     helm.template('plane', '../../charts/plane-enterprise', {
       namespace: namespace,
       values: {
-        // TODO: Add timezone
         license: {
           licenseDomain: domain,
           licenseServer: prime_server,
