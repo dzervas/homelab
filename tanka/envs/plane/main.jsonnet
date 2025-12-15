@@ -155,6 +155,37 @@ local normalizeJobNames(obj) =
     },
   },
 
+  planeN8NNetworkPolicy: {
+    apiVersion: 'networking.k8s.io/v1',
+    kind: 'NetworkPolicy',
+    metadata: {
+      name: 'allow-plane-n8n',
+      namespace: namespace,
+    },
+    spec: {
+      podSelector: {},
+      policyTypes: ['Ingress'],
+      ingress: [
+        {
+          from: [
+            {
+              namespaceSelector: {
+                matchLabels: {
+                  'kubernetes.io/metadata.name': 'n8n',
+                },
+              },
+              podSelector: {
+                matchLabels: {
+                  service: 'n8n',
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Backup configurations for all Plane PVCs using the wrapper function
   planeBackups: gemini.backupMany(
     namespace=namespace,
