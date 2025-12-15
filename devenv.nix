@@ -5,6 +5,10 @@
     tanka
     jsonnet-bundler
     deploy-rs
+
+    # pv-migrate
+    yq-go
+    pv-migrate
   ];
 
   env = {
