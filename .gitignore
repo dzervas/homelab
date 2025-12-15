@@ -10,3 +10,4 @@ alertmanager.yaml
 *.tar.gz
 *.tar.bz2
 vendor
+charts
