@@ -78,3 +78,7 @@
     };
   };
 }
+
+# To migrate to the new thin lv:
+# lvremove mainpool/storage
+# lvcreate -l 99%FREE -T mainpool/thinpool

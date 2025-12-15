@@ -68,7 +68,7 @@ local normalizeJobNames(obj) =
           silo_env_existingSecret: 'plane-silo-secrets',
         },
         env: {
-          storageClass: 'openebs-replicated',
+          storageClass: 'openebs-replicated',  // This is incorrect but can't change now
         },
         extraEnv: [
           { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
