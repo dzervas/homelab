@@ -162,8 +162,7 @@ resource "kubernetes_storage_class_v1" "openebs" {
   metadata {
     name = "openebs-replicated"
     annotations = {
-      "storageclass.kubernetes.io/is-default-class" = true
-      "managed_by"                                  = "terraform"
+      "managed_by" = "terraform"
     }
   }
 
@@ -332,9 +331,6 @@ resource "kubernetes_manifest" "opensebs_snapshot_class" {
     kind       = "VolumeSnapshotClass"
     metadata = {
       name = "openebs-replicated"
-      annotations = {
-        "snapshot.storage.kubernetes.io/is-default-class" = "true"
-      }
     }
     driver         = "io.openebs.csi-mayastor"
     deletionPolicy = "Retain"

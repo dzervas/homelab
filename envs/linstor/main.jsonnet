@@ -84,11 +84,11 @@ local nodeSelector = {
 
       storageClasses: [{
         name: 'linstor',
-        // annotations: {
-        //   'storageclass.kubernetes.io/is-default-class': 'true',
-        // },
+        annotations: {
+          'storageclass.kubernetes.io/is-default-class': 'true',
+        },
         provisioner: 'linstor.csi.linbit.com',
-        reclaimPolicy: 'Delete',
+        reclaimPolicy: 'Retain',
         allowVolumeExpansion: true,
         volumeBindingMode: 'WaitForFirstConsumer',
         podTemplate: {
@@ -106,9 +106,9 @@ local nodeSelector = {
 
       volumeSnapshotClasses: [{
         name: 'linstor-snapshot',
-        // annotations: {
-        //   'storageclass.kubernetes.io/is-default-class': 'true',
-        // },
+        annotations: {
+          'storageclass.kubernetes.io/is-default-class': 'true',
+        },
         driver: 'linstor.csi.linbit.com',
         deletionPolicy: 'Retain',
       }],
