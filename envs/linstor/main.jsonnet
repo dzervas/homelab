@@ -119,4 +119,79 @@ local nodeSelector = {
       },
     },
   }),
+
+  // The csi-node pods run in host network and they need to be able to reach the controller pod
+  // Host networking pods means that they have an IP from a non-k8s CIDR, hence the 0/0 CIDR
+  linstorHostNetworkPolicy: {
+    apiVersion: 'networking.k8s.io/v1',
+    kind: 'NetworkPolicy',
+    metadata: {
+      name: 'allow-hostnetwork-controller-access',
+      namespace: namespace,
+    },
+    spec: {
+      podSelector: {
+        matchLabels: {
+          'app.kubernetes.io/component': 'linstor-controller',
+        },
+      },
+      policyTypes: ['Ingress'],
+      ingress: [
+        {
+          from: [
+            {
+              // For some reason VPN CIDR doesn't work
+              ipBlock: {
+                cidr: '0.0.0.0/0',
+              },
+            },
+          ],
+          ports: [
+            {
+              protocol: 'TCP',
+              port: 3370,
+              endPort: 3371,
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // These have an exporter that listens on hostnetwork, needing this hack :/
+  // works without it?
+  // linstorMetricsNetworkPolicy: {
+  //   apiVersion: 'networking.k8s.io/v1',
+  //   kind: 'NetworkPolicy',
+  //   metadata: {
+  //     name: 'allow-hostnetwork-satellite-metrics-access',
+  //     namespace: namespace,
+  //   },
+  //   spec: {
+  //     podSelector: {
+  //       matchLabels: {
+  //         'app.kubernetes.io/component': 'linstor-satellite',
+  //       },
+  //     },
+  //     policyTypes: ['Ingress'],
+  //     ingress: [
+  //       {
+  //         from: [
+  //           {
+  //             // For some reason VPN CIDR doesn't work
+  //             ipBlock: {
+  //               cidr: '0.0.0.0/0',
+  //             },
+  //           },
+  //         ],
+  //         ports: [
+  //           {
+  //             protocol: 'TCP',
+  //             port: 9942,
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //   },
+  // },
 }
