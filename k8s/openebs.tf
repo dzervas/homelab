@@ -26,9 +26,6 @@ resource "helm_release" "openebs" {
     # Disable amd64 nodeSelectors - for the life of me, I can't get theme to work in the values
     { name = "mayastor.nodeSelector.kubernetes\\.io/arch", value = "null" },
     { name = "mayastor.io_engine.nodeSelector.kubernetes\\.io/arch", value = "null" },
-
-    { name = "mayastor.nodeSelector.kubernetes\\.io/arch", value = "null" },
-    { name = "mayastor.io_engine.nodeSelector.kubernetes\\.io/arch", value = "null" },
   ]
 
   values = [

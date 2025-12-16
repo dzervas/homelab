@@ -11,8 +11,8 @@ local ingressLib = import 'docker-service/ingress.libsonnet';
     local defaults = {
       type: if std.length(config.pvs) > 0 then 'StatefulSet' else 'Deployment',
       namespace: name,
-      command: [],
-      args: [],
+      command: null,
+      args: null,
       ports: [80],
       replicas: 1,
       fqdn: null,

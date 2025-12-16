@@ -39,20 +39,16 @@ local volumeMount = k.core.v1.volumeMount;
       std.objectFields(pvs)
     );
 
-    // Build env vars
-    local envVars = [
-      { name: key, value: env[key] }
-      for key in std.objectFields(env)
-    ];
-
     {
       volumes: volumes,
       vms: volumeMounts,
       container: container.new(name, image)
                  + container.withPorts(std.map(port.new, ports))
                  + container.withImagePullPolicy('Always')
-                 + (if std.length(volumeMounts) > 0 then container.withVolumeMounts(volumeMounts) else {})
-                 + (if std.length(envVars) > 0 then container.withEnv(envVars) else {})
+                 + container.withVolumeMounts(volumeMounts)
+                 + container.withEnvMap(env)
+                 + (if command != null then container.withCommand(command) else {})
+                 + (if args != null then container.withArgs(args) else {})
                  + container.securityContext.withRunAsNonRoot(true)
                  + container.securityContext.withRunAsUser(user)
                  + container.securityContext.withRunAsGroup(user)
