@@ -20,7 +20,7 @@ local volumeMount = k.core.v1.volumeMount;
           '%s-%s' % [name, std.strReplace(std.lstripChars(mountPath, '/'), '/', '-')];
 
         if std.objectHas(pvs[mountPath], 'empty_dir') && pvs[mountPath].empty_dir then
-          volume.emptyDir(volumeName)
+          volume.fromEmptyDir(volumeName)
         else
           volume.fromPersistentVolumeClaim(volumeName, volumeName),
       std.objectFields(pvs)
