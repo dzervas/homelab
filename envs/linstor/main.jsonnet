@@ -104,6 +104,15 @@ local nodeSelector = {
         },
       }],
 
+      volumeSnapshotClasses: [{
+        name: 'linstor-snapshot',
+        // annotations: {
+        //   'storageclass.kubernetes.io/is-default-class': 'true',
+        // },
+        driver: 'linstor.csi.linbit.com',
+        deletionPolicy: 'Retain',
+      }],
+
       // TODO: Make sure this works
       monitoring: {
         enabled: true,

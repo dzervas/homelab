@@ -10,6 +10,7 @@ yq --version | grep mikefarah || { echo "yq version is not compatible. Please in
 namespace=$1
 pvc_name=$2
 new_storage_class=linstor
+old_storage_class=openebs-replicated
 
 if [ -z "$namespace" ] || [ -z "$pvc_name" ]; then
   echo "Usage: $0 <namespace> <pvc_name>"
@@ -109,6 +110,10 @@ print_recovery_instructions() {
 
 # Get the storageClass of the PVC
 storage_class=$(kubectl get pvc "$pvc_name" -n "$namespace" -o jsonpath='{.spec.storageClassName}')
+if [ "$storage_class" != "$old_storage_class" ]; then
+  echo "PVC $pvc_name is not using the old storage class $old_storage_class"
+  exit 1
+fi
 
 echo "PVC: $pvc_name Namespace: $namespace"
 echo "Continue? (only 'yes' will be accepted)"
