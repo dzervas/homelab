@@ -6,7 +6,7 @@ dockerService.new('atuin', 'ghcr.io/atuinsh/atuin', {
   args: ['server', 'start'],
 
   ingressEnabled: false,
-  port: 8888,
+  ports: [8888],
 
   env: {
     ATUIN_HOST: '0.0.0.0',
