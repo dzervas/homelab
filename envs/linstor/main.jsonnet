@@ -88,6 +88,8 @@ local nodeSelector = {
           'storageclass.kubernetes.io/is-default-class': 'true',
         },
         provisioner: 'linstor.csi.linbit.com',
+        // To patch all pvs to be Retain:
+        // k get pv -o json | jq -r '.items[] | select(.spec.storageClassName == "linstor").metadata.name' | xargs -L1 kubectl patch pv -p '{"spec": {"persistentVolumeReclaimPolicy": "Retain"}}'
         reclaimPolicy: 'Retain',
         allowVolumeExpansion: true,
         volumeBindingMode: 'WaitForFirstConsumer',
