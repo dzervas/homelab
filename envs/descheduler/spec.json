@@ -1,0 +1,16 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "envs/descheduler"
+  },
+  "spec": {
+    "contextNames": [
+      "gr"
+    ],
+    "namespace": "descheduler",
+    "injectLabels": true,
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}
