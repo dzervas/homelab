@@ -8,9 +8,7 @@ local namespace = 'descheduler';
   namespace: k.core.v1.namespace.new(namespace),
 
   descheduler: helm.template(
-    'descheduler',
-    '../../charts/descheduler',
-    {
+    'descheduler', '../../charts/descheduler', {
       namespace: namespace,
       values: {
         serviceMonitor: { enabled: true },

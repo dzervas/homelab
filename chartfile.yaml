@@ -9,7 +9,11 @@ repositories:
 - name: linstor
   url: oci://ghcr.io/piraeusdatastore/helm-charts
 - name: descheduler
-  url: https://kubernetes-sigs.github.io/descheduler,
+  url: https://kubernetes-sigs.github.io/descheduler/
+- name: victoriametrics
+  url: https://victoriametrics.github.io/helm-charts/
+- name: prometheus
+  url: https://prometheus-community.github.io/helm-charts
 requires:
 - chart: plane/plane-enterprise
   version: 1.6.8
@@ -19,4 +23,8 @@ requires:
   version: 1.1.1
 - chart: descheduler/descheduler
   version: 0.34.0
+- chart: victoriametrics/victoria-metrics-k8s-stack
+  version: 0.66.0
+- chart: prometheus/prometheus-operator-crds
+  version: 25.0.1
 version: 1

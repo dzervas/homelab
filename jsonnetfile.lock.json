@@ -50,6 +50,16 @@
       },
       "version": "291653b2c17d03e855e7e00ce0e4ec25502b2ce2",
       "sum": "FTic3KWLxPcO/DpkwJ6AgvWmbxouYiAVrflXtbAiIhY="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/jsonnet-libs/victoria-metrics-operator-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "2cfc4ba81906b125870f231534d9fcbbc488a832",
+      "sum": "/iWRlM5Q2fJTRhdT575pETKiNGkri9pPRipza2l1FYc="
     }
   ],
   "legacyImports": false

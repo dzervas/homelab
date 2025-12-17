@@ -1,0 +1,16 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "envs/victoriametrics"
+  },
+  "spec": {
+    "contextNames": [
+      "gr"
+    ],
+    "namespace": "victoriametrics",
+    "injectLabels": true,
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}
