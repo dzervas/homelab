@@ -38,7 +38,7 @@ local normalizeJobNames(obj) =
   // NOTE: Creates the namespace
   planePrime: dockerService.new('plane-prime', 'ghcr.io/dzervas/plane-prime:latest', {
     namespace: namespace,
-    port: 8000,
+    ports: [8000],
   }),
   // Normalize job names so they stay stable across renders
   plane: std.prune(normalizeJobNames(
@@ -107,6 +107,10 @@ local normalizeJobNames(obj) =
         template: {
           data: {
             SILO_HMAC_SECRET_KEY: '{{ .password }}',
+            // TODO: Change these
+            DATABASE_URL: 'postgresql://plane:plane@plane-pgdb:5432/plane',
+            REDIS_URL: 'redis://plane-redis:6379/',
+            AMQP_URL: 'amqp://plane:plane@plane-rabbitmq/',
           },
         },
       },

@@ -25,7 +25,7 @@ local pvc = k.core.v1.persistentVolumeClaim;
       // Give the deployment volumes as they come from the containers function
       workload.spec.template.spec.withVolumes(containersResult.volumes)
     else
-      // Based on the returned volumes from the containers function, generate PVC templates for the stateful set
+      // Ditch the returned volumes and generate PVC templates for the stateful set
       workload.spec.withVolumeClaimTemplates(pvcLib.build(name, cfg.namespace, cfg.pvs, cfg.labels));
 
     workload.new(

@@ -9,7 +9,7 @@ local ingressLib = import 'docker-service/ingress.libsonnet';
 {
   new(name, image, config={})::
     local defaults = {
-      type: if std.length(config.pvs) > 0 then 'StatefulSet' else 'Deployment',
+      type: if std.objectHas(config, 'pvs') then 'StatefulSet' else 'Deployment',
       namespace: name,
       command: null,
       args: null,
@@ -30,10 +30,11 @@ local ingressLib = import 'docker-service/ingress.libsonnet';
     if cfg.type != 'Deployment' && cfg.type != 'StatefulSet' then
       error ('Unsupported type: ' + cfg.type)
     else {
-      namespace: namespace.new(cfg.namespace)
-                 + namespace.metadata.withLabels({
-                   ghcrCreds: if std.startsWith(image, 'ghcr.io/dzervas/') then 'enabled' else 'disabled',
-                 }),
+      namespace:
+        namespace.new(cfg.namespace)
+        + namespace.metadata.withLabels({
+          ghcrCreds: if std.startsWith(image, 'ghcr.io/dzervas/') then 'enabled' else 'disabled',
+        }),
       workload: workloadLib.new(name, image, cfg),
       service: serviceLib.new(name, cfg),
       ingress: ingressLib.new(name, cfg),
