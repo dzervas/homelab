@@ -4,7 +4,6 @@ local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'ingress';
 
-// Render ingress-nginx Helm chart (v4.12.4 in TF) with equivalent values
 {
   namespace:
     k.core.v1.namespace.new(namespace)
