@@ -89,12 +89,25 @@ local namespace = 'victoriametrics';
           enabled: false,
           forceDeployDatasource: true,
         },
+
+        'victoria-metrics-operator': {
+          admissionWebhooks: {
+            certManager: {
+              enabled: true,
+            },
+          },
+        },
       },
     }),
 
   // Prometheus CRDs (needed for ServiceMonitor scraping compatibility)
   prometheusCrds: helm.template('prometheus-crds', '../../charts/prometheus-operator-crds', {
     namespace: namespace,
+    values: {
+      crds: {
+        thanosrulers: { enabled: true },
+      },
+    },
   }),
 
   grafanaAccessNetworkPolicy:

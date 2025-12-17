@@ -1,14 +1,15 @@
 {
-  "apiVersion": "tanka.dev/v1alpha1",
-  "kind": "Environment",
-  "metadata": {
-    "name": "envs/linstor"
-  },
-  "spec": {
-    "namespace": "linstor",
-    "resourceDefaults": {},
-    "expectVersions": {},
-    "contextNames": ["gr"],
-    "injectLabels": true
-  }
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/linstor"
+	},
+	"spec": {
+		"namespace": "linstor",
+		"resourceDefaults": {},
+		"expectVersions": {},
+		"contextNames": ["gr"],
+		"applyStrategy": "server",
+		"injectLabels": true
+	}
 }
