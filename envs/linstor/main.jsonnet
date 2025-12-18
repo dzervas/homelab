@@ -30,24 +30,18 @@ local nodeSelector = {
 
   cluster: helm.template('linstor-cluster', '../../charts/linstor-cluster', {
     values: {
-      // ingress: ingress.hostString(domain, ingress.mtlsAnnotations(namespace)),
       linstorCluster: {
         nodeSelector: nodeSelector,
         nfsServer: {
           enabled: false,
         },
-        // apiTLS: {
-        //   certManager: {
-        //     name: 'selfsigned',
-        //     kind: 'ClusterIssuer',
-        //   },
-        // },
-        // internalTLS: {
-        //   certManager: {
-        //     name: 'selfsigned',
-        //     kind: 'ClusterIssuer',
-        //   },
-        // },
+
+        tolerations: [{
+          key: 'storage-only',
+          operator: 'Equal',
+          value: 'true',
+          effect: 'NoSchedule',
+        }],
       },
       createApiTLS: 'cert-manager',
       createInternalTLS: 'cert-manager',
@@ -62,12 +56,6 @@ local nodeSelector = {
             thinPool: 'thinpool',
           },
         }],
-        // internalTLS: {
-        //   certManager: {
-        //     name: 'selfsigned',
-        //     kind: 'ClusterIssuer',
-        //   },
-        // },
         deletionPolicy: 'Evacuate',
 
         podTemplate: {
