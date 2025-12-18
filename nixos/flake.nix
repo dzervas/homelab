@@ -18,7 +18,7 @@
     nixosConfigurations = mkMachines machines;
 
     # deploy-rs stuff
-    deploy.nodes = builtins.mapAttrs (name: machine: mkNode self nixpkgs deploy-rs name machine) machines;
+    deploy.nodes = (builtins.mapAttrs (name: machine: mkNode self nixpkgs deploy-rs name machine) machines);
     checks = builtins.mapAttrs (_system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
   };
 

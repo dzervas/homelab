@@ -48,6 +48,12 @@
         user = "root";
         sshUser = "root";
         path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.${name};
-      };
+      } // (if name == "gr1" then  {
+	      # gr1 is fucking slow...
+				gr1.profiles.system = {
+		      activationTimeout = 600;
+		      confirmTimeout = 120;
+        };
+      } else {});
   };
 }
