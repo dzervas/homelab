@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>503 Service Unavailable</title>
-  <meta name="description" content="The server is temporarily unable to handle the request." />
+  <title>%%STATUS_TITLE%%</title>
+  <meta name="description" content="%%STATUS_MESSAGE%%" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta http-equiv="refresh" content="30">
   <style>
@@ -59,13 +59,12 @@
 </head>
 <body>
   <main role="main" aria-labelledby="page-title">
-    <h1 id="page-title">503 — We’re a bit overloaded</h1>
+    <h1 id="page-title">%%STATUS_TITLE%%</h1>
     <p>
-      The server is temporarily unable to handle the request. This usually clears up quickly.
-      You can retry now, or come back later if the stampede continues.
+      %%STATUS_MESSAGE%%
     </p>
 
-    <p class="mono">Error code: 503</p>
+    <p class="mono">Error code: %%STATUS_CODE%%</p>
   </main>
 </body>
 </html>
