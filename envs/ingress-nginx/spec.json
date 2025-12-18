@@ -1,16 +1,15 @@
 {
-  "apiVersion": "tanka.dev/v1alpha1",
-  "kind": "Environment",
-  "metadata": {
-    "name": "envs/ingress-nginx"
-  },
-  "spec": {
-    "contextNames": [
-      "gr"
-    ],
-    "namespace": "ingress",
-    "injectLabels": true,
-    "resourceDefaults": {},
-    "expectVersions": {}
-  }
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/ingress-nginx"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"applyStrategy": "server",
+		"namespace": "ingress",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
 }

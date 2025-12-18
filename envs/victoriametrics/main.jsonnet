@@ -91,6 +91,7 @@ local namespace = 'victoriametrics';
         },
 
         'victoria-metrics-operator': {
+          crds: { plain: false },  // Render the CRDs to be able to upgrade them
           admissionWebhooks: {
             certManager: {
               enabled: true,

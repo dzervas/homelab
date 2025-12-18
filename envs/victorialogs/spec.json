@@ -2,13 +2,13 @@
 	"apiVersion": "tanka.dev/v1alpha1",
 	"kind": "Environment",
 	"metadata": {
-		"name": "envs/descheduler"
+		"name": "envs/victorialogs"
 	},
 	"spec": {
 		"contextNames": ["gr"],
-		"applyStrategy": "server",
-		"namespace": "descheduler",
+		"namespace": "victorialogs",
 		"injectLabels": true,
+		"applyStrategy": "server",
 		"resourceDefaults": {},
 		"expectVersions": {}
 	}
