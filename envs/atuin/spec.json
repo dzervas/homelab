@@ -1,16 +1,15 @@
 {
-  "apiVersion": "tanka.dev/v1alpha1",
-  "kind": "Environment",
-  "metadata": {
-    "name": "envs/atuin"
-  },
-  "spec": {
-    "contextNames": [
-      "gr"
-    ],
-    "namespace": "atuin",
-    "injectLabels": true,
-    "resourceDefaults": {},
-    "expectVersions": {}
-  }
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/atuin"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "atuin",
+		"injectLabels": true,
+		"applyStrategy": "server",
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
 }

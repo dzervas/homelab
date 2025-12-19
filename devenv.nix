@@ -1,6 +1,21 @@
 { pkgs, ... }:
 {
-  languages.jsonnet.enable = true;
+	languages = {
+	  jsonnet.enable = true;
+	  python = {
+	      enable = true;
+
+	      # https://devenv.sh/guides/python/#python_venv
+	      venv = {
+	        enable = true;
+	        requirements = ''
+						kr8s
+						requests
+					'';
+	      };
+	    };
+	};
+
   packages = with pkgs; [
     tanka
     jsonnet-bundler
@@ -31,5 +46,12 @@
 
   env = {
     TANKA_PAGER = "${pkgs.bat}/bin/bat -p -l yaml";
+
+    OUTPUT_PATH = "/tmp/dns.json";
+    INGRESS_CLASS = "vpn";
+    DOMAIN_SUFFIX = ".ts.dzerv.art";
+    HEADSCALE_URL = "http://localhost:8080";
+    HEADSCALE_API_KEY = "op://k8s-secrets/dns-controller/headscale-api-key";
+    PYTHONUNBUFFERED = "1";
   };
 }
