@@ -19,6 +19,9 @@ local nodeSelector = {
     namespace: namespace,
     values: {
       installCRDs: true,
+      operator: {
+        options: { zapDevel: false },
+      },
       tls: {
         certManagerIssuerRef: {
           name: 'selfsigned',

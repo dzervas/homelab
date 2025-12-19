@@ -1,3 +1,5 @@
+local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
+local helm = tk.helm.new(std.thisFile);
 local k = import 'k.libsonnet';
 
 local namespace = 'victorialogs';
@@ -11,59 +13,38 @@ local vlsingleLabels = {
   namespace: k.core.v1.namespace.new(namespace),
 
   // VictoriaLogs single instance (storage)
-  vlsingle: {
-    apiVersion: 'operator.victoriametrics.com/v1',
-    kind: 'VLSingle',
-    metadata: {
-      name: 'victorialogs',
-      namespace: namespace,
-      labels: vlsingleLabels,
-    },
-    spec: {
-      retentionPeriod: '90d',
-      storage: {
-        resources: {
-          requests: { storage: '20Gi' },
-        },
+  vlsingle: helm.template('vlsingle', '../../charts/victoria-logs-single', {
+    namespace: namespace,
+    values: {
+      nameOverride: 'victorialogs',
+      server: {
+        retentionPeriod: '3',  // Months
+        persistentVolume: { size: '20Gi' },
+        nodeSelector: { provider: 'oracle' },
       },
-      nodeSelector: { provider: 'oracle' },
+      dashboards: {
+        enabled: true,
+        labels: { grafana_dashboard: '1' },
+      },
     },
-  },
+  }),
 
   // VictoriaLogs agent (log collector DaemonSet)
-  vlagent: {
-    apiVersion: 'operator.victoriametrics.com/v1',
-    kind: 'VLAgent',
-    metadata: {
-      name: 'victorialogs-collector',
-      namespace: namespace,
-    },
-    spec: {
-      k8sCollector: { enabled: true },
+  vlagent: helm.template('vlagent', '../../charts/victoria-logs-collector', {
+    namespace: namespace,
+    values: {
+      nameOverride: 'victorialogs',
       remoteWrite: [
-        { url: 'http://vlsingle-victorialogs:9428/insert/jsonline' },
+        { url: 'http://vlsingle-victorialogs-server:9428' },
       ],
+      tolerations: [{
+        key: 'storage-only',
+        operator: 'Equal',
+        value: 'true',
+        effect: 'NoSchedule',
+      }],
     },
-  },
-
-  // Grafana datasource ConfigMap (sidecar picks by label grafana_datasource=1)
-  grafanaDatasource:
-    k.core.v1.configMap.new('victorialogs-grafana-ds')
-    + k.core.v1.configMap.metadata.withNamespace(namespace)
-    + k.core.v1.configMap.metadata.withLabels({ grafana_datasource: '1' })
-    + k.core.v1.configMap.withData({
-      'datasource.yaml': std.manifestYamlDoc({
-        apiVersion: 1,
-        datasources: [
-          {
-            name: 'VictoriaLogs',
-            type: 'victoriametrics-logs-datasource',
-            url: std.format('http://vlsingle-victorialogs.%s.svc:9428', namespace),
-            isDefault: false,
-          },
-        ],
-      }),
-    }),
+  }),
 
   // NetworkPolicy to allow Grafana access
   grafanaAccessNetworkPolicy:
@@ -74,6 +55,7 @@ local vlsingleLabels = {
     + k.networking.v1.networkPolicy.spec.withIngress([{
       from: [
         { namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'grafana' } } },
+        { podSelector: { matchLabels: { 'app.kubernetes.io/name': 'grafana' } } },
       ],
     }]),
 }
