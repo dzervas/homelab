@@ -7,6 +7,7 @@ local httpIngressPath = k.networking.v1.httpIngressPath;
 {
   new(name, cfg)::
     local hasIngress = cfg.ingressEnabled && cfg.fqdn != null;
+    local ingressClass = if std.endsWith(cfg.fqdn, '.ts.dzerv.art') then 'vpn' else 'nginx';
 
     if hasIngress then {
       ingress:
@@ -16,7 +17,7 @@ local httpIngressPath = k.networking.v1.httpIngressPath;
           'cert-manager.io/cluster-issuer': 'letsencrypt',
           'nginx.ingress.kubernetes.io/ssl-redirect': 'true',
         } + cfg.ingressAnnotations)
-        + ingress.spec.withIngressClassName('nginx')
+        + ingress.spec.withIngressClassName(ingressClass)
         + ingress.spec.withRules([
           ingressRule.withHost(cfg.fqdn)
           + ingressRule.http.withPaths([

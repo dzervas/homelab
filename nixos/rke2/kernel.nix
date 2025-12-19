@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, home-vpn-iface, pkgs, ... }: {
   environment.systemPackages = [ pkgs.drbd ];
 
   boot = {
@@ -30,6 +30,9 @@
 
       # Linstor
       "net.core.rmem_max"	= 1048576;
+
+      # Allow hostport forwarding
+      "net.ipv4.conf.${home-vpn-iface}.route_localnet" = 1;
     };
   };
 }
