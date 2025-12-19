@@ -47,11 +47,11 @@ local configMount = k.core.v1.volumeMount.new('headscale-config', '/etc/headscal
           magic_dns: true,
           base_domain: 'ts.%s' % domain,
           extra_records_path: '/etc/headscale/dns.json',
-          override_local_dns: false,
+          override_local_dns: true,
           nameservers: {
             global: [
+              '8.8.8.8',
               '1.1.1.1',
-              '1.0.0.1',
             ],
           },
         },
