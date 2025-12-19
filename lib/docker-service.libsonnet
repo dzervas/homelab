@@ -17,6 +17,7 @@ local ingressLib = import 'docker-service/ingress.libsonnet';
       replicas: 1,
       fqdn: null,
       pvs: {},
+      config_maps: {},
       env: {},
       runAsUser: 1000,
       ingressEnabled: true,

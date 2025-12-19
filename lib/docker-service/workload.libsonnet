@@ -18,6 +18,7 @@ local pvc = k.core.v1.persistentVolumeClaim;
       args=cfg.args,
       env=cfg.env,
       pvs=cfg.pvs,
+      config_maps=cfg.config_maps,
       ports=cfg.ports,
     );
     local workload = if cfg.type == 'Deployment' then k.apps.v1.deployment else k.apps.v1.statefulSet;
@@ -28,12 +29,24 @@ local pvc = k.core.v1.persistentVolumeClaim;
       // Ditch the returned volumes and generate PVC templates for the stateful set
       workload.spec.withVolumeClaimTemplates(pvcLib.build(name, cfg.namespace, cfg.pvs, cfg.labels));
 
+    local configMaps = std.foldl(
+      function(prev, configMap)
+        // TODO: Add an option to use configMapVolumeMount to restart the container on config change
+        local cmName = std.split(cfg.config_maps[configMap], ':')[0];
+        local readOnly = !std.endsWith(cfg.config_maps[configMap], ':rw');
+        // TODO: Take care of the readOnly flag
+        prev + workload.configVolumeMount(cmName, configMap),
+      std.objectFields(cfg.config_maps),
+      {}
+    );
+
     workload.new(
       name=name,
       replicas=cfg.replicas,
       containers=[containersResult.container]
     )
     + volumeSpec
+    + configMaps
     + workload.metadata.withNamespace(cfg.namespace)
     + (if std.startsWith(image, 'ghcr.io/dzervas/') then workload.spec.template.spec.withImagePullSecrets([{ name: 'ghcr-cluster-secret' }]) else {})
     + workload.spec.template.spec.securityContext.withFsGroup(cfg.runAsUser)

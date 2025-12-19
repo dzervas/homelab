@@ -6,10 +6,10 @@ local volume = k.core.v1.volume;
 local volumeMount = k.core.v1.volumeMount;
 
 {
-  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, ports=[])::
+  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, config_maps={}, ports=[])::
     local hasPvs = std.length(std.objectFields(pvs)) > 0;
 
-    // Build volumes
+    // Build PVC / emptyDir volumes
     // Takes an object of { "/mount/path": { name: "pvc-name", size: "1Gi", read_only: true, empty_dir: true } }
     // and produces a list of volumes
     local volumes = std.map(
@@ -26,7 +26,16 @@ local volumeMount = k.core.v1.volumeMount;
       std.objectFields(pvs)
     );
 
-    // Build volume mounts
+    // Build configMap volumes from { mountPath: "configmap[:rw]" }
+    local configMapVolumes = std.map(
+      function(mountPath)
+        local value = config_maps[mountPath];
+        local cmName = std.split(value, ':')[0];
+        volume.fromConfigMap(cmName, cmName),
+      std.objectFields(config_maps)
+    );
+
+    // Build volume mounts for PVCs / emptyDir
     local volumeMounts = std.map(
       function(mountPath)
         local volumeName = if std.objectHas(pvs[mountPath], 'name') then
@@ -41,30 +50,18 @@ local volumeMount = k.core.v1.volumeMount;
 
     {
       volumes: volumes,
-      vms: volumeMounts,
-      container: container.new(name, image)
-                 + container.withPorts(std.map(port.new, ports))
-                 + container.withImagePullPolicy('Always')
-                 + container.withVolumeMounts(volumeMounts)
-                 + container.withEnvMap(env)
-                 + (if command != null then container.withCommand(command) else {})
-                 + (if args != null then container.withArgs(args) else {})
-                 + container.securityContext.withRunAsNonRoot(true)
-                 + container.securityContext.withRunAsUser(user)
-                 + container.securityContext.withRunAsGroup(user)
-                 + container.securityContext.withAllowPrivilegeEscalation(false)
-                 + container.securityContext.capabilities.withDrop(['ALL']),
+      container:
+        container.new(name, image)
+        + container.withPorts(std.map(port.new, ports))
+        + container.withImagePullPolicy('Always')
+        + container.withVolumeMounts(volumeMounts)
+        + container.withEnvMap(env)
+        + (if command != null then container.withCommand(command) else {})
+        + (if args != null then container.withArgs(args) else {})
+        + container.securityContext.withRunAsNonRoot(true)
+        + container.securityContext.withRunAsUser(user)
+        + container.securityContext.withRunAsGroup(user)
+        + container.securityContext.withAllowPrivilegeEscalation(false)
+        + container.securityContext.capabilities.withDrop(['ALL']),
     },
 }
-
-
-// container.new(name, image)
-// + container.withPorts([ port.newNamed(port, "http") ])
-// + container.withImagePullPolicy("Always")
-// + (if std.length(volumeMounts) > 0 then container.withVolumeMounts(volumeMounts) else {})
-// + (if std.length(envVars) > 0 then container.withEnv(envVars) else {})
-// + container.securityContext.withRunAsNonRoot(true)
-// + container.securityContext.withRunAsUser(runAsUser)
-// + container.securityContext.withRunAsGroup(runAsUser)
-// + container.securityContext.withAllowPrivilegeEscalation(false)
-// + container.securityContext.capabilities.withDrop([ "ALL" ]),
