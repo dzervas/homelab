@@ -44,6 +44,7 @@ local configMount = k.core.v1.volumeMount.new('headscale-config', '/etc/headscal
           },
         },
         dns: {
+          // NOTE: Enabling android private dns (DoH) will break magicdns!
           magic_dns: true,
           base_domain: 'ts.%s' % domain,
           extra_records_path: '/etc/headscale/dns.json',

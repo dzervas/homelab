@@ -32,6 +32,10 @@
 
       # Enable internet
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } oifname { eth0, enp* } accept
+
+      # VPN-specific ingress
+      iifname ${node-vpn-iface} tcp dport 80  redirect to :6080
+      iifname ${node-vpn-iface} tcp dport 443 redirect to :6443
     '';
   };
 
