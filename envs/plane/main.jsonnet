@@ -8,7 +8,7 @@ local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'plane';
-local domain = 'projects.dzerv.art';
+local domain = 'projects.ts.dzerv.art';
 local prime_server = 'http://plane-prime:8000';
 
 // Normalize Helm-rendered Jobs: detect names ending in "-YYYYMMDD-HHMMSS",
@@ -52,7 +52,7 @@ local normalizeJobNames(obj) =
         },
         ingress: {
           enabled: true,
-          ingressClass: 'nginx',
+          ingressClass: 'vpn',
           ingress_annotations: {
             'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
             // Required to get mobile app to work
@@ -62,7 +62,7 @@ local normalizeJobNames(obj) =
           appHost: domain,
         },
         ssl: {
-          tls_secret_name: 'projects-dzerv-art-cert',
+          tls_secret_name: 'projects-ts-dzerv-art-cert',
         },
         external_secrets: {
           silo_env_existingSecret: 'plane-silo-secrets',
@@ -71,6 +71,8 @@ local normalizeJobNames(obj) =
           storageClass: 'openebs-replicated',  // This is incorrect but can't change now
         },
         extraEnv: [
+          { name: 'WEB_URL', value: 'https://' + domain },
+          // { name: 'DOMAIN_NAME', value: domain },
           { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
           { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
           { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
@@ -94,14 +96,6 @@ local normalizeJobNames(obj) =
       },
     },
   },
-
-  planeVPNIngress: ingressLib.new('plane-api', {
-    namespace: namespace,
-    ingressEnabled: true,
-    fqdn: 'projects.ts.dzerv.art',
-    ports: [8000],
-    ingressAnnotations: {},
-  }),
 
   planeSecrets: {
     apiVersion: 'external-secrets.io/v1',
