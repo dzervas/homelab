@@ -8,6 +8,7 @@ INGRESS_CLASS = os.getenv("INGRESS_CLASS", "traefik")
 DOMAIN_SUFFIX = os.getenv("DOMAIN_SUFFIX", "")  # optional: ".vpn.example.com"
 HS_BASE	   = os.environ["HEADSCALE_URL"].rstrip("/")
 HS_KEY		= os.environ["HEADSCALE_API_KEY"]
+TMP_PATH = os.getenv("TMP_PATH", "/tmp")
 
 def want_host(h: str) -> bool:
 	if not h: return False
@@ -16,12 +17,10 @@ def want_host(h: str) -> bool:
 
 def atomic_write(path: str, obj) -> None:
 	s = json.dumps(obj, sort_keys=True, indent=2) + "\n"
-	tmp = path + ".tmp"
-	with open(tmp, "w", encoding="utf-8") as f:
+	with open(path, "w", encoding="utf-8") as f:
 		f.write(s)
 		f.flush()
 		os.fsync(f.fileno())
-	os.replace(tmp, path)
 
 def headscale_node_v4_map() -> dict[str, str]:
 	r = requests.get(
@@ -123,10 +122,8 @@ def reconcile():
 def main():
 	print("Starting DNS Operator")
 
-	# print("Initial reconciliation")
-	# reconcile()
-
-	for _ in kr8s.watch("Ingress"):
+	# TODO: Even on init, all ingresses are passed - process them one by one
+	for _ in kr8s.watch("Ingress", namespace="all"):
 		time.sleep(0.2)  # debounce bursts
 		print("Watch event received, reconciling")
 		reconcile()

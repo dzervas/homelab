@@ -1,5 +1,8 @@
 local dockerService = import 'docker-service.libsonnet';
 local k = import 'k.libsonnet';
+local serviceAccount = k.core.v1.serviceAccount;
+local clusterRole = k.rbac.v1.clusterRole;
+local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
 
 local namespace = 'headscale';
 local domain = 'dzerv.art';
@@ -79,17 +82,55 @@ local domain = 'dzerv.art';
       'dns.json': '[]',
     }),
 
-  dnsController: dockerService.new('dns-controller', 'ghcr.io/dzervas/dns-controller', {
-    namespace: namespace,
-    env: {
-      INGRESS_CLASS: 'vpn',
-      DOMAIN_SUFFIX: 'ts.%s' % domain,
-      OUTPUT_PATH: '/data/dns.json',
-      HEADSCALE_URL: 'http://headscale:8080',
+  dnsController:
+    dockerService.new('dns-controller', 'ghcr.io/dzervas/dns-controller', {
+      namespace: namespace,
+      env: {
+        INGRESS_CLASS: 'vpn',
+        DOMAIN_SUFFIX: 'ts.%s' % domain,
+        OUTPUT_PATH: '/data/dns.json',
+        HEADSCALE_URL: 'http://headscale:8080',
+      },
+      op_envs: ['HEADSCALE_API_KEY'],
+      config_maps: {
+        '/data': 'headscale-config:rw',
+      },
+    })
+    + {
+      workload+: {
+        spec+: {
+          template+: {
+            spec+: {
+              serviceAccountName: 'dns-controller',
+            },
+          },
+        },
+      },
     },
-    op_envs: ['HEADSCALE_API_KEY'],
-    config_maps: {
-      '/data': 'headscale-config:rw',
-    },
-  }),
+
+  dnsControllerServiceAccount: serviceAccount.new('dns-controller'),
+  dnsControllerClusterRole:
+    clusterRole.new('dns-controller')
+    + clusterRole.withRules([
+      {
+        apiGroups: [''],
+        resources: ['pods', 'services'],
+        verbs: ['get', 'list', 'watch'],
+      },
+      {
+        apiGroups: ['networking.k8s.io'],
+        resources: ['ingresses'],
+        verbs: ['get', 'list', 'watch'],
+      },
+    ]),
+  dnsControllerClusterRoleBinding:
+    clusterRoleBinding.new('dns-controller')
+    + clusterRoleBinding.roleRef.withApiGroup('rbac.authorization.k8s.io')
+    + clusterRoleBinding.roleRef.withKind('ClusterRole')
+    + clusterRoleBinding.roleRef.withName('dns-controller')
+    + clusterRoleBinding.withSubjects([{
+      kind: 'ServiceAccount',
+      name: 'dns-controller',
+      namespace: namespace,
+    }]),
 }

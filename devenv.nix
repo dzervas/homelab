@@ -51,7 +51,7 @@
     INGRESS_CLASS = "vpn";
     DOMAIN_SUFFIX = ".ts.dzerv.art";
     HEADSCALE_URL = "http://localhost:8080";
-    HEADSCALE_API_KEY = "op://k8s-secrets/dns-controller/headscale-api-key";
+    HEADSCALE_API_KEY = "op://k8s-secrets/dns-controller/HEADSCALE_API_KEY";
     PYTHONUNBUFFERED = "1";
   };
 }

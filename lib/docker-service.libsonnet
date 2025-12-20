@@ -35,9 +35,7 @@ local opsecretLib = import 'docker-service/opsecret.libsonnet';
     else {
       namespace:
         namespace.new(cfg.namespace)
-        + namespace.metadata.withLabels({
-          ghcrCreds: if std.startsWith(image, 'ghcr.io/dzervas/') then 'enabled' else 'disabled',
-        }),
+        + namespace.metadata.withLabels(if std.startsWith(image, 'ghcr.io/dzervas/') then { ghcrCreds: 'enabled' } else {}),
       workload: workloadLib.new(name, image, cfg),
       service: serviceLib.new(name, cfg),
       ingress: ingressLib.new(name, cfg),
