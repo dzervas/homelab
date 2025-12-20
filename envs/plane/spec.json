@@ -1,16 +1,15 @@
 {
-  "apiVersion": "tanka.dev/v1alpha1",
-  "kind": "Environment",
-  "metadata": {
-    "name": "envs/plane"
-  },
-  "spec": {
-    "contextNames": [
-      "gr"
-    ],
-    "namespace": "plane",
-    "injectLabels": true,
-    "resourceDefaults": {},
-    "expectVersions": {}
-  }
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/plane"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "plane",
+		"applyStrategy": "server",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
 }

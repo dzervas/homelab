@@ -39,6 +39,16 @@ local nodeSelector = {
           enabled: false,
         },
 
+        properties: [
+          { name: 'DrbdOptions/Resource/auto-quorum', value: 'suspend-io' },
+
+          // https://kb.linbit.com/drbd-reactor/drbd-reactor-configuring-freeze-feature/#configuring-required-drbd-options
+          { name: 'DrbdOptions/Resource/on-no-quorum', value: 'suspend-io' },
+          { name: 'DrbdOptions/Resource/on-no-data-accessible', value: 'suspend-io' },
+          { name: 'DrbdOptions/Resource/on-suspended-primary', value: 'force-secondary' },
+          { name: 'DrbdOptions/Resource/rr-conflict', value: 'retry-connect' },
+        ],
+
         tolerations: [{
           key: 'storage-only',
           operator: 'Equal',

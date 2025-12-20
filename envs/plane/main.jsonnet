@@ -1,4 +1,5 @@
 local dockerService = import 'docker-service.libsonnet';
+local ingressLib = import 'docker-service/ingress.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local gemini = import 'helpers/gemini.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
@@ -93,6 +94,14 @@ local normalizeJobNames(obj) =
       },
     },
   },
+
+  planeVPNIngress: ingressLib.new('plane-api', {
+    namespace: namespace,
+    ingressEnabled: true,
+    fqdn: 'projects.vpn.dzerv.art',
+    ports: [8000],
+    ingressAnnotations: {},
+  }),
 
   planeSecrets: {
     apiVersion: 'external-secrets.io/v1',

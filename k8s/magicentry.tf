@@ -106,7 +106,9 @@ resource "helm_release" "magicentry" {
             client_secret = local.op_secrets.magicentry.plane_secret
             redirect_urls = [
               "https://projects.dzerv.art/auth/oidc/callback/",
-              "https://projects.dzerv.art/auth/mobile/oidc/callback/"
+              "https://projects.dzerv.art/auth/mobile/oidc/callback/",
+              "https://projects.vpn.dzerv.art/auth/oidc/callback/",
+              "https://projects.vpn.dzerv.art/auth/mobile/oidc/callback/"
             ]
           }
         },

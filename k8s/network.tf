@@ -31,7 +31,7 @@ resource "kubernetes_network_policy_v1" "default_ingress" {
             # ingress-nginx needs to be able to access the services that have an ingress pointing to them
             # prometheus needs to be able to access pods/services that have a service/podmonitor pointing to them
             # A global network policy would be better suited for this
-            values = ["ingress", "victoriametrics"]
+            values = ["ingress", "victoriametrics", "traefik"]
           }
         }
       }

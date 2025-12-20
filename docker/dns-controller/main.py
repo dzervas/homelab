@@ -5,15 +5,9 @@ import kr8s
 
 OUTPUT_PATH   = os.getenv("OUTPUT_PATH", "/data/extra-records.json")
 INGRESS_CLASS = os.getenv("INGRESS_CLASS", "traefik")
-DOMAIN_SUFFIX = os.getenv("DOMAIN_SUFFIX", "")  # optional: ".vpn.example.com"
 HS_BASE	   = os.environ["HEADSCALE_URL"].rstrip("/")
 HS_KEY		= os.environ["HEADSCALE_API_KEY"]
 TMP_PATH = os.getenv("TMP_PATH", "/tmp")
-
-def want_host(h: str) -> bool:
-	if not h: return False
-	h = h.strip().rstrip(".").lower()
-	return (not DOMAIN_SUFFIX) or h.endswith(DOMAIN_SUFFIX.lower())
 
 def atomic_write(path: str, obj) -> None:
 	s = json.dumps(obj, sort_keys=True, indent=2) + "\n"
@@ -44,7 +38,7 @@ def headscale_node_v4_map() -> dict[str, str]:
 
 def ingress_hosts(ingress) -> list[str]:
 	rules = (ingress.spec or {}).get("rules") or []
-	return sorted({r.get("host","").strip().rstrip(".") for r in rules if want_host(r.get("host",""))})
+	return sorted({r.get("host","").strip().rstrip(".") for r in rules})
 
 def backend_services(ingress) -> list[tuple[str, str]]:
 	namespace = ingress.metadata.namespace
