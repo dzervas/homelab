@@ -98,7 +98,7 @@ local normalizeJobNames(obj) =
   planeVPNIngress: ingressLib.new('plane-api', {
     namespace: namespace,
     ingressEnabled: true,
-    fqdn: 'projects.vpn.dzerv.art',
+    fqdn: 'projects.ts.dzerv.art',
     ports: [8000],
     ingressAnnotations: {},
   }),

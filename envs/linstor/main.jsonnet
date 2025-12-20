@@ -39,16 +39,6 @@ local nodeSelector = {
           enabled: false,
         },
 
-        properties: [
-          { name: 'DrbdOptions/Resource/auto-quorum', value: 'suspend-io' },
-
-          // https://kb.linbit.com/drbd-reactor/drbd-reactor-configuring-freeze-feature/#configuring-required-drbd-options
-          { name: 'DrbdOptions/Resource/on-no-quorum', value: 'suspend-io' },
-          { name: 'DrbdOptions/Resource/on-no-data-accessible', value: 'suspend-io' },
-          { name: 'DrbdOptions/Resource/on-suspended-primary', value: 'force-secondary' },
-          { name: 'DrbdOptions/Resource/rr-conflict', value: 'retry-connect' },
-        ],
-
         tolerations: [{
           key: 'storage-only',
           operator: 'Equal',
@@ -69,6 +59,14 @@ local nodeSelector = {
             thinPool: 'thinpool',
           },
         }],
+
+        properties: [
+          // https://kb.linbit.com/drbd-reactor/drbd-reactor-configuring-freeze-feature/#configuring-required-drbd-options
+          // { name: 'DrbdOptions/Resource/on-no-quorum', value: 'suspend-io' },
+          // { name: 'DrbdOptions/Resource/on-no-data-accessible', value: 'suspend-io' },
+          // { name: 'DrbdOptions/Resource/on-suspended-primary', value: 'force-secondary' },
+          // { name: 'DrbdOptions/Resource/rr-conflict', value: 'retry-connect' },
+        ],
         deletionPolicy: 'Evacuate',
 
         podTemplate: {
@@ -81,7 +79,28 @@ local nodeSelector = {
         },
       }],
 
-      linstorNodeConnections: [],
+      linstorNodeConnections: [
+        {
+          // asynchronous, protocol A - https://linbit.com/drbd-user-guide/drbd-guide-9_0-en/#s-replication-protocols
+          name: 'within-provider',
+          selector: [{
+            matchLabels: [{ key: 'provider', op: 'Same' }],
+          }],
+          properties: [
+            { name: 'DrbdOptions/Net/protocol', value: 'A' },
+          ],
+        },
+        {
+          // semi-synchronous, protocol B - https://linbit.com/drbd-user-guide/drbd-guide-9_0-en/#s-replication-protocols
+          name: 'cross-provider',
+          selector: [{
+            matchLabels: [{ key: 'provider', op: 'NotSame' }],
+          }],
+          properties: [
+            { name: 'DrbdOptions/Net/protocol', value: 'B' },
+          ],
+        },
+      ],
 
       storageClasses: [{
         name: 'linstor',
