@@ -31,6 +31,15 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/external-secrets-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "main"
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/k8s-libsonnet.git",
           "subdir": "1.33"
         }

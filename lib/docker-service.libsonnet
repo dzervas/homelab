@@ -5,6 +5,7 @@ local pvcLib = import 'docker-service/pvc.libsonnet';
 local workloadLib = import 'docker-service/workload.libsonnet';
 local serviceLib = import 'docker-service/service.libsonnet';
 local ingressLib = import 'docker-service/ingress.libsonnet';
+local opsecretLib = import 'docker-service/opsecret.libsonnet';
 
 {
   new(name, image, config={})::
@@ -16,6 +17,7 @@ local ingressLib = import 'docker-service/ingress.libsonnet';
       ports: [80],
       replicas: 1,
       fqdn: null,
+      op_envs: [],
       pvs: {},
       config_maps: {},
       env: {},
@@ -41,5 +43,6 @@ local ingressLib = import 'docker-service/ingress.libsonnet';
       ingress: ingressLib.new(name, cfg),
       // The stateful set will have pvc templates in it
       pvc: if cfg.type == 'Deployment' then pvcLib.build(name, cfg.namespace, cfg.pvs, cfg.labels) else null,
+      opsecret: if std.length(cfg.op_envs) > 0 then opsecretLib.new(name) else null,
     },
 }

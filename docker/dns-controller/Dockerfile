@@ -3,7 +3,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
 	PYTHONUNBUFFERED=1
 
-RUN pip install --no-cache-dir kr8s==0.17.1 requests==2.32.3
+RUN pip install --no-cache-dir kr8s requests sniffio
 
 WORKDIR /app
 

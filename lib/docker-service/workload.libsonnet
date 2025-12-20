@@ -20,6 +20,7 @@ local pvc = k.core.v1.persistentVolumeClaim;
       pvs=cfg.pvs,
       config_maps=cfg.config_maps,
       ports=cfg.ports,
+      op_envs=cfg.op_envs
     );
     local workload = if cfg.type == 'Deployment' then k.apps.v1.deployment else k.apps.v1.statefulSet;
     local volumeSpec = if cfg.type == 'Deployment' then
@@ -34,8 +35,9 @@ local pvc = k.core.v1.persistentVolumeClaim;
         // TODO: Add an option to use configMapVolumeMount to restart the container on config change
         local cmName = std.split(cfg.config_maps[configMap], ':')[0];
         local readOnly = !std.endsWith(cfg.config_maps[configMap], ':rw');
+        local modeMixin = volume.configMap.withDefaultMode(std.parseOctal(if readOnly then '444' else '644'));
         // TODO: Take care of the readOnly flag
-        prev + workload.configVolumeMount(cmName, configMap),
+        prev + workload.configVolumeMount(cmName, configMap, volumeMixin=modeMixin),
       std.objectFields(cfg.config_maps),
       {}
     );

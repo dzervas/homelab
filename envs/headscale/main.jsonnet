@@ -4,8 +4,6 @@ local k = import 'k.libsonnet';
 local namespace = 'headscale';
 local domain = 'dzerv.art';
 
-local configMount = k.core.v1.volumeMount.new('headscale-config', '/etc/headscale');
-
 {
   headscale: dockerService.new('headscale', 'ghcr.io/juanfont/headscale', {
     namespace: namespace,
@@ -80,4 +78,18 @@ local configMount = k.core.v1.volumeMount.new('headscale-config', '/etc/headscal
       }),
       'dns.json': '[]',
     }),
+
+  dnsController: dockerService.new('dns-controller', 'ghcr.io/dzervas/dns-controller', {
+    namespace: namespace,
+    env: {
+      INGRESS_CLASS: 'vpn',
+      DOMAIN_SUFFIX: 'ts.%s' % domain,
+      OUTPUT_PATH: '/data/dns.json',
+      HEADSCALE_URL: 'http://headscale:8080',
+    },
+    op_envs: ['HEADSCALE_API_KEY'],
+    config_maps: {
+      '/data': 'headscale-config:rw',
+    },
+  }),
 }

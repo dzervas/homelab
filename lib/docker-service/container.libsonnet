@@ -4,9 +4,11 @@ local container = k.core.v1.container;
 local port = k.core.v1.containerPort;
 local volume = k.core.v1.volume;
 local volumeMount = k.core.v1.volumeMount;
+local envVar = k.core.v1.envVar;
+local envVarSource = k.core.v1.envVarSource;
 
 {
-  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, config_maps={}, ports=[])::
+  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, config_maps={}, ports=[], op_envs=[])::
     local hasPvs = std.length(std.objectFields(pvs)) > 0;
 
     // Build PVC / emptyDir volumes
@@ -48,6 +50,14 @@ local volumeMount = k.core.v1.volumeMount;
       std.objectFields(pvs)
     );
 
+    local opEnvVars = std.map(
+      function(envVarName)
+        envVar.withName(envVarName)
+        + envVar.valueFrom.secretKeyRef.withName(name + '-op')
+        + envVar.valueFrom.secretKeyRef.withKey(envVarName),
+      op_envs
+    );
+
     {
       volumes: volumes,
       container:
@@ -55,6 +65,7 @@ local volumeMount = k.core.v1.volumeMount;
         + container.withPorts(std.map(port.new, ports))
         + container.withImagePullPolicy('Always')
         + container.withVolumeMounts(volumeMounts)
+        + container.withEnv(opEnvVars)
         + container.withEnvMap(env)
         + (if command != null then container.withCommand(command) else {})
         + (if args != null then container.withArgs(args) else {})

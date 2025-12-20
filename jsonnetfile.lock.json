@@ -44,6 +44,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/external-secrets-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "cbc2b4842c0888c74c2b895d54edce027ae3c4bd",
+      "sum": "BLM4mFfioz+RpDKA2qbwVornorne87tyQh9s8AlhrL4="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/k8s-libsonnet.git",
           "subdir": "1.33"
         }
