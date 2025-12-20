@@ -1,7 +1,6 @@
 local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
-
 {
   new(name)::
     externalSecret.new(name + '-op')

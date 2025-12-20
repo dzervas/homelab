@@ -1,28 +1,73 @@
 local dockerService = import 'docker-service.libsonnet';
+local containerLib = import 'docker-service/container.libsonnet';
+local opsecretLib = import 'docker-service/opsecret.libsonnet';
+local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local k = import 'k.libsonnet';
+local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 local serviceAccount = k.core.v1.serviceAccount;
 local clusterRole = k.rbac.v1.clusterRole;
 local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+local container = k.core.v1.container;
+local volumeMount = k.core.v1.volumeMount;
+local envVar = k.core.v1.envVar;
 
 local namespace = 'headscale';
 local domain = 'dzerv.art';
 
+local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
+
 {
-  headscale: dockerService.new('headscale', 'ghcr.io/juanfont/headscale', {
-    namespace: namespace,
-    fqdn: 'vpn.' + domain,
-    ports: [8080],
-    args: ['serve'],
-    pvs: {
-      '/var/lib/headscale': {
-        name: 'db',
-        size: '512Mi',
+  headscale:
+    dockerService.new('headscale', 'ghcr.io/juanfont/headscale', {
+      fqdn: 'vpn.' + domain,
+      ports: [8080],
+      args: ['serve'],
+      pvs: sharedPV {
+        '/var/lib/headscale': {
+          name: 'db',
+          size: '512Mi',
+        },
+      },
+      config_maps: {
+        '/etc/headscale': 'headscale-config:rw',
+      },
+    })
+    + {
+      namespace+: k.core.v1.namespace.metadata.withLabels({ ghcrCreds: 'enabled' }),
+      workload+: {
+        spec+: {
+          template+: {
+            spec+: {
+              // SAs are pod-scoped so both containers are ran as dns-controller
+              serviceAccountName: 'dns-controller',
+              initContainers+: [
+                containerLib.new(
+                  'init-dns-json',
+                  'busybox:1.36',
+                  pvs=sharedPV,
+                  command=['sh', '-c'],
+                  args=['printf "[]" > /data/dns.json'],
+                ).container,
+              ],
+              containers+: [
+                containerLib.new(
+                  'dns-controller',
+                  'ghcr.io/dzervas/dns-controller',
+                  pvs=sharedPV,
+                  op_envs=['HEADSCALE_API_KEY'],
+                  env={
+                    INGRESS_CLASS: 'vpn',
+                    DOMAIN_SUFFIX: 'ts.%s' % domain,
+                    OUTPUT_PATH: '/data/dns.json',
+                    HEADSCALE_URL: 'http://headscale:8080',
+                  },
+                ).container,
+              ],
+            },
+          },
+        },
       },
     },
-    config_maps: {
-      '/etc/headscale': 'headscale-config:rw',
-    },
-  }),
 
   headscaleConfig:
     k.core.v1.configMap.new('headscale-config')
@@ -48,7 +93,7 @@ local domain = 'dzerv.art';
           // NOTE: Enabling android private dns (DoH) will break magicdns!
           magic_dns: true,
           base_domain: 'ts.%s' % domain,
-          extra_records_path: '/etc/headscale/dns.json',
+          extra_records_path: '/data/dns.json',
           override_local_dns: true,
           nameservers: {
             global: [
@@ -79,34 +124,7 @@ local domain = 'dzerv.art';
         unix_socket: '/tmp/headscale.sock',
         unix_socket_permission: '0700',
       }),
-      'dns.json': '[]',
     }),
-
-  dnsController:
-    dockerService.new('dns-controller', 'ghcr.io/dzervas/dns-controller', {
-      namespace: namespace,
-      env: {
-        INGRESS_CLASS: 'vpn',
-        DOMAIN_SUFFIX: 'ts.%s' % domain,
-        OUTPUT_PATH: '/data/dns.json',
-        HEADSCALE_URL: 'http://headscale:8080',
-      },
-      op_envs: ['HEADSCALE_API_KEY'],
-      config_maps: {
-        '/data': 'headscale-config:rw',
-      },
-    })
-    + {
-      workload+: {
-        spec+: {
-          template+: {
-            spec+: {
-              serviceAccountName: 'dns-controller',
-            },
-          },
-        },
-      },
-    },
 
   dnsControllerServiceAccount: serviceAccount.new('dns-controller'),
   dnsControllerClusterRole:
@@ -123,6 +141,7 @@ local domain = 'dzerv.art';
         verbs: ['get', 'list', 'watch'],
       },
     ]),
+
   dnsControllerClusterRoleBinding:
     clusterRoleBinding.new('dns-controller')
     + clusterRoleBinding.roleRef.withApiGroup('rbac.authorization.k8s.io')
@@ -133,4 +152,6 @@ local domain = 'dzerv.art';
       name: 'dns-controller',
       namespace: namespace,
     }]),
+
+  dnsControllerOpSecret: opsecretLib.new('dns-controller'),
 }

@@ -58,12 +58,14 @@ local envVarSource = k.core.v1.envVarSource;
       op_envs
     );
 
+    local imagePullPolicy = if std.endsWith(image, ':latest') || std.length(std.findSubstr(':', image)) == 0 then 'Always' else 'IfNotPresent';
+
     {
       volumes: volumes,
       container:
         container.new(name, image)
         + container.withPorts(std.map(port.new, ports))
-        + container.withImagePullPolicy('Always')
+        + container.withImagePullPolicy(imagePullPolicy)
         + container.withVolumeMounts(volumeMounts)
         + container.withEnv(opEnvVars)
         + container.withEnvMap(env)
