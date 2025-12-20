@@ -71,6 +71,7 @@ local nodeSelector = {
 
         podTemplate: {
           spec: {
+            // hostNetwork: true,
             initContainers: [{
               name: 'drbd-module-loader',
               '$patch': 'delete',
@@ -89,6 +90,7 @@ local nodeSelector = {
           properties: [
             { name: 'DrbdOptions/Net/protocol', value: 'A' },
           ],
+          // paths: [{ name: 'wg', interface: 'wg0' }],
         },
         {
           // semi-synchronous, protocol B - https://linbit.com/drbd-user-guide/drbd-guide-9_0-en/#s-replication-protocols
@@ -99,6 +101,7 @@ local nodeSelector = {
           properties: [
             { name: 'DrbdOptions/Net/protocol', value: 'B' },
           ],
+          // paths: [{ name: 'wg', interface: 'wg0' }],
         },
       ],
 
@@ -113,11 +116,11 @@ local nodeSelector = {
         reclaimPolicy: 'Retain',
         allowVolumeExpansion: true,
         volumeBindingMode: 'WaitForFirstConsumer',
-        podTemplate: {
-          spec: {
-            hostNetwork: true,
-          },
-        },
+        // podTemplate: {
+        //   spec: {
+        //     hostNetwork: true,
+        //   },
+        // },
         parameters: {
           'linstor.csi.linbit.com/autoPlace': '2',
           'linstor.csi.linbit.com/storagePool': 'lvm-thin',
@@ -126,14 +129,14 @@ local nodeSelector = {
         },
       }],
 
-      volumeSnapshotClasses: [{
-        name: 'linstor',
-        annotations: {
-          'snapshot.storage.kubernetes.io/is-default-class': 'true',
-        },
-        driver: 'linstor.csi.linbit.com',
-        deletionPolicy: 'Retain',
-      }],
+      // volumeSnapshotClasses: [{
+      //   name: 'linstor',
+      //   annotations: {
+      //     'snapshot.storage.kubernetes.io/is-default-class': 'true',
+      //   },
+      //   driver: 'linstor.csi.linbit.com',
+      //   deletionPolicy: 'Retain',
+      // }],
 
       // TODO: Make sure this works
       monitoring: {
@@ -179,6 +182,44 @@ local nodeSelector = {
       ],
     },
   },
+
+  operatorWebhookNetworkPolicy:
+    k.networking.v1.networkPolicy.new('piraeus-webhook')
+    + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
+    + k.networking.v1.networkPolicy.spec.podSelector.withMatchLabels({
+      'app.kubernetes.io/name': 'piraeus-datastore',
+      'app.kubernetes.io/component': 'piraeus-operator',
+      'app.kubernetes.io/instance': 'piraeus',
+    })
+    + k.networking.v1.networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + k.networking.v1.networkPolicy.spec.withIngress([
+      {
+        from: [
+          { namespaceSelector: {} },
+          { podSelector: {} },
+          { ipBlock: { cidr: '0.0.0.0/0' } },
+        ],
+        ports: [{ protocol: 'TCP', port: 443 }],
+      },
+    ]),
+
+  satelliteNetworkPolicy:
+    k.networking.v1.networkPolicy.new('linstor-satellite')
+    + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
+    + k.networking.v1.networkPolicy.spec.podSelector.withMatchLabels({
+      'app.kubernetes.io/component': 'linstor-satellite',
+    })
+    + k.networking.v1.networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + k.networking.v1.networkPolicy.spec.withIngress([
+      {
+        from: [
+          { namespaceSelector: {} },
+          { podSelector: {} },
+          { ipBlock: { cidr: '0.0.0.0/0' } },
+        ],
+        ports: [{ protocol: 'TCP', port: 443 }],
+      },
+    ]),
 
   // These have an exporter that listens on hostnetwork, needing this hack :/
   // works without it?

@@ -46,3 +46,30 @@ sed -i 's#/usr/lib/acme/#/usr/local/lib/acme/#' /etc/init.d/acme /usr/local/lib/
 /etc/init.d/acme enable
 opkg install prometheus-node-exporter-lua-openwrt
 ```
+
+## Deleting snapshot of a non-existing snapshotstorageclass
+
+```bash
+k get volumesnapshots -A -o json | jq -r '.items[] | select(.spec.volumeSnapshotClassName == "<volumesnapshotclass>") | "-n " + .metadata.namespace + " volumesnapshot/" + .metadata.name + " volumesnapshotcontents/" + .status.boundVolumeSnapshotContentName' | xargs -L1 kubectl delete
+# If the snapshotcontents get stuck due to the finalizer, pass --wait=false to the above command and then run:
+k get volumesnapshotcontents -A -o json | jq -r '.items[] | select(.spec.volumeSnapshotClassName == "<volumesnapshotclass>")|.metadata.name'|xargs -n1 kubectl delete volumesnapshotcontents
+# On another terminal:
+k get volumesnapshotcontents -A -o json | jq -r '.items[] | select(.spec.volumeSnapshotClassName == "<volumesnapshotclass>")|.metadata.name'|xargs -n1 -I% sh -c "kubectl patch volumesnapshotcontents --type json -p '[{\"op\": \"remove\", \"path\": \"/metadata/finalizers\"}]' %; sleep 3"
+```
+
+## Linstor troubles
+
+First of all:
+
+```bash
+k linstor error-reports l
+```
+
+### StorageException: Failed to get block size...
+
+If for any reason the block paths are missing (e.g. /dev/mainpool/pvc-...):
+
+```bash
+ssh <node> vgscan --mknodes
+# Maybe lvscan too for good measure
+```
