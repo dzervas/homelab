@@ -3,8 +3,7 @@
 	  family = "ip";
 	  content = ''
 			chain prerouting {
-				type nat hook prerouting priority dstnat; policy accept;
-				# type nat hook prerouting priority -50; policy accept;
+				type nat hook prerouting priority -101; policy accept;
 
 				# VPN-specific ingress
 				iifname ${home-vpn-iface} tcp dport 80  counter redirect to :7080
