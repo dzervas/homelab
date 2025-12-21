@@ -8,7 +8,7 @@ local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'plane';
-local domain = 'projects.ts.dzerv.art';
+local domain = 'projects.vpn.dzerv.art';
 local prime_server = 'http://plane-prime:8000';
 
 // Normalize Helm-rendered Jobs: detect names ending in "-YYYYMMDD-HHMMSS",
@@ -54,15 +54,13 @@ local normalizeJobNames(obj) =
           enabled: true,
           ingressClass: 'vpn',
           ingress_annotations: {
-            'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
-            // Required to get mobile app to work
-            'nginx.ingress.kubernetes.io/auth-snippet': 'if ($request_uri ~ "(/auth/get-csrf-token/|/auth/mobile/(token-check|session-token)/)") { return 200; }',
-          } + ingress.oidcAnnotations('plane'),
+            'cert-manager.io/cluster-issuer': 'letsencrypt',
+          },
 
           appHost: domain,
         },
         ssl: {
-          tls_secret_name: 'projects-ts-dzerv-art-cert',
+          tls_secret_name: 'projects-vpn-dzerv-art-cert',
         },
         external_secrets: {
           silo_env_existingSecret: 'plane-silo-secrets',
@@ -193,14 +191,14 @@ local normalizeJobNames(obj) =
   },
 
   // Backup configurations for all Plane PVCs using the wrapper function
-  planeBackups: gemini.backupMany(
-    namespace=namespace,
-    pvcClaimNames=[
-      'pvc-plane-minio-vol-plane-minio-wl-0',
-      'pvc-plane-monitor-vol-plane-monitor-wl-0',
-      'pvc-plane-pgdb-vol-plane-pgdb-wl-0',
-      'pvc-plane-rabbitmq-vol-plane-rabbitmq-wl-0',
-      'pvc-plane-redis-vol-plane-redis-wl-0',
-    ]
-  ),
+  // planeBackups: gemini.backupMany(
+  //   namespace=namespace,
+  //   pvcClaimNames=[
+  //     'pvc-plane-minio-vol-plane-minio-wl-0',
+  //     'pvc-plane-monitor-vol-plane-monitor-wl-0',
+  //     'pvc-plane-pgdb-vol-plane-pgdb-wl-0',
+  //     'pvc-plane-rabbitmq-vol-plane-rabbitmq-wl-0',
+  //     'pvc-plane-redis-vol-plane-redis-wl-0',
+  //   ]
+  // ),
 }

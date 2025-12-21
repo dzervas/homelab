@@ -5,7 +5,7 @@ dockerService.new('atuin', 'ghcr.io/atuinsh/atuin', {
   // TODO: Support statefulsets and args
   args: ['server', 'start'],
 
-  fqdn: 'sh.ts.dzerv.art',
+  fqdn: 'sh.vpn.dzerv.art',
   ports: [8888],
 
   env: {

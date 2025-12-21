@@ -97,6 +97,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
           base_domain: 'ts.%s' % domain,
           extra_records_path: '/data/dns.json',
           override_local_dns: true,
+          search_domains: ['vpn.%s' % domain],
           nameservers: {
             global: [
               '8.8.8.8',
