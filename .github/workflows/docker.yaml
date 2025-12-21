@@ -18,6 +18,7 @@ jobs:
       matrix:
         image:
           - dns-controller
+          - netshoot
 
     steps:
       - name: Check out repository

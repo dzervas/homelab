@@ -1,0 +1,5 @@
+FROM nicolaka/netshoot:v0.14
+# Make sure the user is numeric so PSA "restricted" can verify
+USER 65532:65532
+WORKDIR /tmp
+ENTRYPOINT ["/bin/bash"]
