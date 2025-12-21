@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/network"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "kube-system",
+		"injectLabels": true,
+		"applyStrategy": "server",
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}
