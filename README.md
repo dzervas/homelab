@@ -73,3 +73,9 @@ If for any reason the block paths are missing (e.g. /dev/mainpool/pvc-...):
 ssh <node> vgscan --mknodes
 # Maybe lvscan too for good measure
 ```
+
+### Checking options/protocol/etc. for a pvc
+
+```bash
+k exec ds/linstor-satellite.fra0 -- cat /var/lib/linstor.d/pvc-0769addf-02f2-44b3-a9eb-4ee357c78d87.res
+```

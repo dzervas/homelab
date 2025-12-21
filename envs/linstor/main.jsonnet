@@ -81,6 +81,7 @@ local nodeSelector = {
       }],
 
       linstorNodeConnections: [
+        // They pick up the address/iface that they use for kubernetes traffic (wg0 in this case)
         {
           // asynchronous, protocol A - https://linbit.com/drbd-user-guide/drbd-guide-9_0-en/#s-replication-protocols
           name: 'within-provider',
@@ -90,7 +91,6 @@ local nodeSelector = {
           properties: [
             { name: 'DrbdOptions/Net/protocol', value: 'A' },
           ],
-          // paths: [{ name: 'wg', interface: 'wg0' }],
         },
         {
           // semi-synchronous, protocol B - https://linbit.com/drbd-user-guide/drbd-guide-9_0-en/#s-replication-protocols
@@ -101,7 +101,6 @@ local nodeSelector = {
           properties: [
             { name: 'DrbdOptions/Net/protocol', value: 'B' },
           ],
-          // paths: [{ name: 'wg', interface: 'wg0' }],
         },
       ],
 
@@ -116,11 +115,6 @@ local nodeSelector = {
         reclaimPolicy: 'Retain',
         allowVolumeExpansion: true,
         volumeBindingMode: 'WaitForFirstConsumer',
-        // podTemplate: {
-        //   spec: {
-        //     hostNetwork: true,
-        //   },
-        // },
         parameters: {
           'linstor.csi.linbit.com/autoPlace': '2',
           'linstor.csi.linbit.com/storagePool': 'lvm-thin',
@@ -183,6 +177,7 @@ local nodeSelector = {
     },
   },
 
+  // This is absolutely needed
   operatorWebhookNetworkPolicy:
     k.networking.v1.networkPolicy.new('piraeus-webhook')
     + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
@@ -201,6 +196,7 @@ local nodeSelector = {
       },
     ]),
 
+  // Unsure if this is required - is only the controller speaking to the satellites?
   satelliteNetworkPolicy:
     k.networking.v1.networkPolicy.new('linstor-satellite')
     + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
@@ -221,41 +217,4 @@ local nodeSelector = {
         ],
       },
     ]),
-
-  // These have an exporter that listens on hostnetwork, needing this hack :/
-  // works without it?
-  // linstorMetricsNetworkPolicy: {
-  //   apiVersion: 'networking.k8s.io/v1',
-  //   kind: 'NetworkPolicy',
-  //   metadata: {
-  //     name: 'allow-hostnetwork-satellite-metrics-access',
-  //     namespace: namespace,
-  //   },
-  //   spec: {
-  //     podSelector: {
-  //       matchLabels: {
-  //         'app.kubernetes.io/component': 'linstor-satellite',
-  //       },
-  //     },
-  //     policyTypes: ['Ingress'],
-  //     ingress: [
-  //       {
-  //         from: [
-  //           {
-  //             // For some reason VPN CIDR doesn't work
-  //             ipBlock: {
-  //               cidr: '0.0.0.0/0',
-  //             },
-  //           },
-  //         ],
-  //         ports: [
-  //           {
-  //             protocol: 'TCP',
-  //             port: 9942,
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  // },
 }
