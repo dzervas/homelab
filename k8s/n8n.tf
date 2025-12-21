@@ -176,21 +176,21 @@ resource "kubernetes_ingress_v1" "n8n_webhooks" {
   }
 }
 
-resource "kubernetes_manifest" "n8n_backup" {
-  manifest = {
-    apiVersion = "gemini.fairwinds.com/v1"
-    kind       = "SnapshotGroup"
-    metadata = {
-      name      = "n8n-backups"
-      namespace = module.n8n.namespace
-    }
-    spec = {
-      persistentVolumeClaim = { claimName = "backups-n8n-0" }
-      schedule = [
-        { every = "day", keep = 3 },
-        { every = "week", keep = 4 },
-        { every = "month", keep = 1 }
-      ]
-    }
-  }
-}
+# resource "kubernetes_manifest" "n8n_backup" {
+#   manifest = {
+#     apiVersion = "gemini.fairwinds.com/v1"
+#     kind       = "SnapshotGroup"
+#     metadata = {
+#       name      = "n8n-backups"
+#       namespace = module.n8n.namespace
+#     }
+#     spec = {
+#       persistentVolumeClaim = { claimName = "backups-n8n-0" }
+#       schedule = [
+#         { every = "day", keep = 3 },
+#         { every = "week", keep = 4 },
+#         { every = "month", keep = 1 }
+#       ]
+#     }
+#   }
+# }

@@ -8,7 +8,7 @@ local envVar = k.core.v1.envVar;
 local envVarSource = k.core.v1.envVarSource;
 
 {
-  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, config_maps={}, ports=[], op_envs=[])::
+  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, config_maps={}, ports=[], op_envs={})::
     local hasPvs = std.length(std.objectFields(pvs)) > 0;
 
     // Build PVC / emptyDir volumes
@@ -54,8 +54,8 @@ local envVarSource = k.core.v1.envVarSource;
       function(envVarName)
         envVar.withName(envVarName)
         + envVar.valueFrom.secretKeyRef.withName(name + '-op')
-        + envVar.valueFrom.secretKeyRef.withKey(envVarName),
-      op_envs
+        + envVar.valueFrom.secretKeyRef.withKey(op_envs[envVarName]),
+      std.objectFields(op_envs)
     );
 
     local imagePullPolicy = if std.endsWith(image, ':latest') || std.length(std.findSubstr(':', image)) == 0 then 'Always' else 'IfNotPresent';

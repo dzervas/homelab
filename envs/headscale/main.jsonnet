@@ -56,7 +56,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
                   'dns-controller',
                   'ghcr.io/dzervas/dns-controller',
                   pvs=sharedPV,
-                  op_envs=['HEADSCALE_API_KEY'],
+                  op_envs={ HEADSCALE_API_KEY: 'HEADSCALE_API_KEY' },
                   env={
                     INGRESS_CLASS: 'vpn',
                     DOMAIN_SUFFIX: 'ts.%s' % domain,

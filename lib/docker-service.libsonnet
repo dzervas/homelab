@@ -17,7 +17,7 @@ local opsecretLib = import 'docker-service/opsecret.libsonnet';
       ports: [80],
       replicas: 1,
       fqdn: null,
-      op_envs: [],
+      op_envs: {},
       pvs: {},
       config_maps: {},
       env: {},

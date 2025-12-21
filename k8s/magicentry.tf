@@ -90,12 +90,12 @@ resource "helm_release" "magicentry" {
         },
         {
           name          = "Plane"
-          url           = "https://projects.dzerv.art"
-          valid_origins = ["https://projects.dzerv.art"]
+          url           = "https://projects.vpn.dzerv.art"
+          valid_origins = ["https://projects.vpn.dzerv.art"]
           realms        = ["plane"]
 
           auth_url = {
-            origins        = ["https://projects.dzerv.art"]
+            origins        = ["https://projects.vpn.dzerv.art"]
             status_url     = "http://plane-api.plane.svc:8000/api/users/me/"
             status_cookies = ["session-id"]
             status_headers = ["authorization"]
@@ -105,8 +105,6 @@ resource "helm_release" "magicentry" {
             client_id     = local.op_secrets.magicentry.plane_id
             client_secret = local.op_secrets.magicentry.plane_secret
             redirect_urls = [
-              "https://projects.dzerv.art/auth/oidc/callback/",
-              "https://projects.dzerv.art/auth/mobile/oidc/callback/",
               "https://projects.vpn.dzerv.art/auth/oidc/callback/",
               "https://projects.vpn.dzerv.art/auth/mobile/oidc/callback/"
             ]

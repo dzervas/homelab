@@ -145,21 +145,21 @@ resource "kubernetes_cluster_role_v1" "grafana" {
   }
 }
 
-resource "kubernetes_manifest" "grafana_backup" {
-  manifest = {
-    apiVersion = "gemini.fairwinds.com/v1"
-    kind       = "SnapshotGroup"
-    metadata = {
-      name      = "grafana-backups"
-      namespace = kubernetes_namespace.grafana.metadata[0].name
-    }
-    spec = {
-      persistentVolumeClaim = { claimName = "storage-grafana-0" }
-      schedule = [
-        { every = "day", keep = 3 },
-        { every = "week", keep = 4 },
-        { every = "month", keep = 1 }
-      ]
-    }
-  }
-}
+# resource "kubernetes_manifest" "grafana_backup" {
+#   manifest = {
+#     apiVersion = "gemini.fairwinds.com/v1"
+#     kind       = "SnapshotGroup"
+#     metadata = {
+#       name      = "grafana-backups"
+#       namespace = kubernetes_namespace.grafana.metadata[0].name
+#     }
+#     spec = {
+#       persistentVolumeClaim = { claimName = "storage-grafana-0" }
+#       schedule = [
+#         { every = "day", keep = 3 },
+#         { every = "week", keep = 4 },
+#         { every = "month", keep = 1 }
+#       ]
+#     }
+#   }
+# }
