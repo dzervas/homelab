@@ -40,6 +40,8 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
             spec+: {
               // SAs are pod-scoped so both containers are ran as dns-controller
               serviceAccountName: 'dns-controller',
+
+              // Create dummy file to avoid headscale init error
               initContainers+: [
                 containerLib.new(
                   'init-dns-json',
@@ -120,9 +122,20 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
           auto_update_enabled: true,
           update_frequency: '24h',
         },
+
         ephemeral_node_inactivity_timeout: '30m',
         unix_socket: '/tmp/headscale.sock',
         unix_socket_permission: '0700',
+
+        policy: {
+          mode: 'file',
+          path: '/etc/headscale/policies.hujson',
+        },
+      }),
+      'policies.hujson': std.manifestJson({
+        acls: [
+          { action: 'accept', src: ['dzervas@'], dst: ['*:*'] },
+        ],
       }),
     }),
 
