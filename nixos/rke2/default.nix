@@ -2,6 +2,7 @@
   config,
   hostIndex,
   node-vpn-prefix,
+  pkgs,
   role,
   ...
 }:
@@ -34,6 +35,23 @@
       # TODO: Requires https://docs.rke2.io/security/hardening_guide/
       # cisHardening = true;
       # selinux = true;
+
+      images = [
+        (pkgs.dockerTools.buildImage {
+          name = "netshoot";
+          tag = "latest";
+          fromImage = pkgs.dockerTools.pullImage {
+            imageName = "ghcr.io/nicolaka/netshoot";
+            imageDigest = "sha256:7f08c4aff13ff61a35d30e30c5c1ea8396eac6ab4ce19fd02d5a4b3b5d0d09a2"; # v0.14
+            sha256 = "sha256-lqZZo6KC8zSeisi++1HFpmUMUQ53345O7swAzeH73XQ=";
+          };
+
+          config = {
+            User = "65532:65532";
+            WorkingDir = "/tmp";
+          };
+        })
+      ];
     };
 
   # Add RKE2 utilities to path (kubectl and friends)

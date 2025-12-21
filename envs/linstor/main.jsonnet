@@ -71,7 +71,7 @@ local nodeSelector = {
 
         podTemplate: {
           spec: {
-            // hostNetwork: true,
+            hostNetwork: true,
             initContainers: [{
               name: 'drbd-module-loader',
               '$patch': 'delete',
@@ -195,11 +195,9 @@ local nodeSelector = {
     + k.networking.v1.networkPolicy.spec.withIngress([
       {
         from: [
-          { namespaceSelector: {} },
-          { podSelector: {} },
           { ipBlock: { cidr: '0.0.0.0/0' } },
         ],
-        ports: [{ protocol: 'TCP', port: 443 }],
+        ports: [{ protocol: 'TCP', port: 9443 }],  // The pod listens on 9443 but the service exposes 443!
       },
     ]),
 
@@ -217,7 +215,10 @@ local nodeSelector = {
           { podSelector: {} },
           { ipBlock: { cidr: '0.0.0.0/0' } },
         ],
-        ports: [{ protocol: 'TCP', port: 443 }],
+        ports: [
+          { protocol: 'TCP', port: 3367 },  // satellite
+          { protocol: 'TCP', port: 9942 },  // drbd-reactor
+        ],
       },
     ]),
 
