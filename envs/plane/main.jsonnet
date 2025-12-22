@@ -8,6 +8,11 @@ local k = import 'k.libsonnet';
 local p = import 'prometheus-operator-libsonnet/0.83/main.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
+local deployment = k.apps.v1.deployment;
+local statefulset = k.apps.v1.statefulSet;
+local container = k.core.v1.container;
+local service = k.core.v1.service;
+
 local namespace = 'plane';
 local domain = 'projects.vpn.dzerv.art';
 local prime_server = 'http://plane-prime:8000';
@@ -85,48 +90,23 @@ local planeHelmDef = std.prune(normalizeJobNames(
   plane: planeHelmDef {
     // Add the magicentry.rs/enable label to the plane-api-wl deployment
     // by patching the deployment template in the Helm output
-    deployment_plane_api_wl+: {
-      spec+: {
-        template+: {
-          metadata+: {
-            labels+: {
-              'magicentry.rs/enable': 'true',
-            },
-          },
-        },
-      },
-    },
+    deployment_plane_api_wl+: deployment.spec.template.metadata.withLabelsMixin({ 'magicentry.rs/enable': 'true' }),
 
     // metrics exposure
     // :9000/minio/v2/metrics/cluster
-    stateful_set_plane_minio_wl+: {
-      spec+: {
-        template+: {
-          spec+: {
-            containers: std.map(
-              function(c)
-                c {
-                  env+: [
-                    { name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' },
-                  ],
-                }
-              , planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
-            ),
-          },
-        },
-      },
-    },
+    stateful_set_plane_minio_wl+: statefulset.spec.template.spec.withContainers(std.map(
+      function(c)
+        c + container.withEnvMixin([{ name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' }]),
+      planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
+    )),
     // :15692/metrics
-    service_plane_rabbitmq+: {
-      spec+: {
-        ports+: [{
-          name: 'rabbitmq-metrics',
-          port: 15692,
-          targetPort: 15692,
-          protocol: 'TCP',
-        }],
-      },
-    },
+    service_plane_rabbitmq+:
+      service.spec.withPortsMixin([{
+        name: 'rabbitmq-metrics',
+        port: 15692,
+        targetPort: 15692,
+        protocol: 'TCP',
+      }]),
   },
 
   planeSecrets: {
@@ -224,27 +204,27 @@ local planeHelmDef = std.prune(normalizeJobNames(
     },
   },
 
-  planeMinioMetrics:
-    p.monitoring.v1.serviceMonitor.new('plane-minio')
-    + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-minio')
-    + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
-      p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('minio-api-9000')
-      + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/minio/v2/metrics/cluster'),
-    ])
-    + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
-      'app.name': 'plane-plane-minio',
-    }),
+  // planeMinioMetrics:
+  //   p.monitoring.v1.serviceMonitor.new('plane-minio')
+  //   + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-minio')
+  //   + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
+  //     p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('minio-api-9000')
+  //     + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/minio/v2/metrics/cluster'),
+  //   ])
+  //   + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
+  //     'app.name': 'plane-plane-minio',
+  //   }),
 
-  planeRabbitMQMetrics:
-    p.monitoring.v1.serviceMonitor.new('plane-rabbitmq')
-    + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-rabbitmq')
-    + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
-      p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('rabbitmq-metrics')
-      + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
-    ])
-    + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
-      'app.name': 'plane-plane-rabbitmq',
-    }),
+  // planeRabbitMQMetrics:
+  //   p.monitoring.v1.serviceMonitor.new('plane-rabbitmq')
+  //   + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-rabbitmq')
+  //   + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
+  //     p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('rabbitmq-metrics')
+  //     + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
+  //   ])
+  //   + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
+  //     'app.name': 'plane-plane-rabbitmq',
+  //   }),
 
   // Backup configurations for all Plane PVCs using the wrapper function
   // planeBackups: gemini.backupMany(
