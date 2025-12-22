@@ -35,6 +35,45 @@ local normalizeJobNames(obj) =
       acc { [k]: v };
   std.foldl(rebuild, std.objectFields(obj), {});
 
+local planeHelmDef = std.prune(normalizeJobNames(
+  helm.template('plane', '../../charts/plane-enterprise', {
+    namespace: namespace,
+    values: {
+      license: {
+        licenseDomain: domain,
+        licenseServer: prime_server,
+      },
+      ingress: {
+        enabled: true,
+        ingressClass: 'vpn',
+        ingress_annotations: {
+          'cert-manager.io/cluster-issuer': 'letsencrypt',
+        },
+
+        appHost: domain,
+      },
+      ssl: {
+        tls_secret_name: 'projects-vpn-dzerv-art-cert',
+      },
+      external_secrets: {
+        silo_env_existingSecret: 'plane-silo-secrets',
+      },
+      env: {
+        storageClass: 'openebs-replicated',  // This is incorrect but can't change now
+      },
+      extraEnv: [
+        { name: 'WEB_URL', value: 'https://' + domain },
+        // { name: 'DOMAIN_NAME', value: domain },
+        { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
+        { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
+        { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
+        { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
+        { name: 'TZ', value: timezone },
+      ],
+    },
+  })
+));
+
 {
   // NOTE: Creates the namespace
   planePrime: dockerService.new('plane-prime', 'ghcr.io/dzervas/plane-prime:latest', {
@@ -42,44 +81,7 @@ local normalizeJobNames(obj) =
     ports: [8000],
   }),
   // Normalize job names so they stay stable across renders
-  plane: std.prune(normalizeJobNames(
-    helm.template('plane', '../../charts/plane-enterprise', {
-      namespace: namespace,
-      values: {
-        license: {
-          licenseDomain: domain,
-          licenseServer: prime_server,
-        },
-        ingress: {
-          enabled: true,
-          ingressClass: 'vpn',
-          ingress_annotations: {
-            'cert-manager.io/cluster-issuer': 'letsencrypt',
-          },
-
-          appHost: domain,
-        },
-        ssl: {
-          tls_secret_name: 'projects-vpn-dzerv-art-cert',
-        },
-        external_secrets: {
-          silo_env_existingSecret: 'plane-silo-secrets',
-        },
-        env: {
-          storageClass: 'openebs-replicated',  // This is incorrect but can't change now
-        },
-        extraEnv: [
-          { name: 'WEB_URL', value: 'https://' + domain },
-          // { name: 'DOMAIN_NAME', value: domain },
-          { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
-          { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
-          { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
-          { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
-          { name: 'TZ', value: timezone },
-        ],
-      },
-    })
-  )) + {
+  plane: planeHelmDef {
     // Add the magicentry.rs/enable label to the plane-api-wl deployment
     // by patching the deployment template in the Helm output
     deployment_plane_api_wl+: {
@@ -91,6 +93,37 @@ local normalizeJobNames(obj) =
             },
           },
         },
+      },
+    },
+
+    // metrics exposure
+    // :9000/minio/v2/metrics/cluster
+    stateful_set_plane_minio_wl+: {
+      spec+: {
+        template+: {
+          spec+: {
+            containers: std.map(
+              function(c)
+                c {
+                  env+: [
+                    { name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' },
+                  ],
+                }
+              , planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
+            ),
+          },
+        },
+      },
+    },
+    // :15692/metrics
+    service_plane_rabbitmq+: {
+      spec+: {
+        ports+: [{
+          name: 'rabbitmq-metrics',
+          port: 15692,
+          targetPort: 15692,
+          protocol: 'TCP',
+        }],
       },
     },
   },

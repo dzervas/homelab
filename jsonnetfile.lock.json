@@ -64,6 +64,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/prometheus-operator-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "e74ac47c28bc29c2d7e7bc15286bc2dc99c2d7f6",
+      "sum": "whw8ujSBVQeepXGByNqlSTfHpFn2ZdAfAAdHsAMM1Dc="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/victoria-metrics-operator-libsonnet.git",
           "subdir": ""
         }
