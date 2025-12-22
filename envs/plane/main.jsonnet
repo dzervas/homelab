@@ -5,6 +5,7 @@ local gemini = import 'helpers/gemini.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
+local p = import 'prometheus-operator-libsonnet/0.83/main.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'plane';
@@ -222,6 +223,28 @@ local planeHelmDef = std.prune(normalizeJobNames(
       ],
     },
   },
+
+  planeMinioMetrics:
+    p.monitoring.v1.serviceMonitor.new('plane-minio')
+    + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-minio')
+    + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
+      p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('minio-api-9000')
+      + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/minio/v2/metrics/cluster'),
+    ])
+    + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
+      'app.name': 'plane-plane-minio',
+    }),
+
+  planeRabbitMQMetrics:
+    p.monitoring.v1.serviceMonitor.new('plane-rabbitmq')
+    + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-rabbitmq')
+    + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
+      p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('rabbitmq-metrics')
+      + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
+    ])
+    + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
+      'app.name': 'plane-plane-rabbitmq',
+    }),
 
   // Backup configurations for all Plane PVCs using the wrapper function
   // planeBackups: gemini.backupMany(
