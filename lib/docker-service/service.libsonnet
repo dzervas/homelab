@@ -9,7 +9,7 @@ local servicePort = k.core.v1.servicePort;
       name,
       cfg.labels,
       std.map(
-        function(port) servicePort.new(port, port),
+        function(port) servicePort.newNamed('docker-' + port, port, port),
         cfg.ports
       )
     )

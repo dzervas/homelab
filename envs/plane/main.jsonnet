@@ -109,6 +109,21 @@ local planeHelmDef = std.prune(normalizeJobNames(
       }]),
   },
 
+  pgExporter: dockerService.new('plane-pgdb-exporter', 'quay.io/prometheuscommunity/postgres-exporter', {
+    namespace: namespace,
+    ports: [9187],
+    args: [
+      '--collector.postmaster',
+      '--collector.process_idle',
+      '--collector.stat_wal_receiver',
+    ],
+    env: {
+      DATA_SOURCE_URI: 'plane-pgdb:5432/plane?sslmode=disable',
+      DATA_SOURCE_USER: 'plane',
+      DATA_SOURCE_PASS: 'plane',
+    },
+  }) + { namespace: null },
+
   planeSecrets: {
     apiVersion: 'external-secrets.io/v1',
     kind: 'ExternalSecret',
@@ -225,6 +240,17 @@ local planeHelmDef = std.prune(normalizeJobNames(
   //   + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
   //     'app.name': 'plane-plane-rabbitmq',
   //   }),
+
+  planePGMetrics:
+    p.monitoring.v1.serviceMonitor.new('plane-pgdb-exporter')
+    + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-pgdb-exporter')
+    + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
+      p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('docker-9187')
+      + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
+    ])
+    + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
+      app: 'plane-pgdb-exporter',
+    }),
 
   // Backup configurations for all Plane PVCs using the wrapper function
   // planeBackups: gemini.backupMany(
