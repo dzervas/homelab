@@ -77,13 +77,12 @@ local planeHelmDef = std.prune(normalizeJobNames(
       },
       extraEnv: [
         { name: 'WEB_URL', value: 'https://' + domain },
-        // { name: 'DOMAIN_NAME', value: domain },
         { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
         { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
         { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
         { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
         { name: 'TZ', value: timezone },
-        { name: 'GUNICORN_WORKERS', value: '4' },
+        // { name: 'GUNICORN_WORKERS', value: '4' },
       ],
     },
   })
@@ -100,6 +99,8 @@ local planeHelmDef = std.prune(normalizeJobNames(
     // Add the magicentry.rs/enable label to the plane-api-wl deployment
     // by patching the deployment template in the Helm output
     deployment_plane_api_wl+: deployment.spec.template.metadata.withLabelsMixin({ 'magicentry.rs/enable': 'true' }),
+    // echo 'DATABASES["default"]["CONN_MAX_AGE"] = 600' >> plane/settings/common.py
+    // echo 'DATABASES["default"]["CONN_HEALTH_CHECKS"] = True' >> plane/settings/common.py
 
     // metrics exposure
     // :9000/minio/v2/metrics/cluster
@@ -126,21 +127,21 @@ local planeHelmDef = std.prune(normalizeJobNames(
         })
         + container.resources.withRequests({
           memory: '500Mi',
-        })
-        + container.withArgsMixin([
-          '-c',
-          'shared_preload_libraries=pg_stat_statements',
-          '-c',
-          'pg_stat_statements.track=all',
-          '-c',
-          'pg_stat_statements.max=10000',
-          '-c',
-          'track_io_timing=on',
-          '-c',
-          'log_min_duration_statement=500ms',
-          '-c',
-          'log_line_prefix=%m [%p] %u@%d %a %r',
-        ]),
+        }),
+      // + container.withArgsMixin([
+      //   '-c',
+      //   'shared_preload_libraries=pg_stat_statements',
+      //   '-c',
+      //   'pg_stat_statements.track=all',
+      //   '-c',
+      //   'pg_stat_statements.max=10000',
+      //   '-c',
+      //   'track_io_timing=on',
+      //   '-c',
+      //   'log_min_duration_statement=500ms',
+      //   '-c',
+      //   'log_line_prefix=%m [%p] %u@%d %a %r',
+      // ]),
       planeHelmDef.stateful_set_plane_pgdb_wl.spec.template.spec.containers
     )),
   },
