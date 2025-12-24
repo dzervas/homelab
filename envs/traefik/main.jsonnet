@@ -18,7 +18,7 @@ local namespace = 'traefik';
       values: {
         deployment: { kind: 'DaemonSet' },
         service: { type: 'ClusterIP' },
-        hostNetwork: true,
+        // hostNetwork: true,
         updateStrategy: {
           // Required due to hostNetwork
           rollingUpdate: {
