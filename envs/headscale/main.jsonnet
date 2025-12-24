@@ -136,7 +136,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
       'policies.hujson': std.manifestJson({
         acls: [
           { action: 'accept', src: ['dzervas@'], dst: ['*:*'] },
-          { action: 'accept', src: ['*'], dst: ['hass@:443'] },
+          { action: 'accept', src: ['hass@'], proto: 'tcp', dst: ['srv0@:10300'] },  // Whisper
         ],
       }),
     }),

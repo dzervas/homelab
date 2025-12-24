@@ -49,8 +49,9 @@
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
 
-      # Enable internet
+      # Enable internet (podman and kubernetes)
       ip saddr { 10.42.0.0/16, 10.43.0.0/16 } oifname { eth0, enp* } accept
+      iifname podman0 oifname { eth0, enp* } accept
     '';
   };
 

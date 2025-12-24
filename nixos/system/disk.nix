@@ -48,10 +48,10 @@
       lvs = {
         root = {
           size = if role == "server" then "50G" else "30G";
+          priority = 1; # Needs to happen before any percentage sized lvs
           content = {
             type = "filesystem";
             format = "f2fs";
-            priority = 1; # Needs to happen before any percentage sized lvs
             mountpoint = "/";
             extraArgs = [ "-O" "extra_attr,inode_checksum,sb_checksum,compression" ];
             mountOptions = [
