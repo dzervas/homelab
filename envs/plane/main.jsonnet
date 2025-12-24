@@ -15,7 +15,7 @@ local service = k.core.v1.service;
 
 local namespace = 'plane';
 local domain = 'projects.vpn.dzerv.art';
-local prime_server = 'http://plane-prime:8000';
+local prime_server = 'http://plane-prime.plane.svc.cluster.local:8000';
 
 // Normalize Helm-rendered Jobs: detect names ending in "-YYYYMMDD-HHMMSS",
 // strip the timestamp to make names/keys deterministic, and keep metadata in sync.
@@ -67,6 +67,14 @@ local planeHelmDef = std.prune(normalizeJobNames(
       env: {
         storageClass: 'openebs-replicated',  // This is incorrect but can't change now
       },
+      services: {
+        api: {
+          cpuLimit: '2',  // Can't unset this
+          cpuRequest: '500m',
+          memoryLimit: '2Gi',
+          memoryRequest: '500Mi',
+        },
+      },
       extraEnv: [
         { name: 'WEB_URL', value: 'https://' + domain },
         // { name: 'DOMAIN_NAME', value: domain },
@@ -75,6 +83,7 @@ local planeHelmDef = std.prune(normalizeJobNames(
         { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
         { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
         { name: 'TZ', value: timezone },
+        { name: 'GUNICORN_WORKERS', value: '4' },
       ],
     },
   })
@@ -107,22 +116,34 @@ local planeHelmDef = std.prune(normalizeJobNames(
         targetPort: 15692,
         protocol: 'TCP',
       }]),
+    // postgres statement stats
+    stateful_set_plane_pgdb_wl+: statefulset.spec.template.spec.withContainers(std.map(
+      function(c)
+        c
+        + container.resources.withLimits({
+          cpu: '500m',
+          memory: '2Gi',
+        })
+        + container.resources.withRequests({
+          memory: '500Mi',
+        })
+        + container.withArgsMixin([
+          '-c',
+          'shared_preload_libraries=pg_stat_statements',
+          '-c',
+          'pg_stat_statements.track=all',
+          '-c',
+          'pg_stat_statements.max=10000',
+          '-c',
+          'track_io_timing=on',
+          '-c',
+          'log_min_duration_statement=500ms',
+          '-c',
+          'log_line_prefix=%m [%p] %u@%d %a %r',
+        ]),
+      planeHelmDef.stateful_set_plane_pgdb_wl.spec.template.spec.containers
+    )),
   },
-
-  pgExporter: dockerService.new('plane-pgdb-exporter', 'quay.io/prometheuscommunity/postgres-exporter', {
-    namespace: namespace,
-    ports: [9187],
-    args: [
-      '--collector.postmaster',
-      '--collector.process_idle',
-      '--collector.stat_wal_receiver',
-    ],
-    env: {
-      DATA_SOURCE_URI: 'plane-pgdb:5432/plane?sslmode=disable',
-      DATA_SOURCE_USER: 'plane',
-      DATA_SOURCE_PASS: 'plane',
-    },
-  }) + { namespace: null },
 
   planeSecrets: {
     apiVersion: 'external-secrets.io/v1',
@@ -138,9 +159,9 @@ local planeHelmDef = std.prune(normalizeJobNames(
           data: {
             SILO_HMAC_SECRET_KEY: '{{ .password }}',
             // TODO: Change these
-            DATABASE_URL: 'postgresql://plane:plane@plane-pgdb:5432/plane',
-            REDIS_URL: 'redis://plane-redis:6379/',
-            AMQP_URL: 'amqp://plane:plane@plane-rabbitmq/',
+            DATABASE_URL: 'postgresql://plane:plane@plane-pgdb.plane.svc.cluster.local:5432/plane',
+            REDIS_URL: 'redis://plane-redis.plane.svc.cluster.local:6379/',
+            AMQP_URL: 'amqp://plane:plane@plane-rabbitmq.plane.svc.cluster.local/',
           },
         },
       },
@@ -241,16 +262,32 @@ local planeHelmDef = std.prune(normalizeJobNames(
   //     'app.name': 'plane-plane-rabbitmq',
   //   }),
 
-  planePGMetrics:
-    p.monitoring.v1.serviceMonitor.new('plane-pgdb-exporter')
-    + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-pgdb-exporter')
-    + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
-      p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('docker-9187')
-      + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
-    ])
-    + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
-      app: 'plane-pgdb-exporter',
-    }),
+
+  // pgExporter: dockerService.new('plane-pgdb-exporter', 'quay.io/prometheuscommunity/postgres-exporter', {
+  //   namespace: namespace,
+  //   ports: [9187],
+  //   args: [
+  //     '--collector.postmaster',
+  //     '--collector.process_idle',
+  //     '--collector.stat_statements',
+  //     '--collector.stat_wal_receiver',
+  //   ],
+  //   env: {
+  //     DATA_SOURCE_URI: 'plane-pgdb.plane.svc.cluster.local:5432/plane?sslmode=disable',
+  //     DATA_SOURCE_USER: 'plane',
+  //     DATA_SOURCE_PASS: 'plane',
+  //   },
+  // }) + { namespace: null },
+  // planePGMetrics:
+  //   p.monitoring.v1.serviceMonitor.new('plane-pgdb-exporter')
+  //   + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-pgdb-exporter')
+  //   + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
+  //     p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('docker-9187')
+  //     + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
+  //   ])
+  //   + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
+  //     app: 'plane-pgdb-exporter',
+  //   }),
 
   // Backup configurations for all Plane PVCs using the wrapper function
   // planeBackups: gemini.backupMany(

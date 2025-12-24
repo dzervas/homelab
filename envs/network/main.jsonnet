@@ -13,7 +13,7 @@ local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
       + clusterRole.withRules([
         {
           apiGroups: [''],
-          resources: ['pods', 'pods/log', 'services', 'endpoints', 'namespaces', 'configmaps', 'events'],
+          resources: ['pods', 'pods/log', 'services', 'endpoints', 'namespaces', 'configmaps', 'events', 'nodes'],
           verbs: ['get', 'list', 'watch'],
         },
         {

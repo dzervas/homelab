@@ -51,6 +51,7 @@
           content = {
             type = "filesystem";
             format = "f2fs";
+            priority = 1; # Needs to happen before any percentage sized lvs
             mountpoint = "/";
             extraArgs = [ "-O" "extra_attr,inode_checksum,sb_checksum,compression" ];
             mountOptions = [

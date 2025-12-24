@@ -36,9 +36,9 @@ requires:
   - chart: ingress-nginx/ingress-nginx
     version: 4.14.1
   - chart: victoriametrics/victoria-logs-collector
-    version: 0.1.2
+    version: 0.1.5
   - chart: victoriametrics/victoria-logs-single
-    version: 0.11.19
+    version: 0.11.21
   - chart: traefik/traefik
     version: 38.0.1
   - chart: bitnami-mariadb/mariadb
