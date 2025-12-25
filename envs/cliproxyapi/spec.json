@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/cliproxyapi"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "cliproxyapi",
+		"injectLabels": true,
+		"applyStrategy": "server",
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}
