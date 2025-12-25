@@ -22,7 +22,7 @@ repositories:
     url: oci://registry-1.docker.io/bitnamicharts
 requires:
   - chart: plane/plane-enterprise
-    version: 1.6.8
+    version: 1.7.0
   - chart: piraeus/piraeus
     version: 2.10.3
   - chart: linstor/linstor-cluster
@@ -30,15 +30,15 @@ requires:
   - chart: descheduler/descheduler
     version: 0.34.0
   - chart: victoriametrics/victoria-metrics-k8s-stack
-    version: 0.66.0
+    version: 0.66.1
   - chart: prometheus/prometheus-operator-crds
     version: 25.0.1
   - chart: ingress-nginx/ingress-nginx
     version: 4.14.1
   - chart: victoriametrics/victoria-logs-collector
-    version: 0.1.5
+    version: 0.2.2
   - chart: victoriametrics/victoria-logs-single
-    version: 0.11.21
+    version: 0.11.22
   - chart: traefik/traefik
     version: 38.0.1
   - chart: bitnami-mariadb/mariadb
