@@ -19,6 +19,7 @@ local pvc = k.core.v1.persistentVolumeClaim;
       env=cfg.env,
       pvs=cfg.pvs,
       config_maps=cfg.config_maps,
+      secrets=cfg.secrets,
       ports=cfg.ports,
       op_envs=cfg.op_envs
     );

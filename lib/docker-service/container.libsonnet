@@ -8,7 +8,7 @@ local envVar = k.core.v1.envVar;
 local envVarSource = k.core.v1.envVarSource;
 
 {
-  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, config_maps={}, ports=[], op_envs={})::
+  new(name, image, user=1000, command=null, args=null, env={}, pvs={}, config_maps={}, secrets={}, ports=[], op_envs={})::
     local hasPvs = std.length(std.objectFields(pvs)) > 0;
 
     // Build PVC / emptyDir volumes
@@ -37,6 +37,30 @@ local envVarSource = k.core.v1.envVarSource;
       std.objectFields(config_maps)
     );
 
+    local configMapVolumeMounts = std.map(
+      function(mountPath)
+        local value = config_maps[mountPath];
+        local cmName = std.split(value, ':')[0];
+        volumeMount.new(cmName, mountPath, false),
+      std.objectFields(config_maps)
+    );
+
+    local secretVolumes = std.map(
+      function(mountPath)
+        local value = secrets[mountPath];
+        local secretName = std.split(value, ':')[0];
+        volume.fromSecret(secretName, secretName),
+      std.objectFields(secrets)
+    );
+
+    local secretVolumeMounts = std.map(
+      function(mountPath)
+        local value = secrets[mountPath];
+        local secretName = std.split(value, ':')[0];
+        volumeMount.new(secretName, mountPath, false),
+      std.objectFields(secrets)
+    );
+
     // Build volume mounts for PVCs / emptyDir
     local volumeMounts = std.map(
       function(mountPath)
@@ -61,12 +85,12 @@ local envVarSource = k.core.v1.envVarSource;
     local imagePullPolicy = if std.endsWith(image, ':latest') || std.length(std.findSubstr(':', image)) == 0 then 'Always' else 'IfNotPresent';
 
     {
-      volumes: volumes,
+      volumes: volumes + configMapVolumes + secretVolumes,
       container:
         container.new(name, image)
         + container.withPorts(std.map(port.new, ports))
         + container.withImagePullPolicy(imagePullPolicy)
-        + container.withVolumeMounts(volumeMounts)
+        + container.withVolumeMounts(volumeMounts + configMapVolumeMounts + secretVolumeMounts)
         + container.withEnv(opEnvVars)
         + container.withEnvMap(env)
         + (if command != null then container.withCommand(command) else {})

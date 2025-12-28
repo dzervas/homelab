@@ -20,6 +20,7 @@ local opsecretLib = import 'docker-service/opsecret.libsonnet';
       op_envs: {},
       pvs: {},
       config_maps: {},
+      secrets: {},
       env: {},
       runAsUser: 1000,
       ingressEnabled: true,
