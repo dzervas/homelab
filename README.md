@@ -57,6 +57,13 @@ k get volumesnapshotcontents -A -o json | jq -r '.items[] | select(.spec.volumeS
 k get volumesnapshotcontents -A -o json | jq -r '.items[] | select(.spec.volumeSnapshotClassName == "<volumesnapshotclass>")|.metadata.name'|xargs -n1 -I% sh -c "kubectl patch volumesnapshotcontents --type json -p '[{\"op\": \"remove\", \"path\": \"/metadata/finalizers\"}]' %; sleep 3"
 ```
 
+Delete old pv/pvcs:
+
+```bash
+k get pvc -A -o json | jq -r '.items[] | select(.spec.storageClassName == "openebs-replicated") | "-n " + .metadata.namespace + " " + .metadata.name' | xargs -L1 kubectl delete pvc
+k get pv -o json | jq -r '.items[] | select(.spec.storageClassName == "openebs-replicated")|.metadata.name'|xargs -n1 kubectl patch pv --type json -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
+```
+
 ## Linstor troubles
 
 First of all:

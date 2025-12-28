@@ -1,6 +1,8 @@
 local dockerService = import 'docker-service.libsonnet';
 local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
+local k = import 'k.libsonnet';
+local networkPolicy = k.networking.v1.networkPolicy;
 local namespace = 'rclone';
 
 {
@@ -23,7 +25,7 @@ local namespace = 'rclone';
   }),
 
   rcloneS3: dockerService.new('rclone-s3', 'rclone/rclone:1', {
-    namespace: 'rclone',
+    namespace: namespace,
     ports: [80],
 
     command: ['sh', '-c'],
@@ -41,4 +43,18 @@ local namespace = 'rclone';
     + externalSecret.spec.secretStoreRef.withKind('ClusterSecretStore')
     + externalSecret.spec.secretStoreRef.withName('1password')
     + externalSecret.spec.withDataFrom([{ extract: { key: 'rclone' } }]),
+
+
+  // networkPolicy:
+  //   networkPolicy.new('allow-linstor')
+  //   + networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/name': 'rclone-s3' })
+  //   + networkPolicy.spec.withPolicyTypes(['Ingress'])
+  //   + networkPolicy.spec.withIngress([{
+  //     from: [{
+  //       // For some reason VPN CIDR doesn't work
+  //       namespaceSelector: {},
+  //       podSelector: { matchLabels: { 'ai/enable': 'true' } },
+  //     }],
+  //     ports: [{ port: 8317, protocol: 'TCP' }],
+  //   }]),
 }

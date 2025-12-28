@@ -123,14 +123,26 @@ local nodeSelector = {
         },
       }],
 
-      // volumeSnapshotClasses: [{
-      //   name: 'linstor',
-      //   annotations: {
-      //     'snapshot.storage.kubernetes.io/is-default-class': 'true',
-      //   },
-      //   driver: 'linstor.csi.linbit.com',
-      //   deletionPolicy: 'Retain',
-      // }],
+      // https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#_restoring_from_remote_snapshots
+      volumeSnapshotClasses: [{
+        name: 'linstor',
+        annotations: {
+          'snapshot.storage.kubernetes.io/is-default-class': 'true',
+        },
+        driver: 'linstor.csi.linbit.com',
+        deletionPolicy: 'Retain',
+        parameters: {
+          // TODO: Re-enable s3 as well
+          // Needs:  k linstor remote create s3 --use-path-style rclone-s3 rclone-s3.rclone.svc.cluster.local linstor rclone dummy dummy
+          // Needs a secret as well
+          // 'snap.linstor.csi.linbit.com/type': 'S3',
+          // 'snap.linstor.csi.linbit.com/remote-name': 'rclone-s3',
+          // 'snap.linstor.csi.linbit.com/allow-incremental': 'true',
+          // 'snap.linstor.csi.linbit.com/s3-bucket': 'linstor',
+          // 'snap.linstor.csi.linbit.com/s3-endpoint': 'rclone-s3.rclone.svc.cluster.local',
+          // 'snap.linstor.csi.linbit.com/s3-use-path-style': 'true',
+        },
+      }],
 
       // TODO: Make sure this works
       monitoring: {

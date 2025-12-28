@@ -292,14 +292,14 @@ local planeHelmDef = std.prune(normalizeJobNames(
   //   }),
 
   // Backup configurations for all Plane PVCs using the wrapper function
-  // planeBackups: gemini.backupMany(
-  //   namespace=namespace,
-  //   pvcClaimNames=[
-  //     'pvc-plane-minio-vol-plane-minio-wl-0',
-  //     'pvc-plane-monitor-vol-plane-monitor-wl-0',
-  //     'pvc-plane-pgdb-vol-plane-pgdb-wl-0',
-  //     'pvc-plane-rabbitmq-vol-plane-rabbitmq-wl-0',
-  //     'pvc-plane-redis-vol-plane-redis-wl-0',
-  //   ]
-  // ),
+  planeBackups: gemini.backupMany(
+    namespace=namespace,
+    pvcClaimNames=[
+      'pvc-plane-minio-vol-plane-minio-wl-0',
+      'pvc-plane-monitor-vol-plane-monitor-wl-0',
+      'pvc-plane-pgdb-vol-plane-pgdb-wl-0',
+      'pvc-plane-rabbitmq-vol-plane-rabbitmq-wl-0',
+      'pvc-plane-redis-vol-plane-redis-wl-0',
+    ]
+  ),
 }
