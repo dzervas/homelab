@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/gemini"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"applyStrategy": "server",
+		"namespace": "gemini",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}
