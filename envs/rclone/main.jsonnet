@@ -5,7 +5,6 @@ local namespace = 'rclone';
 
 {
   rclone: dockerService.new('rclone', 'rclone/rclone:1', {
-    namespace: namespace,
     ports: [80],
     fqdn: 'webdav.dzerv.art',
 
@@ -21,6 +20,20 @@ local namespace = 'rclone';
     ingressAnnotations: {
       'nginx.ingress.kubernetes.io/proxy-body-size': '4g',
     },
+  }),
+
+  rcloneS3: dockerService.new('rclone-s3', 'rclone/rclone:1', {
+    namespace: 'rclone',
+    ports: [80],
+
+    command: ['sh', '-c'],
+    args: [|||
+      cp /secret/rclone.conf /tmp/rclone.conf
+      # VFS Cache results in a horrible performance drop for round-trip write-read operations
+      rclone serve s3 s3: --cache-dir /tmp/.cache --vfs-cache-mode full --addr 0.0.0.0:80 --config /tmp/rclone.conf --temp-dir /tmp --metrics-addr 0.0.0.0:9090
+    |||],
+
+    secrets: { '/secret': 'rclone-secrets-op' },
   }),
 
   secret:
