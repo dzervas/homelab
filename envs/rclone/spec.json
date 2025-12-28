@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/rclone"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"applyStrategy": "server",
+		"namespace": "rclone",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}

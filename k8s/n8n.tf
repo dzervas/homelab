@@ -32,6 +32,9 @@ module "n8n" {
   ingress_annotations = {
     "nginx.ingress.kubernetes.io/proxy-body-size" = "16m" # Also defined with env N8N_PAYLOAD_SIZE_MAX
   }
+  pod_labels = {
+    "ai/enable" = "true"
+  }
 
   retain_pvs = true
   pvs = {

@@ -80,7 +80,7 @@ local planeHelmDef = std.prune(normalizeJobNames(
         { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
         { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
         { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
-        { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
+        // { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
         { name: 'TZ', value: timezone },
         // { name: 'GUNICORN_WORKERS', value: '4' },
       ],
@@ -95,6 +95,7 @@ local planeHelmDef = std.prune(normalizeJobNames(
     ports: [8000],
   }),
   // Normalize job names so they stay stable across renders
+  // Maybe migrate to rustfs instead of minio?
   plane: planeHelmDef {
     // Add the magicentry.rs/enable label to the plane-api-wl deployment
     // by patching the deployment template in the Helm output
@@ -104,11 +105,11 @@ local planeHelmDef = std.prune(normalizeJobNames(
 
     // metrics exposure
     // :9000/minio/v2/metrics/cluster
-    stateful_set_plane_minio_wl+: statefulset.spec.template.spec.withContainers(std.map(
-      function(c)
-        c + container.withEnvMixin([{ name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' }]),
-      planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
-    )),
+    // stateful_set_plane_minio_wl+: statefulset.spec.template.spec.withContainers(std.map(
+    //   function(c)
+    //     c + container.withEnvMixin([{ name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' }]),
+    //   planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
+    // )),
     // :15692/metrics
     service_plane_rabbitmq+:
       service.spec.withPortsMixin([{
