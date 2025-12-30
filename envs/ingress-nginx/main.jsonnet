@@ -31,6 +31,29 @@ local renderErrorPage(code, message) =
     code + ' - ' + messageTitle
   );
 
+local defaultBackend = {
+  enabled: true,
+  image: {
+    registry: 'registry.k8s.io',
+    image: 'ingress-nginx/custom-error-pages',
+    tag: 'v1.2.3',
+  },
+  extraVolumes: [{
+    name: 'custom-error-pages',
+    configMap: {
+      name: 'custom-error-pages',
+      items: [
+        { key: code, path: code + '.html' }
+        for code in errorCodes
+      ],
+    },
+  }],
+  extraVolumeMounts: [{
+    name: 'custom-error-pages',
+    mountPath: '/www',
+  }],
+};
+
 {
   namespace:
     k.core.v1.namespace.new(namespace)
@@ -39,63 +62,76 @@ local renderErrorPage(code, message) =
       'pod-security.kubernetes.io/enforce-version': 'latest',
     }),
 
-  ingressNginx:
-    helm.template('ingress-nginx', '../../charts/ingress-nginx', {
-      namespace: namespace,
-      values: {
-        controller: {
-          // TODO: Eliminate this
-          allowSnippetAnnotations: true,
-          enableAnnotationValidations: true,
+  ingressNginx: helm.template('ingress-nginx', '../../charts/ingress-nginx', {
+    namespace: namespace,
+    values: {
+      controller: {
+        // TODO: Eliminate this
+        allowSnippetAnnotations: true,
+        enableAnnotationValidations: true,
 
-          watchIngressWithoutClass: true,
-          ingressClassResource: { default: true },
+        watchIngressWithoutClass: true,
+        ingressClassResource: { default: true },
 
-          networkPolicy: { enabled: true },
+        networkPolicy: { enabled: true },
 
-          kind: 'DaemonSet',
-          hostPort: { enabled: true },
-          service: { type: 'ClusterIP' },
+        kind: 'DaemonSet',
+        hostPort: { enabled: true },
+        service: { type: 'ClusterIP' },
 
-          // hostNetwork: true
-          // dnsPolicy: "ClusterFirstWithHostNet" // Use cluster DNS, even in host network
-
-          // TODO: Add more pages
-          config: {
-            'custom-http-errors': std.join(',', errorCodes),
-            'annotations-risk-level': 'Critical',
-          },
-
-          metrics: {
-            enabled: true,
-            serviceMonitor: { enabled: true },
-          },
+        config: {
+          'custom-http-errors': std.join(',', errorCodes),
+          'annotations-risk-level': 'Critical',
         },
 
-        defaultBackend: {
+        metrics: {
           enabled: true,
-          image: {
-            registry: 'registry.k8s.io',
-            image: 'ingress-nginx/custom-error-pages',
-            tag: 'v1.2.3',
-          },
-          extraVolumes: [{
-            name: 'custom-error-pages',
-            configMap: {
-              name: 'custom-error-pages',
-              items: [
-                { key: code, path: code + '.html' }
-                for code in errorCodes
-              ],
-            },
-          }],
-          extraVolumeMounts: [{
-            name: 'custom-error-pages',
-            mountPath: '/www',
-          }],
+          serviceMonitor: { enabled: true },
         },
       },
-    }),
+
+      defaultBackend: defaultBackend,
+    },
+  }),
+
+  ingressNginxVPN: helm.template('ingress-nginx-vpn', '../../charts/ingress-nginx', {
+    namespace: namespace,
+    values: {
+      controller: {
+        allowSnippetAnnotations: true,
+        enableAnnotationValidations: true,
+
+        ingressClass: 'vpn',
+        ingressClassResource: { name: 'vpn' },
+
+        networkPolicy: { enabled: true },
+
+        kind: 'DaemonSet',
+        // containerPort: {
+        //   http: 7080,
+        //   https: 7443,
+        // },
+        service: {
+          type: 'ClusterIP',
+          // ports: {
+          //   http: 7080,
+          //   https: 7443,
+          // },
+        },
+        hostPort: {
+          enabled: true,
+          ports: {
+            http: 7080,
+            https: 7443,
+          },
+        },
+
+        // config: { 'custom-http-errors': std.join(',', errorCodes) },
+      },
+
+      // defaultBackend: defaultBackend,
+    },
+  }),
 
   customErrorPagesConfigMap:
     k.core.v1.configMap.new('custom-error-pages')
@@ -108,4 +144,24 @@ local renderErrorPage(code, message) =
         {}
       )
     ),
+
+  vpnNetworkPolicy:
+    k.networking.v1.networkPolicy.new('allow-vpn')
+    + k.networking.v1.networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/instance': 'ingress-nginx-vpn' })
+    + k.networking.v1.networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + k.networking.v1.networkPolicy.spec.withIngress([{
+      from: [{
+        // For some reason VPN CIDR doesn't work
+        ipBlock: {
+          // cidr: '100.100.50.0/24',
+          cidr: '0.0.0.0/0',
+        },
+      }],
+      ports: [
+        { port: 80, protocol: 'TCP' },
+        { port: 443, protocol: 'TCP' },
+        { port: 7080, protocol: 'TCP' },
+        { port: 7443, protocol: 'TCP' },
+      ],
+    }]),
 }

@@ -4,6 +4,7 @@
   hostIndex,
   lib,
   home-vpn-prefix,
+  home-vpn-iface,
   node-vpn-prefix,
   node-vpn-iface,
   machines,
@@ -28,6 +29,10 @@ in {
         iifname ${node-vpn-iface} oifname eth0 ip saddr ${node-vpn-prefix}.0/24 accept
       '';
     };
+
+    # Tailscale by default uses fwmarks n shit to route traffic, which canal removes
+    # Adding the route manually fixes it
+    interfaces.${home-vpn-iface}.ipv4.routes = [{ address = "${home-vpn-prefix}.0"; prefixLength = 24; }];
 
     # Cilium is NOT compatible with nftables!
     nftables.enable = true;

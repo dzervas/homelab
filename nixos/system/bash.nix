@@ -7,6 +7,7 @@
     git
     jq
     nvme-cli # For OpenEBS management
+    tcpdump
 
     kubectx
   ]);

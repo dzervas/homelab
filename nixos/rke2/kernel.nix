@@ -33,6 +33,12 @@
 
       # Allow hostport forwarding
       "net.ipv4.conf.${home-vpn-iface}.route_localnet" = 1;
+
+      # Disable reverse path filtering for VPN interfaces
+      "net.ipv4.conf.${home-vpn-iface}.rp_filter" = 2; # loose
+      # if applicable:
+      # "net.ipv4.conf.flannel.1.rp_filter" = 0;
+      # "net.ipv4.conf.cali*.rp_filter" = 0;
     };
   };
 }
