@@ -54,6 +54,7 @@ local planeHelmDef = std.prune(normalizeJobNames(
         ingressClass: 'vpn',
         ingress_annotations: {
           'cert-manager.io/cluster-issuer': 'letsencrypt',
+          'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
         },
 
         appHost: domain,

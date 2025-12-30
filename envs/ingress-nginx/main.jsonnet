@@ -102,22 +102,15 @@ local defaultBackend = {
         enableAnnotationValidations: true,
 
         ingressClass: 'vpn',
-        ingressClassResource: { name: 'vpn' },
+        ingressClassResource: {
+          name: 'vpn',
+          controllerValue: 'k8s.io/vpn',
+        },
 
         networkPolicy: { enabled: true },
 
         kind: 'DaemonSet',
-        // containerPort: {
-        //   http: 7080,
-        //   https: 7443,
-        // },
-        service: {
-          type: 'ClusterIP',
-          // ports: {
-          //   http: 7080,
-          //   https: 7443,
-          // },
-        },
+        service: { type: 'ClusterIP' },
         hostPort: {
           enabled: true,
           ports: {
