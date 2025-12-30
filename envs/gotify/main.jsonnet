@@ -30,9 +30,9 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
     ingressAnnotations: {
       'nginx.ingress.kubernetes.io/proxy-body-size': '10g',
-      'nginx.ingress.kubernetes.io/proxy-connect-timeout': '1m',
-      'nginx.ingress.kubernetes.io/proxy-read-timeout': '1m',
-      'nginx.ingress.kubernetes.io/proxy-send-timeout': '1m',
+      'nginx.ingress.kubernetes.io/proxy-connect-timeout': '60',
+      'nginx.ingress.kubernetes.io/proxy-read-timeout': '60',
+      'nginx.ingress.kubernetes.io/proxy-send-timeout': '60',
 
       // https://gotify.net/docs/nginx
       'nginx.ingress.kubernetes.io/server-snippets': |||
