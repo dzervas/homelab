@@ -17,6 +17,19 @@ local networkPolicy = k.networking.v1.networkPolicy;
     },
   }),
 
+  cliproxyapi: dockerService.new('cliproxyapi', 'eceasy/cli-proxy-api', {
+  	namespace: 'cliproxyapi'
+    ports: [9090],
+    args: ['./CLIProxyAPI', '-config', '/data/config.yaml'],
+
+    pvs: {
+      '/data': {
+        name: 'cliproxyapi',
+        size: '128Mi',
+      },
+    },
+  }),
+
   networkPolicy:
     networkPolicy.new('allow-cliproxyapi')
     + networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/name': 'cliproxyapi' })
