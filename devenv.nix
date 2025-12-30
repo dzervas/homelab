@@ -11,6 +11,7 @@
 	        requirements = ''
 						kr8s
 						requests
+						prometheus-client
 					'';
 	      };
 	    };
@@ -53,5 +54,8 @@
     HEADSCALE_URL = "http://localhost:8080";
     HEADSCALE_API_KEY = "op://k8s-secrets/dns-controller/HEADSCALE_API_KEY";
     PYTHONUNBUFFERED = "1";
+
+    CLIPROXYAPI_TOKEN = "op://Sites/CLIProxyAPI/password";
+    CLIPROXYAPI_URL = "https://ai.vpn.dzerv.art";
   };
 }
