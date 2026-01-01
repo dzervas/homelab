@@ -23,6 +23,9 @@ in {
     resolv-conf = "/etc/rancher/rke2/resolv.conf";
   } // (if role == "server" then {
     cni = "canal";
+    # cni = "calico";
+    # disable-kube-proxy = true; # Calico handles it in eBPF mode
+
     advertise-address = nodeIP;
     service-node-port-range = "25000-32767";
 
@@ -59,6 +62,10 @@ in {
 
   # Extra manifests to configure rke2 plugins
   systemd.tmpfiles.settings."10-rke2-config" = if isMaster then (let
+	  rke2-calico-config = pkgs.writeTextFile {
+	    name = "rke2-calico-config";
+	    text = builtins.readFile ./rke2-calico-config.yaml;
+	  };
     rke2-canal-config = pkgs.writeTextFile {
       name = "rke2-canal-config";
       text = builtins.readFile ./rke2-canal-config.yaml;
@@ -68,6 +75,7 @@ in {
       text = builtins.readFile ./rke2-coredns-config.yaml;
     };
   in {
+	  "/var/lib/rancher/rke2/server/manifests/rke2-calico-config.yaml".C.argument = toString rke2-calico-config;
     "/var/lib/rancher/rke2/server/manifests/rke2-canal-config.yaml".C.argument = toString rke2-canal-config;
     "/var/lib/rancher/rke2/server/manifests/rke2-coredns-config.yaml".C.argument = toString rke2-coredns-config;
   }) else {};

@@ -7,8 +7,8 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
-    # nodelocal:
-      # enabled: true
+    nodelocal:
+      enabled: true
 
     prometheus:
       service:

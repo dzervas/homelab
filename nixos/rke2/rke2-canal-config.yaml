@@ -8,4 +8,5 @@ metadata:
 spec:
   valuesContent: |-
     flannel:
-      iface: "wg0"
+      iface: wg0
+      # backend: host-gw

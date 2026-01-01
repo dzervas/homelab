@@ -86,3 +86,13 @@ ssh <node> vgscan --mknodes
 ```bash
 k exec ds/linstor-satellite.fra0 -- cat /var/lib/linstor.d/pvc-0769addf-02f2-44b3-a9eb-4ee357c78d87.res
 ```
+
+## Network troubles
+
+```bash
+iperf -s # on 1 machine
+iperf -c <machine 1 ip> -t 30 -i 1 # on the other machine
+
+# To flush conntrack:
+nix shell nixpkgs#conntrack-tools --command conntrack -F
+```

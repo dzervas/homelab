@@ -44,6 +44,8 @@ in {
       # touch /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey && wg genkey > /etc/wireguard-privkey
       privateKeyFile = "/etc/wireguard-privkey";
 
+      mtu = 1420;
+
       # Generate the peers based on the `machines` attribute, defined in the flake
       peers = builtins.filter
         (peer: peer != null)

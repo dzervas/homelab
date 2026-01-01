@@ -102,7 +102,8 @@ local planeHelmDef = std.prune(normalizeJobNames(
   proxy: dockerService.new('proxy', 'ghcr.io/dzervas/netshoot', {
     namespace: namespace,
     ports: [8080, 8081],
-    args: ['mitmweb', '--web-host', '0.0.0.0'],
+    command: ['/bin/bash'],
+    args: ['-c', 'mitmweb --set confdir=/tmp --web-host 0.0.0.0 --no-web-open-browser'],
   }),
   // Normalize job names so they stay stable across renders
   // Maybe migrate to rustfs instead of minio?

@@ -1,0 +1,32 @@
+# /var/lib/rancher/rke2/server/manifests/rke2-calico-config.yaml
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-calico
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    installation:
+      backend: None
+      calicoNetwork:
+        bgp: Enabled
+
+        # kubeProxyManagement: Enabled
+        # bpfNetworkBootstrap: Enabled
+        # linuxDataplane: BPF
+
+        nodeAddressAutodetectionV4:
+          interface: wg0
+
+    # Enable globalnetworkpolicy and more
+    apiServer:
+      enabled: true
+
+    # scalability helper for the multiple watchers calico needs, doesn't make sense for this setup
+    typha:
+      enabled: false
+    felixConfiguration:
+      # https://docs.rke2.io/networking/basic_network_options
+      featureDetectOverride: "ChecksumOffloadBroken=false"
+      bpfConnectTimeLoadBalancing: Disabled

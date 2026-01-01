@@ -5,9 +5,11 @@
     dig
     dnslookup
     git
+    iperf
     jq
     nvme-cli # For OpenEBS management
     tcpdump
+    iptables-nftables-compat
 
     kubectx
   ]);
