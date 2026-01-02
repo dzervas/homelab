@@ -15,7 +15,7 @@ local service = k.core.v1.service;
 
 local namespace = 'plane';
 local domain = 'projects.vpn.dzerv.art';
-local prime_server = 'http://plane-prime.plane.svc.cluster.local:8000';
+local prime_server = 'http://plane-prime:8000';
 
 // Normalize Helm-rendered Jobs: detect names ending in "-YYYYMMDD-HHMMSS",
 // strip the timestamp to make names/keys deterministic, and keep metadata in sync.
@@ -88,10 +88,22 @@ local planeHelmDef = std.prune(normalizeJobNames(
         // { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
         { name: 'TZ', value: timezone },
         // { name: 'GUNICORN_WORKERS', value: '4' },
+        { name: 'CONN_MAX_AGE', value: '600' },
       ],
     },
   })
 ));
+
+// API service debugging:
+// apk add --no-cache tcpdump tshark libunwind-dev cargo
+// cargo install py-spy
+// export PATH=$PATH:/root/.cargo/bin
+// OLD: apk add py-spy --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
+// timeout 30 tcpdump -i any -nn -s 0 -w /tmp/net.pcap 'tcp or udp or icmp'
+// Check dns queries:
+// tshark -r /tmp/net.pcap -Y "dns.qry.name" -T fields -e dns.qry.name 2>/dev/null | sort | uniq -c | sort -nr | head -30
+// Check django settings:
+// python manage.py shell -c "from django.conf import settings; print(settings.DATABASES['default'].get('CONN_MAX_AGE')); print(settings.DATABASES['default'].get('CONN_HEALTH_CHECKS'))"
 
 {
   // NOTE: Creates the namespace
@@ -110,9 +122,16 @@ local planeHelmDef = std.prune(normalizeJobNames(
   plane: planeHelmDef {
     // Add the magicentry.rs/enable label to the plane-api-wl deployment
     // by patching the deployment template in the Helm output
-    deployment_plane_api_wl+: deployment.spec.template.metadata.withLabelsMixin({ 'magicentry.rs/enable': 'true' }),
+    deployment_plane_api_wl+:
+      deployment.spec.template.metadata.withLabelsMixin({ 'magicentry.rs/enable': 'true' }),
+    // + deployment.spec.template.spec.withContainers(std.map(
+    //   function(c)
+    //     c + container.withEnvMixin([{ name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' }]),
+    //   planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
+    // )),
     // echo 'DATABASES["default"]["CONN_MAX_AGE"] = 600' >> plane/settings/common.py
     // echo 'DATABASES["default"]["CONN_HEALTH_CHECKS"] = True' >> plane/settings/common.py
+    // echo 'LOGGING["loggers"]["django.db.backends"] = {"handlers": ["console"], "level": "INFO"}' >> plane/settings/common.py
 
     // metrics exposure
     // :9000/minio/v2/metrics/cluster
@@ -172,9 +191,9 @@ local planeHelmDef = std.prune(normalizeJobNames(
           data: {
             SILO_HMAC_SECRET_KEY: '{{ .password }}',
             // TODO: Change these
-            DATABASE_URL: 'postgresql://plane:plane@plane-pgdb.plane.svc.cluster.local:5432/plane',
-            REDIS_URL: 'redis://plane-redis.plane.svc.cluster.local:6379/',
-            AMQP_URL: 'amqp://plane:plane@plane-rabbitmq.plane.svc.cluster.local/',
+            DATABASE_URL: 'postgresql://plane:plane@plane-pgdb:5432/plane',
+            REDIS_URL: 'redis://plane-redis:6379/',
+            AMQP_URL: 'amqp://plane:plane@plane-rabbitmq/',
           },
         },
       },
