@@ -8,7 +8,8 @@ metadata:
 spec:
   valuesContent: |-
     installation:
-      backend: None
+      backend: IPIP
+      mtu: 1392
       calicoNetwork:
         bgp: Enabled
 

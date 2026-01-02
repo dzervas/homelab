@@ -28,29 +28,38 @@
 
     # Allow pod & service traffic
     extraInputRules = ''
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-      ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+      # Allow Calico IPIP encapsulation over WireGuard
+      ip protocol 4 iifname "wg0" accept
+      iifname "cali*" accept
     '';
     # Allow pod & service routing through k3s interface
     extraForwardRules = ''
-      # Cluster -> host traffic
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } oifname ${node-vpn-iface} accept
+	    # Calico stuff
+	    # Always allow established/related early
+	    ct state { established, related } accept
 
-      # Host -> cluster traffic
-      iifname ${node-vpn-iface} ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+			# Allow Calico IPIP encapsulated traffic
+		  ip protocol 4 iifname "wg0" accept
+		  ip protocol 4 oifname "wg0" accept
+
+	    # Allow pod <-> pod and pod <-> service everywhere
+	    ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+	    ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+
+	    # Calico interfaces (veth pairs, etc.)
+	    iifname "cali*" accept
+	    oifname "cali*" accept
+
+	    # Allow routing between calico and wireguard
+	    iifname "cali*" oifname ${node-vpn-iface} accept
+	    iifname ${node-vpn-iface} oifname "cali*" accept
+			iifname "cali*" oifname { eth0, enp* } accept
+			iifname { eth0, enp* } oifname "cali*" accept
 
       # Host -> host traffic over the VPN
       iifname ${node-vpn-iface} oifname ${node-vpn-iface} accept
 
-      # Cluster -> home traffic
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } oifname ${home-vpn-iface} accept
-
-      # Allow pod & service traffic between nodes
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-
       # Enable internet (podman and kubernetes)
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } oifname { eth0, enp* } accept
       iifname podman0 oifname { eth0, enp* } accept
     '';
   };

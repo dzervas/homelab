@@ -16,8 +16,6 @@
   ];
 
   # TODO: Add graceful shutdown like the k3s module
-  environment.systemPackages = with pkgs; [ iptables calicoctl  ];
-
   services.rke2 = let
     isMaster = hostIndex == "100";
   in {

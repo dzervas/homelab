@@ -22,8 +22,8 @@ in {
 
     resolv-conf = "/etc/rancher/rke2/resolv.conf";
   } // (if role == "server" then {
-    cni = "canal";
-    # cni = "calico";
+    # cni = "canal";
+    cni = "calico";
     # disable-kube-proxy = true; # Calico handles it in eBPF mode
 
     advertise-address = nodeIP;
@@ -80,3 +80,17 @@ in {
     "/var/lib/rancher/rke2/server/manifests/rke2-coredns-config.yaml".C.argument = toString rke2-coredns-config;
   }) else {};
 }
+
+# For some reason, the tigera-operator (calico's operator) didn't find an IPPool and I had to create it manually:
+# apiVersion: crd.projectcalico.org/v1
+# kind: IPPool
+# metadata:
+#   name: default
+# spec:
+#   cidr: 10.42.0.0/16
+#   blockSize: 26
+#   natOutgoing: true
+#   disabled: false
+#   ipipMode: Never
+#   vxlanMode: Never
+#   nodeSelector: all()
