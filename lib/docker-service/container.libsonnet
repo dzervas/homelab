@@ -37,11 +37,13 @@ local envVarSource = k.core.v1.envVarSource;
       std.objectFields(config_maps)
     );
 
+    // TODO: Workload takes care of volumeMounts, do that for secrets too
     local configMapVolumeMounts = std.map(
       function(mountPath)
         local value = config_maps[mountPath];
         local cmName = std.split(value, ':')[0];
-        volumeMount.new(cmName, mountPath, false),
+        local readOnly = std.split(value, ':')[1] == 'ro';
+        volumeMount.new(cmName, mountPath, readOnly),
       std.objectFields(config_maps)
     );
 
@@ -57,7 +59,9 @@ local envVarSource = k.core.v1.envVarSource;
       function(mountPath)
         local value = secrets[mountPath];
         local secretName = std.split(value, ':')[0];
-        volumeMount.new(secretName, mountPath, false),
+        local readOnly = std.split(value, ':')[1] == 'ro';
+
+        volumeMount.new(secretName, mountPath, readOnly),
       std.objectFields(secrets)
     );
 
@@ -90,7 +94,7 @@ local envVarSource = k.core.v1.envVarSource;
         container.new(name, image)
         + container.withPorts(std.map(port.new, ports))
         + container.withImagePullPolicy(imagePullPolicy)
-        + container.withVolumeMounts(volumeMounts + configMapVolumeMounts + secretVolumeMounts)
+        + container.withVolumeMounts(volumeMounts + secretVolumeMounts)
         + container.withEnv(opEnvVars)
         + container.withEnvMap(env)
         + (if command != null then container.withCommand(command) else {})

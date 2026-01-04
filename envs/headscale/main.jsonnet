@@ -8,7 +8,6 @@ local serviceAccount = k.core.v1.serviceAccount;
 local clusterRole = k.rbac.v1.clusterRole;
 local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
 local container = k.core.v1.container;
-local volumeMount = k.core.v1.volumeMount;
 local envVar = k.core.v1.envVar;
 
 local namespace = 'headscale';
@@ -61,7 +60,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
                     INGRESS_CLASS: 'vpn',
                     DOMAIN_SUFFIX: 'ts.%s' % domain,
                     OUTPUT_PATH: '/data/dns.json',
-                    HEADSCALE_URL: 'http://headscale:8080',
+                    HEADSCALE_URL: 'http://127.0.0.1:8080',
                   },
                 ).container,
               ],
@@ -147,7 +146,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
     + clusterRole.withRules([
       {
         apiGroups: [''],
-        resources: ['pods', 'services'],
+        resources: ['pods', 'services', 'nodes'],
         verbs: ['get', 'list', 'watch'],
       },
       {

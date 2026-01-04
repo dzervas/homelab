@@ -70,7 +70,7 @@ local pvc = k.core.v1.persistentVolumeClaim;
       containers=[containersResult.container]
     )
     + volumeSpec
-    + configMaps
+    + configMaps  // Container should return these?
     + workload.metadata.withNamespace(cfg.namespace)
     + (if std.startsWith(image, 'ghcr.io/dzervas/') then workload.spec.template.spec.withImagePullSecrets([{ name: 'ghcr-cluster-secret' }]) else {})
     + workload.spec.template.spec.securityContext.withFsGroup(cfg.runAsUser)
