@@ -5,6 +5,7 @@ import kr8s
 
 OUTPUT_PATH = os.getenv("OUTPUT_PATH", "/data/extra-records.json")
 INGRESS_CLASS = os.getenv("INGRESS_CLASS", "traefik")
+KUBE_MASTER_DOMAIN = os.getenv("KUBE_MASTER_DOMAIN", "kube.vpn.dzerv.art")
 HS_BASE = os.environ["HEADSCALE_URL"].rstrip("/")
 HS_KEY = os.environ["HEADSCALE_API_KEY"]
 
@@ -119,6 +120,31 @@ async def build_pod_mapping() -> dict[str, set[str]]:
     return mapping
 
 
+async def get_first_master_node() -> str | None:
+    masters: list[str] = []
+    async for node in kr8s.asyncio.get(
+        "Node", label_selector="node-role.kubernetes.io/control-plane"
+    ):
+        conditions = (node.status or {}).get("conditions") or []
+        ready = next(
+            (
+                c
+                for c in conditions
+                if c.get("type") == "Ready" and c.get("status") == "True"
+            ),
+            None,
+        )
+        if ready:
+            masters.append(node.metadata.name)
+
+    if not masters:
+        return None
+
+    masters.sort()
+    masters.reverse()
+    return masters[0]
+
+
 async def rebuild_records(pod_mapping: dict[str, set[str]]) -> None:
     node_v4 = headscale_node_v4_map()
     records = []
@@ -175,6 +201,12 @@ async def rebuild_records(pod_mapping: dict[str, set[str]]) -> None:
         for h in hosts:
             records.append({"name": h, "type": "A", "value": target_ip})
 
+    master_node = await get_first_master_node()
+    if master_node:
+        master_ip = node_v4.get(master_node)
+        if master_ip:
+            records.append({"name": KUBE_MASTER_DOMAIN, "type": "A", "value": master_ip})
+
     records.sort(key=lambda r: (r["name"], r["value"]))
     atomic_write(OUTPUT_PATH, records)
     print(f"Wrote {len(records)} DNS records to {OUTPUT_PATH}")
@@ -190,6 +222,15 @@ async def watch_ingresses(queue: asyncio.Queue) -> None:
             f"Ingress event: {event_type} {ingress.metadata.namespace}/{ingress.metadata.name}"
         )
         await queue.put("ingress")
+
+
+async def watch_nodes(queue: asyncio.Queue) -> None:
+    print("Starting node watcher...")
+    async for event_type, node in kr8s.asyncio.watch(
+        "Node", label_selector="node-role.kubernetes.io/control-plane"
+    ):
+        print(f"Node event: {event_type} {node.metadata.name}")
+        await queue.put("node")
 
 
 async def watch_pods(queue: asyncio.Queue) -> None:
@@ -211,7 +252,7 @@ async def process_updates(
         if msg_type == "ingress" or msg_type == "full":
             pod_mapping.clear()
             pod_mapping.update(await build_pod_mapping())
-        elif msg_type == "pod":
+        elif msg_type == "pod" or msg_type == "node":
             pass
 
         await rebuild_records(pod_mapping)
@@ -233,6 +274,7 @@ async def main() -> None:
 
     await asyncio.gather(
         watch_ingresses(queue),
+        watch_nodes(queue),
         watch_pods(queue),
         process_updates(queue, pod_mapping),
         periodic_reconcile(queue),

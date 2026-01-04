@@ -14,6 +14,8 @@
 
     calicoctl
     kubectx
+    kubectl
+    kubectl-linstor
   ]);
 
   programs = {
