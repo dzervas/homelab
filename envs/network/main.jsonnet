@@ -1,7 +1,12 @@
+local calico = import 'calico-libsonnet/3.28/main.libsonnet';
 local k = import 'k.libsonnet';
+
 local serviceAccount = k.core.v1.serviceAccount;
 local clusterRole = k.rbac.v1.clusterRole;
 local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+local networkPolicy = k.networking.v1.networkPolicy;
+local networkPolicyIngressRule = k.networking.v1.networkPolicyIngressRule;
+local globalNetworkPolicy = calico.crd.v1.globalNetworkPolicy;
 
 {
   kubenav: {
@@ -59,4 +64,43 @@ local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
         namespace: 'kube-system',
       }]),
   },
+
+  defaultDenyNP: {
+    apiVersion: 'projectcalico.org/v3',
+    kind: 'GlobalNetworkPolicy',
+    metadata: {
+      name: 'default-ingress',
+    },
+    spec: {
+      order: 1000,
+      types: ['Ingress'],
+      namespaceSelector: "projectcalico.org/name not in {'kube-system', 'default', 'ingress', 'victoriametrics'}",
+      ingress: [{
+        action: 'Allow',
+        source: {
+          namespaceSelector: 'kubernetes.io/metadata.name in {"ingress","victoriametrics"}',
+        },
+      }],
+    },
+  },
+
+  defaultAllowNSNP: std.map(
+    function(ns)
+      networkPolicy.new('default-ns-allow')
+      + networkPolicy.metadata.withNamespace(ns)
+      + networkPolicy.spec.withPolicyTypes(['Ingress'])
+      + networkPolicy.spec.withIngress([
+        networkPolicyIngressRule.withFrom([{ podSelector: {} }]),
+      ]),
+    std.filter(function(ns) ns != 'kube-system' && ns != 'default' && ns != 'ingress' && ns != 'victoriametrics', std.extVar('namespaces'))
+  ),
+
+  // TODO: Fine-grained control over the kube-system namespace
+  // allowDNSNP:
+  //   networkPolicy.new('allow-kube-system')
+  //   + networkPolicy.metadata.withNamespace('kube-system')
+  //   + networkPolicy.spec.withIngress([
+  //     networkPolicyIngressRule.withFrom([{ namespaceSelector: {} }]),
+  //   ]),
+
 }
