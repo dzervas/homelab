@@ -12,7 +12,7 @@ local common(domain) = {
   }],
 };
 
-local className = 'nginx';
+local className(domain) = if std.endsWith(domain, '.vpn.dzerv.art') || std.endsWith(domain, '.ts.dzerv.art') then 'vpn' else 'nginx';
 
 {
   sslOnlyAnnotations: sslOnlyAnnotations,
@@ -34,18 +34,18 @@ local className = 'nginx';
   } + sslOnlyAnnotations,
 
   hostString(domain, annotations={}): common(domain) {
-    ingressClassName: className,
+    ingressClassName: className(domain),
     host: domain,
-    annotations: annotations,
+    annotations: sslOnlyAnnotations + annotations,
   },
   hostList(domain, annotations={}): common(domain) {
-    ingressClassName: className,
+    ingressClassName: className(domain),
     hosts: [domain],
-    annotations: annotations,
+    annotations: sslOnlyAnnotations + annotations,
   },
   hostObj(domain, annotations={}): common(domain) {
-    className: className,
-    annotations: annotations,
+    ingressClassName: className(domain),
+    annotations: sslOnlyAnnotations + annotations,
     hosts: [{
       host: domain,
       paths: [{
@@ -55,8 +55,8 @@ local className = 'nginx';
     }],
   },
   hostObjSingle(domain, annotations={}): common(domain) {
-    className: className,
-    annotations: annotations,
+    className: className(domain),
+    annotations: sslOnlyAnnotations + annotations,
     host: {
       name: domain,
       path: '/',

@@ -24,6 +24,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/calico-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "5175d8fa14273e96e6003b2c4caca7d3f5b2a874",
+      "sum": "o3BQMq+I5GJWx2A6RJ/7tV7kH8KL+7UEwdcfp361Y5w="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/cert-manager-libsonnet.git",
           "subdir": ""
         }
