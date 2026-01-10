@@ -44,8 +44,11 @@ in {
       # touch /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey && wg genkey > /etc/wireguard-privkey
       privateKeyFile = "/etc/wireguard-privkey";
 
-      # NOTE: Might need this to avoid fighting bird over the pod cidr
-      # allowedIPsAsRoutes = false;
+      # Do not add the allowed ips as routes to avoid fighting calico's BGP
+      table = "off";
+      # Add the routes manually
+      postUp = ''ip route add ${node-vpn-prefix}.0/24 dev ${node-vpn-iface}'';
+      postDown = ''ip route del ${node-vpn-prefix}.0/24 dev ${node-vpn-iface}'';
 
       mtu = 1420;
 
