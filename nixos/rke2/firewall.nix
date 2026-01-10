@@ -24,14 +24,15 @@
 			7080 7443
     ];
 
-    filterForward = true;
-
     # Allow pod & service traffic
     extraInputRules = ''
       # Allow Calico IPIP encapsulation over WireGuard
       ip protocol 4 iifname ${node-vpn-iface} accept
+
       iifname "cali*" accept
     '';
+
+    filterForward = true;
     # Allow pod & service routing through k3s interface
     extraForwardRules = ''
 	    # Calico stuff
@@ -43,11 +44,11 @@
 		  ip protocol 4 oifname ${node-vpn-iface} accept
 
 	    # Allow pod <-> pod and pod <-> service everywhere
-	    # ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-	    # ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+	    ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+	    ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
 
 			# BGP migration
-			iifname ${node-vpn-iface} oifname ${node-vpn-iface} ip saddr 10.42.0.0/16 ip daddr 10.42.0.0/16 accept
+			iifname ${node-vpn-iface} oifname ${node-vpn-iface} ip saddr {10.42.0.0/16, 10.43.0.0/16} ip daddr {10.42.0.0/16, 10.43.0.0/16} accept
 
 	    # Calico interfaces (veth pairs, etc.)
 	    iifname "cali*" accept

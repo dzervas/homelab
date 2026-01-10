@@ -22,7 +22,6 @@ in {
 
     resolv-conf = "/etc/rancher/rke2/resolv.conf";
   } // (if role == "server" then {
-    # cni = "canal";
     cni = "calico";
     # disable-kube-proxy = true; # Calico handles it in eBPF mode
 
@@ -73,6 +72,11 @@ in {
 	  "/var/lib/rancher/rke2/server/manifests/rke2-calico-config.yaml".C.argument = toString rke2-calico-config;
     "/var/lib/rancher/rke2/server/manifests/rke2-coredns-config.yaml".C.argument = toString rke2-coredns-config;
   }) else {};
+
+  # Linstor lvm volumes discovery
+  services.udev.packages = with pkgs; [ lvm2 ];
+  boot.initrd.services.udev.packages = with pkgs; [ lvm2 ];
+
 }
 
 # For some reason, the tigera-operator (calico's operator) didn't find an IPPool and I had to create it manually:
