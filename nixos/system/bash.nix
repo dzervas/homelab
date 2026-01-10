@@ -6,11 +6,12 @@
     dnslookup
     git
     iperf
-    # ipset
+    ipset
     jq
     nvme-cli # For OpenEBS management
     tcpdump
     iptables-nftables-compat
+    sysstat
 
     calicoctl
     kubectx

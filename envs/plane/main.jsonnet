@@ -84,7 +84,7 @@ local planeHelmDef = std.prune(normalizeJobNames(
         { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
         { name: 'PRIME_SERVER_BASE_URL', value: prime_server },
         { name: 'PRIME_SERVER_AUTH_TOKEN', value: 'hello_world' },
-        { name: 'IS_AIRGAPPED', value: '1' },
+        // { name: 'IS_AIRGAPPED', value: '1' },
         // { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
         { name: 'TZ', value: timezone },
         // { name: 'GUNICORN_WORKERS', value: '4' },
@@ -111,12 +111,12 @@ local planeHelmDef = std.prune(normalizeJobNames(
     namespace: namespace,
     ports: [8000],
   }),
-  proxy: dockerService.new('proxy', 'ghcr.io/dzervas/netshoot', {
-    namespace: namespace,
-    ports: [8080, 8081],
-    command: ['/bin/bash'],
-    args: ['-c', 'mitmweb --set confdir=/tmp --web-host 0.0.0.0 --no-web-open-browser'],
-  }),
+  // proxy: dockerService.new('proxy', 'ghcr.io/dzervas/netshoot', {
+  //   namespace: namespace,
+  //   ports: [8080, 8081],
+  //   command: ['/bin/bash'],
+  //   args: ['-c', 'mitmweb --set confdir=/tmp --web-host 0.0.0.0 --no-web-open-browser'],
+  // }),
   // Normalize job names so they stay stable across renders
   // Maybe migrate to rustfs instead of minio?
   plane: planeHelmDef {

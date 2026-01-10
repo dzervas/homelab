@@ -65,17 +65,12 @@ in {
 	    name = "rke2-calico-config";
 	    text = builtins.readFile ./rke2-calico-config.yaml;
 	  };
-    rke2-canal-config = pkgs.writeTextFile {
-      name = "rke2-canal-config";
-      text = builtins.readFile ./rke2-canal-config.yaml;
-    };
     rke2-coredns-config = pkgs.writeTextFile {
       name = "rke2-coredns-config";
       text = builtins.readFile ./rke2-coredns-config.yaml;
     };
   in {
 	  "/var/lib/rancher/rke2/server/manifests/rke2-calico-config.yaml".C.argument = toString rke2-calico-config;
-    "/var/lib/rancher/rke2/server/manifests/rke2-canal-config.yaml".C.argument = toString rke2-canal-config;
     "/var/lib/rancher/rke2/server/manifests/rke2-coredns-config.yaml".C.argument = toString rke2-coredns-config;
   }) else {};
 }
@@ -84,12 +79,10 @@ in {
 # apiVersion: crd.projectcalico.org/v1
 # kind: IPPool
 # metadata:
-#   name: default
+#   name: gr0
 # spec:
-#   cidr: 10.42.0.0/16
-#   blockSize: 26
-#   natOutgoing: true
-#   disabled: false
+#   cidr: 10.42.0.0/24
+#   blockSize: 24
 #   ipipMode: Never
 #   vxlanMode: Never
-#   nodeSelector: all()
+#   nodeSelector: "kubernetes.io/hostname == 'gr0'"

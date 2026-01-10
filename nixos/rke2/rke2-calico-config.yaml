@@ -8,8 +8,9 @@ metadata:
 spec:
   valuesContent: |-
     installation:
-      backend: IPIP
+      backend: None
       mtu: 1392
+      typhaMetricsPort: 9093
       calicoNetwork:
         bgp: Enabled
 
@@ -19,6 +20,38 @@ spec:
 
         nodeAddressAutodetectionV4:
           interface: wg0
+
+        ipPools:
+          - blockSize: 24
+            cidr: 10.42.100.0/24
+            ipipMode: Never
+            vxlanMode: Never
+            name: gr0
+            nodeSelector: "kubernetes.io/hostname == 'gr0'"
+          - blockSize: 24
+            cidr: 10.42.101.0/24
+            ipipMode: Never
+            vxlanMode: Never
+            name: gr1
+            nodeSelector: "kubernetes.io/hostname == 'gr1'"
+          - blockSize: 24
+            cidr: 10.42.150.0/24
+            ipipMode: Never
+            vxlanMode: Never
+            name: srv0
+            nodeSelector: "kubernetes.io/hostname == 'srv0'"
+          - blockSize: 24
+            cidr: 10.42.200.0/24
+            ipipMode: Never
+            vxlanMode: Never
+            name: fra0
+            nodeSelector: "kubernetes.io/hostname == 'fra0'"
+          - blockSize: 24
+            cidr: 10.42.201.0/24
+            ipipMode: Never
+            vxlanMode: Never
+            name: fra1
+            nodeSelector: "kubernetes.io/hostname == 'fra1'"
 
     # Enable globalnetworkpolicy and more
     apiServer:
@@ -31,3 +64,4 @@ spec:
       # https://docs.rke2.io/networking/basic_network_options
       featureDetectOverride: "ChecksumOffloadBroken=false"
       bpfConnectTimeLoadBalancing: Disabled
+      prometheusMetricsEnabled: true

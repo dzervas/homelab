@@ -13,6 +13,19 @@
       # Required by linstor
       "drbd"
       "dm_cache" "dm_writecache"
+
+      # Maybe good for Calico
+      "xt_bpf"
+      "ipt_ipvs"
+      "ipt_set"
+      "vfio-pci"
+      "ip6_tables"
+
+      # Kube proxy stuff
+      "nf_conntrack"
+      "nf_nat"
+      "iptable_nat"
+      "xt_MASQUERADE"
     ];
 
     # Why not?

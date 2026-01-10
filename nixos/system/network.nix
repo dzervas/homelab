@@ -44,6 +44,9 @@ in {
       # touch /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey && wg genkey > /etc/wireguard-privkey
       privateKeyFile = "/etc/wireguard-privkey";
 
+      # NOTE: Might need this to avoid fighting bird over the pod cidr
+      # allowedIPsAsRoutes = false;
+
       mtu = 1420;
 
       # Generate the peers based on the `machines` attribute, defined in the flake
@@ -52,7 +55,8 @@ in {
         (lib.attrsets.mapAttrsToList (name: machine:
           if name != hostName && builtins.hasAttr "publicKey" machine then {
             inherit (machine) publicKey;
-            allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32"];
+            # allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32"];
+            allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32" "10.42.${machine.hostIndex}.0/24"];
 
             # Use it as an endpoint only if it's a k3s server
             endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;

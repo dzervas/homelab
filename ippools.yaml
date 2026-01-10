@@ -1,0 +1,64 @@
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: gr0
+spec:
+  cidr: 10.42.100.0/24
+  blockSize: 24
+  ipipMode: Never
+  vxlanMode: Never
+  nodeSelector: "kubernetes.io/hostname == 'gr0'"
+  natOutgoing: true
+
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: gr1
+spec:
+  cidr: 10.42.101.0/24
+  blockSize: 24
+  ipipMode: Never
+  vxlanMode: Never
+  nodeSelector: "kubernetes.io/hostname == 'gr1'"
+  natOutgoing: true
+
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: srv0
+spec:
+  cidr: 10.42.150.0/24
+  blockSize: 24
+  ipipMode: Never
+  vxlanMode: Never
+  nodeSelector: "kubernetes.io/hostname == 'srv0'"
+  natOutgoing: true
+
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: fra0
+spec:
+  cidr: 10.42.200.0/24
+  blockSize: 24
+  ipipMode: Never
+  vxlanMode: Never
+  nodeSelector: "kubernetes.io/hostname == 'fra0'"
+  natOutgoing: true
+
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: fra1
+spec:
+  cidr: 10.42.201.0/24
+  blockSize: 24
+  ipipMode: Never
+  vxlanMode: Never
+  nodeSelector: "kubernetes.io/hostname == 'fra1'"
+  natOutgoing: true
