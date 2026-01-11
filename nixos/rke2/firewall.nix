@@ -27,7 +27,7 @@
     # Allow pod & service traffic
     extraInputRules = ''
       # Allow Calico IPIP encapsulation over WireGuard
-      ip protocol 4 iifname ${node-vpn-iface} accept
+      # ip protocol 4 iifname ${node-vpn-iface} accept
 
       iifname "cali*" accept
     '';
@@ -40,8 +40,8 @@
 	    ct state { established, related } accept
 
 			# Allow Calico IPIP encapsulated traffic
-		  ip protocol 4 iifname ${node-vpn-iface} accept
-		  ip protocol 4 oifname ${node-vpn-iface} accept
+		  # ip protocol 4 iifname ${node-vpn-iface} accept
+		  # ip protocol 4 oifname ${node-vpn-iface} accept
 
 	    # Allow pod <-> pod and pod <-> service everywhere
 	    ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept

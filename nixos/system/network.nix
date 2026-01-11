@@ -37,18 +37,19 @@ in {
     # Cilium is NOT compatible with nftables!
     nftables.enable = true;
 
-    wg-quick.interfaces.${node-vpn-iface} = {
-      address = [ "${node-vpn-prefix}.${hostIndex}/32" ];
+    wireguard.interfaces.${node-vpn-iface} = {
+      ips = [ "${node-vpn-prefix}.${hostIndex}/32" ];
       listenPort = wireguard-port;
       # Needs to be generated with:
       # touch /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey && wg genkey > /etc/wireguard-privkey
       privateKeyFile = "/etc/wireguard-privkey";
 
       # Do not add the allowed ips as routes to avoid fighting calico's BGP
-      table = "off";
+      # table = "off";
+      # allowedIPsAsRoutes = false;
       # Add the routes manually
-      postUp = ''ip route add ${node-vpn-prefix}.0/24 dev ${node-vpn-iface}'';
-      postDown = ''ip route del ${node-vpn-prefix}.0/24 dev ${node-vpn-iface}'';
+      # postSetup = ''ip route add ${node-vpn-prefix}.0/24 dev ${node-vpn-iface}'';
+      # preShutdown = ''ip route del ${node-vpn-prefix}.0/24 dev ${node-vpn-iface}'';
 
       mtu = 1420;
 
@@ -57,14 +58,19 @@ in {
         (peer: peer != null)
         (lib.attrsets.mapAttrsToList (name: machine:
           if name != hostName && builtins.hasAttr "publicKey" machine then {
-            inherit (machine) publicKey;
+            inherit name;
+	          inherit (machine) publicKey;
             # NOTE: For some reason I had to manually add the allowed IPs for SOME nodes
             # wg set wg0 peer 'Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8=' allowed-ips +10.42.101.0/24
             allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32" "10.42.${machine.hostIndex}.0/24"];
 
             # Use it as an endpoint only if it's a k3s server
-            endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
-            persistentKeepalive = if builtins.hasAttr "role" machine && machine.role == "server" then null else 25;
+            # TODO: Filter based on provider
+            # endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
+            endpoint = if name != "srv0" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
+            # persistentKeepalive = if builtins.hasAttr "role" machine && machine.role == "server" then null else 25;
+            persistentKeepalive = if name != "srv0" then null else 25;
+            dynamicEndpointRefreshSeconds = if name != "srv0" then null else 5;
           } else null)
           machines);
     };
@@ -87,32 +93,6 @@ in {
 
       # Needed to advertise exit nodes
       useRoutingFeatures = "server";
-    };
-
-    wgautomesh = {
-      enable = true;
-      openFirewall = true;
-      gossipSecretFile = "/etc/wgautomesh-secret";
-
-      settings = {
-        interface = node-vpn-iface;
-        lan_discovery = false;
-
-        # Generate the peers based on the `machines` attribute, defined in the flake
-        peers = builtins.filter
-          # Filter empty peers
-          # Iterate over the machines and create a peer for each one
-          (peer: peer != null)
-          (lib.attrsets.mapAttrsToList (name: machine:
-            if name != hostName && builtins.hasAttr "publicKey" machine then {
-              pubkey = machine.publicKey;
-              address = "${node-vpn-prefix}.${machine.hostIndex}";
-
-              # Use it as an endpoint only if it's a k3s server
-              endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:51820" else null;
-            } else null)
-            machines);
-      };
     };
 
     fail2ban = {
