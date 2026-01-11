@@ -1,7 +1,8 @@
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
+local ingress = import 'helpers/ingress.libsonnet';
 local k = import 'k.libsonnet';
-local helm = tk.helm.new(std.thisFile);
 local vm = import 'victoria-metrics-operator-libsonnet/0.50/main.libsonnet';
+local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'victoriametrics';
 
@@ -48,6 +49,7 @@ local namespace = 'victoriametrics';
         fullnameOverride: 'victoriametrics',
         vmsingle: {
           spec: {
+            extraArgs: { 'opentelemetry.usePrometheusNaming': 'true' },
             retentionPeriod: '8w',
             storage: {
               resources: {
@@ -56,6 +58,8 @@ local namespace = 'victoriametrics';
             },
             nodeSelector: { provider: 'oracle' },
           },
+
+          ingress: ingress.hostList('metrics.vpn.dzerv.art'),
         },
 
         external: {

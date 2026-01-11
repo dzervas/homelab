@@ -15,14 +15,14 @@ local common(domain) = {
 local className(domain) = if std.endsWith(domain, '.vpn.dzerv.art') || std.endsWith(domain, '.ts.dzerv.art') then 'vpn' else 'nginx';
 
 {
-  sslOnlyAnnotations: sslOnlyAnnotations,
-  mtlsAnnotations(namespace): {
+  sslOnlyAnnotations:: sslOnlyAnnotations,
+  mtlsAnnotations(namespace):: {
     'nginx.ingress.kubernetes.io/auth-tls-verify-client': 'on',
     'nginx.ingress.kubernetes.io/auth-tls-secret': '%s/client-ca' % namespace,
     'nginx.ingress.kubernetes.io/auth-tls-verify-depth': '1',
     'nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream': 'true',
   } + sslOnlyAnnotations,
-  oidcAnnotations(svcName): {
+  oidcAnnotations(svcName):: {
     'magicentry.rs/name': svcName,
     'magicentry.rs/realms': svcName,
     'magicentry.rs/auth-url': 'true',
@@ -33,17 +33,17 @@ local className(domain) = if std.endsWith(domain, '.vpn.dzerv.art') || std.endsW
     'nginx.ingress.kubernetes.io/auth-cache-key': '$remote_user$http_authorization$http_cookie',
   } + sslOnlyAnnotations,
 
-  hostString(domain, annotations={}): common(domain) {
+  hostString(domain, annotations={}):: common(domain) {
     ingressClassName: className(domain),
     host: domain,
     annotations: sslOnlyAnnotations + annotations,
   },
-  hostList(domain, annotations={}): common(domain) {
+  hostList(domain, annotations={}):: common(domain) {
     ingressClassName: className(domain),
     hosts: [domain],
     annotations: sslOnlyAnnotations + annotations,
   },
-  hostObj(domain, annotations={}): common(domain) {
+  hostObj(domain, annotations={}):: common(domain) {
     ingressClassName: className(domain),
     annotations: sslOnlyAnnotations + annotations,
     hosts: [{
@@ -54,7 +54,7 @@ local className(domain) = if std.endsWith(domain, '.vpn.dzerv.art') || std.endsW
       }],
     }],
   },
-  hostObjSingle(domain, annotations={}): common(domain) {
+  hostObjSingle(domain, annotations={}):: common(domain) {
     className: className(domain),
     annotations: sslOnlyAnnotations + annotations,
     host: {

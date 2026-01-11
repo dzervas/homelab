@@ -74,7 +74,7 @@ local globalNetworkPolicy = calico.crd.v1.globalNetworkPolicy;
     spec: {
       order: 1000,
       types: ['Ingress'],
-      namespaceSelector: "projectcalico.org/name not in {'kube-system', 'default', 'ingress', 'victoriametrics'}",
+      namespaceSelector: "projectcalico.org/name not in {'kube-system', 'default', 'ingress'}",
       ingress: [{
         action: 'Allow',
         source: {
@@ -92,7 +92,7 @@ local globalNetworkPolicy = calico.crd.v1.globalNetworkPolicy;
       + networkPolicy.spec.withIngress([
         networkPolicyIngressRule.withFrom([{ podSelector: {} }]),
       ]),
-    std.filter(function(ns) ns != 'kube-system' && ns != 'default' && ns != 'ingress' && ns != 'victoriametrics', std.extVar('namespaces'))
+    std.filter(function(ns) ns != 'kube-system' && ns != 'default' && ns != 'ingress', std.extVar('namespaces'))
   ),
 
   // TODO: Fine-grained control over the kube-system namespace
