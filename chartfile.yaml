@@ -32,15 +32,15 @@ requires:
   - chart: descheduler/descheduler
     version: 0.34.0
   - chart: victoriametrics/victoria-metrics-k8s-stack
-    version: 0.66.1
+    version: 0.67.0
   - chart: prometheus/prometheus-operator-crds
-    version: 25.0.1
+    version: 26.0.0
   - chart: ingress-nginx/ingress-nginx
     version: 4.14.1
   - chart: victoriametrics/victoria-logs-collector
-    version: 0.2.4
+    version: 0.2.6
   - chart: victoriametrics/victoria-logs-single
-    version: 0.11.23
+    version: 0.11.24
   - chart: bitnami-mariadb/mariadb
     version: 21.0.8
   - chart: gemini/gemini

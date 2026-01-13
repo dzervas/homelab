@@ -18,7 +18,7 @@ local vlsingleLabels = {
     values: {
       nameOverride: 'victorialogs',
       server: {
-        retentionPeriod: '3',  // Months
+        retentionPeriod: '1',  // Months
         persistentVolume: { size: '20Gi' },
         nodeSelector: { provider: 'oracle' },
       },

@@ -14,6 +14,12 @@ local exporterDef = dockerService.new('cliproxyapi-exporter', 'ghcr.io/dzervas/c
     fqdn: 'ai.vpn.dzerv.art',
     ports: [8317],
     args: ['./CLIProxyAPI', '-config', '/data/config.yaml'],
+    ingressAnnotations: {
+      'nginx.ingress.kubernetes.io/proxy-body-size': '10m',
+      'nginx.ingress.kubernetes.io/proxy-connect-timeout': '120',
+      'nginx.ingress.kubernetes.io/proxy-read-timeout': '120',
+      'nginx.ingress.kubernetes.io/proxy-send-timeout': '120',
+    },
 
     op_envs: { MANAGEMENT_PASSWORD: 'password' },
 

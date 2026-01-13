@@ -12,6 +12,21 @@ local nodeSelector = {
   'linstor/enable': 'true',
 };
 
+// Affinity for controller components to avoid homelab provider nodes since they're flaky
+local controllerAffinity = {
+  nodeAffinity: {
+    requiredDuringSchedulingIgnoredDuringExecution: {
+      nodeSelectorTerms: [{
+        matchExpressions: [{
+          key: 'provider',
+          operator: 'NotIn',
+          values: ['homelab'],
+        }],
+      }],
+    },
+  },
+};
+
 {
   namespace: k.core.v1.namespace.new(namespace),
 
@@ -28,6 +43,8 @@ local nodeSelector = {
           kind: 'ClusterIssuer',
         },
       },
+      tolerations: [],
+      affinity: controllerAffinity,
     },
   }),
 
@@ -45,6 +62,33 @@ local nodeSelector = {
           value: 'true',
           effect: 'NoSchedule',
         }],
+
+        controller: {
+          podTemplate: {
+            spec: {
+              tolerations: [],
+              affinity: controllerAffinity,
+            },
+          },
+        },
+
+        csiController: {
+          podTemplate: {
+            spec: {
+              tolerations: [],
+              affinity: controllerAffinity,
+            },
+          },
+        },
+
+        affinityController: {
+          podTemplate: {
+            spec: {
+              tolerations: [],
+              affinity: controllerAffinity,
+            },
+          },
+        },
       },
       createApiTLS: 'cert-manager',
       createInternalTLS: 'cert-manager',
