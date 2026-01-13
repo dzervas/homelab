@@ -68,9 +68,9 @@ resource "helm_release" "grafana" {
         apiVersion = 1
         datasources = [
           {
-            name = "Loki"
-            type = "loki"
-            url  = "http://loki-gateway"
+            name = "VictoriaLogs"
+            type = "victoriametrics-logs-datasource"
+            url  = "http://vlsingle-victorialogs-server.victorialogs.svc:9428"
           },
         ]
       }

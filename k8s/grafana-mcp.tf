@@ -10,10 +10,11 @@ resource "helm_release" "grafana_mcp" {
   namespace  = kubernetes_namespace.grafana.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "grafana-mcp"
-  version    = "0.1.1"
+  version    = "0.2.2"
   atomic     = true
 
   values = [yamlencode({
+    extraArgs = ["--transport", "streamable-http"]
     grafana = {
       url = "http://grafana"
       apiKeySecret = {

@@ -4,8 +4,8 @@ local k = import 'k.libsonnet';
 
 local namespace = 'victorialogs';
 local vlsingleLabels = {
-  'app.kubernetes.io/name': 'vlsingle',
-  'app.kubernetes.io/instance': 'victorialogs',
+  'app.kubernetes.io/name': 'victorialogs',
+  'app.kubernetes.io/instance': 'vlsingle',
 };
 
 {

@@ -77,6 +77,33 @@ in {
   services.udev.packages = with pkgs; [ lvm2 ];
   boot.initrd.services.udev.packages = with pkgs; [ lvm2 ];
 
+  # LINSTOR satellite container mounts /etc/lvm but can't follow NixOS symlinks
+  # to /nix/store. Without a readable lvm.conf, it disables udev_sync which
+  # breaks /dev/<vgname>/<lvname> symlink creation.
+  # Creating a real file here allows the satellite to detect LVM is installed.
+  environment.etc."lvm/lvm.conf" = {
+    mode = "0644";
+    text = ''
+      # Minimal LVM config for LINSTOR satellite detection
+      # The satellite will merge this with its own settings
+      config {
+        checks = 1
+      }
+      activation {
+        udev_sync = 1
+        udev_rules = 1
+      }
+    '';
+  };
+
+  # Alternative fix that just runs vgscan --mknodes every time a new device appears
+  # Fix for LINSTOR satellite running with udev_sync=0
+  # This rule triggers vgscan to create LVM symlinks when DM devices appear
+  # services.udev.extraRules = ''
+  #   # When a DM device with LVM UUID appears, create the VG symlinks if missing
+  #   ACTION=="add|change", SUBSYSTEM=="block", KERNEL=="dm-*", ENV{DM_UUID}=="LVM-*", \
+  #     RUN+="${pkgs.lvm2}/bin/vgscan --mknodes"
+  # '';
 }
 
 # For some reason, the tigera-operator (calico's operator) didn't find an IPPool and I had to create it manually:
