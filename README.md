@@ -81,6 +81,34 @@ ssh <node> vgscan --mknodes
 # Maybe lvscan too for good measure
 ```
 
+### Failed/Stuck/Orphaned Snapshots (might result in stuck suspended PVs)
+
+List stuck snapshots:
+
+```bash
+# K8s VolumeSnapshots not ready
+kubectl get volumesnapshot -A -o json | jq -r '.items[] | select(.status.readyToUse != true) | "\(.metadata.namespace)/\(.metadata.name)"'
+
+# LINSTOR incomplete/failed snapshots
+kubectl linstor snapshot list | grep -E "Incomplete|Failed"
+```
+
+Find orphaned snapshots:
+
+```bash
+# Orphaned LINSTOR snapshots (in LINSTOR but not K8s)
+comm -23 <(kubectl linstor snapshot list -p | jq -r '.[].snapshot_dfns[].snapshot_name' | sort -u) <(kubectl get volumesnapshot -A -o jsonpath='{.items[*].metadata.uid}' | tr ' ' '\n' | sort -u)
+
+# Orphaned K8s VolumeSnapshots (in K8s but not LINSTOR)
+comm -13 <(kubectl linstor snapshot list -p | jq -r '.[].snapshot_dfns[].snapshot_name' | sort -u) <(kubectl get volumesnapshot -A -o jsonpath='{.items[*].metadata.uid}' | tr ' ' '\n' | sort -u)
+```
+
+Check for suspended DRBD resources (caused by stuck snapshots):
+
+```bash
+ssh <node>.dzerv.art "drbdsetup status --json" | jq '.[] | select(.suspended) | .name'
+```
+
 ### Checking options/protocol/etc. for a pvc
 
 ```bash
