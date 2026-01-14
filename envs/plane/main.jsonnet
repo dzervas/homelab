@@ -12,6 +12,16 @@ local deployment = k.apps.v1.deployment;
 local statefulset = k.apps.v1.statefulSet;
 local container = k.core.v1.container;
 local service = k.core.v1.service;
+local affinity = k.core.v1.affinity;
+local podAffinityTerm = k.core.v1.podAffinityTerm;
+
+// Pod affinity to colocate with PostgreSQL for low-latency communication
+local colocateWithPgdb = deployment.spec.template.spec.affinity.podAffinity.withRequiredDuringSchedulingIgnoredDuringExecution([{
+  labelSelector: {
+    matchLabels: { 'app.name': 'plane-plane-pgdb' },
+  },
+  topologyKey: 'provider',
+}]);
 
 local namespace = 'plane';
 local domain = 'projects.vpn.dzerv.art';
@@ -110,7 +120,7 @@ local planeHelmDef = std.prune(normalizeJobNames(
   planePrime: dockerService.new('plane-prime', 'ghcr.io/dzervas/plane-prime:latest', {
     namespace: namespace,
     ports: [8000],
-  }),
+  }) + { workload+: colocateWithPgdb },
   // proxy: dockerService.new('proxy', 'ghcr.io/dzervas/netshoot', {
   //   namespace: namespace,
   //   ports: [8080, 8081],
@@ -120,10 +130,20 @@ local planeHelmDef = std.prune(normalizeJobNames(
   // Normalize job names so they stay stable across renders
   // Maybe migrate to rustfs instead of minio?
   plane: planeHelmDef {
+    // Increase gunicorn workers to prevent single-worker restart blocking all requests
+    // (URL pattern compilation takes 3+ seconds on worker restart)
+    config_map_plane_app_vars+: {
+      data+: {
+        GUNICORN_WORKERS: '4',
+      },
+    },
+
     // Add the magicentry.rs/enable label to the plane-api-wl deployment
     // by patching the deployment template in the Helm output
+    // Also add pod affinity to colocate with PostgreSQL for low-latency
     deployment_plane_api_wl+:
-      deployment.spec.template.metadata.withLabelsMixin({ 'magicentry.rs/enable': 'true' }),
+      deployment.spec.template.metadata.withLabelsMixin({ 'magicentry.rs/enable': 'true' })
+      + colocateWithPgdb,
     // + deployment.spec.template.spec.withContainers(std.map(
     //   function(c)
     //     c + container.withEnvMixin([{ name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' }]),
@@ -131,6 +151,7 @@ local planeHelmDef = std.prune(normalizeJobNames(
     // )),
     // echo 'DATABASES["default"]["CONN_MAX_AGE"] = 600' >> plane/settings/common.py
     // echo 'DATABASES["default"]["CONN_HEALTH_CHECKS"] = True' >> plane/settings/common.py
+    // sed -i 's/--max-requests 1200/--max-requests 0/; s/plane.asgi:application/plane.wsgi:application/' /code/bin/docker-entrypoint-api-ee.sh
     // echo 'LOGGING["loggers"]["django.db.backends"] = {"handlers": ["console"], "level": "INFO"}' >> plane/settings/common.py
 
     // metrics exposure
@@ -158,21 +179,19 @@ local planeHelmDef = std.prune(normalizeJobNames(
         })
         + container.resources.withRequests({
           memory: '500Mi',
-        }),
-      // + container.withArgsMixin([
-      //   '-c',
-      //   'shared_preload_libraries=pg_stat_statements',
-      //   '-c',
-      //   'pg_stat_statements.track=all',
-      //   '-c',
-      //   'pg_stat_statements.max=10000',
-      //   '-c',
-      //   'track_io_timing=on',
-      //   '-c',
-      //   'log_min_duration_statement=500ms',
-      //   '-c',
-      //   'log_line_prefix=%m [%p] %u@%d %a %r',
-      // ]),
+        })
+        + container.withArgsMixin([
+          '-c',
+          'max_connections=300',
+          '-c',
+          'shared_preload_libraries=pg_stat_statements',
+          '-c',
+          'pg_stat_statements.track=all',
+          '-c',
+          'track_io_timing=on',
+          '-c',
+          'log_min_duration_statement=100',
+        ]),
       planeHelmDef.stateful_set_plane_pgdb_wl.spec.template.spec.containers
     )),
   },
