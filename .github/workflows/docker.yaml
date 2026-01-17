@@ -20,6 +20,7 @@ jobs:
           - dns-controller
           - netshoot
           - cliproxyapi-exporter
+          - opencode
 
     steps:
       - name: Check out repository
@@ -47,34 +48,3 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:latest
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
-
-  devenv:
-    permissions:
-      contents: read
-      packages: write
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        image:
-          - opencode
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-
-      - uses: cachix/install-nix-action@v31
-      - uses: cachix/cachix-action@v16
-        with:
-          name: devenv
-      - name: Install devenv.sh
-        run: nix profile add nixpkgs#devenv
-
-      - name: Push image
-        run: |
-          cd docker/${{ matrix.image }}
-          devenv container build ${{ matrix.image }}
-          devenv container \
-            --registry docker://ghcr.io/${{ github.repository_owner }}/ \
-            --copy-args="--dest-creds ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
-             copy ${{ matrix.image }}
