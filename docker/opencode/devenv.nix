@@ -20,8 +20,6 @@
   containers."opencode" = {
     name = "opencode";
     registry = "docker://ghcr.io/dzervas/";
-
-    copyToRoot = [];
-    startupCommand = "${pkgs.opencode}/bin/opencode web";
+    startupCommand = "${pkgs.opencode}/bin/opencode web --hostname 0.0.0.0 --port 4096 --cors opencode.vpn.dzerv.art";
   };
 }
