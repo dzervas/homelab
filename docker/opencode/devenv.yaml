@@ -1,8 +1,6 @@
 inputs:
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
-  nixpkgs-unstable:
-    url: github:NixOS/nixpkgs/nixpkgs-unstable
   mk-shell-bin:
     url: github:rrbutani/nix-mk-shell-bin
   nix2container:
