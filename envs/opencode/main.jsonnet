@@ -89,6 +89,15 @@ local configMap =
   });
 
 {
-  opencode: opencode,
+  opencode:
+    opencode
+    {
+      workload+:
+        k.apps.v1.statefulSet.spec.template.spec.withContainers(std.map(
+          function(c)
+            c + k.core.v1.container.withWorkingDir('/data/projects'),
+          opencode.workload.spec.template.spec.containers
+        )),
+    },
   opencodeConfig: configMap,
 }
