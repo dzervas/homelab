@@ -20,9 +20,10 @@ local opencode = dockerService.new('opencode', image, {
     TZ: timezone,
     OPENCODE_CONFIG: configFile,
     XDG_DATA_HOME: dataPath,
+    OPENCODE_ENABLE_EXA: 'true',
   },
 
-  // op_envs: { OPENCODE_SERVER_PASSWORD: 'password' },
+  op_envs: { OPENCODE_SERVER_PASSWORD: 'password' },
 
   pvs: {
     [dataPath]: {
@@ -32,7 +33,7 @@ local opencode = dockerService.new('opencode', image, {
   },
 
   config_maps: {
-    '/env/.config/opencode/': 'opencode-config:ro',
+    '/config': 'opencode-config:ro',
   },
 });
 
@@ -43,11 +44,12 @@ local configMap =
     'opencode.json': std.manifestJsonEx({
       '$schema': 'https://opencode.ai/config.json',
       autoupdate: false,
-      server: {
-        hostname: '0.0.0.0',
-        port: 4096,
-        cors: ['http://opencode.vpn.dzerv.art'],
-      },
+      // Unrecognized key for some reason?
+      // server: {
+      //   port: 4096,
+      //   hostname: '0.0.0.0',
+      //   cors: ['http://opencode.vpn.dzerv.art'],
+      // },
       provider: {
         dz: {
           models: {
@@ -77,7 +79,7 @@ local configMap =
           npm: '@ai-sdk/anthropic',
           options: {
             apiKey: 'sk-dummy',
-            baseURL: 'https://ai.vpn.dzerv.art/v1',
+            baseURL: 'http://cliproxyapi.cliproxyapi.svc:8317/v1',
           },
         },
       },

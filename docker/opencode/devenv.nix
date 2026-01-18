@@ -15,6 +15,7 @@
     opencode
     ripgrep
     fd
+    curl
   ];
 
   containers."opencode" = {
