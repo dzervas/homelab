@@ -1,4 +1,6 @@
-{ pkgs, ... }: {
+{ inputs, pkgs, ... }: let
+	pkgs-unstable = import inputs.nixpkgs-unstable { system = pkgs.stdenv.system; };
+in {
   languages = {
     rust.enable = true;
     python.enable = true;
@@ -12,7 +14,7 @@
   };
 
   packages = with pkgs; [
-    opencode
+    pkgs-unstable.opencode
     ripgrep
     fd
     curl

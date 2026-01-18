@@ -27,6 +27,11 @@ local globalNetworkPolicy = calico.crd.v1.globalNetworkPolicy;
           verbs: ['create', 'delete'],
         },
         {
+          apiGroups: [''],
+          resources: ['pods'],
+          verbs: ['delete'],
+        },
+        {
           apiGroups: ['apps'],
           resources: ['deployments', 'replicasets', 'statefulsets', 'daemonsets'],
           verbs: ['get', 'list', 'watch'],
