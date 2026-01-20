@@ -53,7 +53,7 @@ _: {
   time.timeZone = "Europe/Athens";
 
   programs.nix-ld.enable = true;
-  hardware.enableRedistributableFirmware = true;
+  hardware.enableAllFirmware = true;
   system.stateVersion = "25.05";
 
   # Remove some default packages that come with nix
