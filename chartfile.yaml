@@ -24,7 +24,7 @@ repositories:
     url: oci://ghcr.io/woodpecker-ci/helm
 requires:
   - chart: plane/plane-enterprise
-    version: 1.7.2
+    version: 1.8.0
   - chart: piraeus/piraeus
     version: 2.10.3
   - chart: linstor/linstor-cluster
@@ -32,7 +32,7 @@ requires:
   - chart: descheduler/descheduler
     version: 0.34.0
   - chart: victoriametrics/victoria-metrics-k8s-stack
-    version: 0.67.0
+    version: 0.68.0
   - chart: prometheus/prometheus-operator-crds
     version: 26.0.0
   - chart: ingress-nginx/ingress-nginx

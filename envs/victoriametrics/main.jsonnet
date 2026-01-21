@@ -50,7 +50,7 @@ local namespace = 'victoriametrics';
         vmsingle: {
           spec: {
             extraArgs: { 'opentelemetry.usePrometheusNaming': 'true' },
-            retentionPeriod: '8w',
+            retentionPeriod: '6w', // 8W is more than 50Gi
             storage: {
               resources: {
                 requests: { storage: '50Gi' },

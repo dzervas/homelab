@@ -90,7 +90,7 @@ List stuck snapshots:
 kubectl get volumesnapshot -A -o json | jq -r '.items[] | select(.status.readyToUse != true) | "\(.metadata.namespace)/\(.metadata.name)"'
 
 # LINSTOR incomplete/failed snapshots
-kubectl linstor snapshot list | grep -E "Incomplete|Failed"
+kubectl linstor snapshot list | rg "Incomplete|Failed"
 ```
 
 Find orphaned snapshots:

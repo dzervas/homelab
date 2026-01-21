@@ -85,6 +85,9 @@ local planeHelmDef = std.prune(normalizeJobNames(
           memoryLimit: '2Gi',
           memoryRequest: '500Mi',
         },
+        rabbbitmq: {
+          volumeSize: '1Gi',
+        },
       },
       extraEnv: [
         { name: 'WEB_URL', value: 'https://' + domain },
@@ -94,26 +97,16 @@ local planeHelmDef = std.prune(normalizeJobNames(
         { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
         { name: 'PRIME_SERVER_BASE_URL', value: prime_server },
         { name: 'PRIME_SERVER_AUTH_TOKEN', value: 'hello_world' },
-        // { name: 'IS_AIRGAPPED', value: '1' },
-        // { name: 'OPENAI_BASE_URL', value: 'https://api.z.ai/api/coding/paas/v4' },
+        { name: 'LLM_BASE_URL', value: 'http://cliproxyapi.cliproxyapi.svc:8317/v1' },
+        { name: 'LLM_API_KEY', value: 'sk-dummy' },
+        { name: 'LLM_MODEL', value: 'glm-4.7-flash' },
         { name: 'TZ', value: timezone },
+        // { name: 'IS_AIRGAPPED', value: '1' },
         // { name: 'GUNICORN_WORKERS', value: '4' },
-        { name: 'CONN_MAX_AGE', value: '600' },
       ],
     },
   })
 ));
-
-// API service debugging:
-// apk add --no-cache tcpdump tshark libunwind-dev cargo
-// cargo install py-spy
-// export PATH=$PATH:/root/.cargo/bin
-// OLD: apk add py-spy --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
-// timeout 30 tcpdump -i any -nn -s 0 -w /tmp/net.pcap 'tcp or udp or icmp'
-// Check dns queries:
-// tshark -r /tmp/net.pcap -Y "dns.qry.name" -T fields -e dns.qry.name 2>/dev/null | sort | uniq -c | sort -nr | head -30
-// Check django settings:
-// python manage.py shell -c "from django.conf import settings; print(settings.DATABASES['default'].get('CONN_MAX_AGE')); print(settings.DATABASES['default'].get('CONN_HEALTH_CHECKS'))"
 
 {
   // NOTE: Creates the namespace
@@ -121,12 +114,6 @@ local planeHelmDef = std.prune(normalizeJobNames(
     namespace: namespace,
     ports: [8000],
   }) + { workload+: colocateWithPgdb },
-  // proxy: dockerService.new('proxy', 'ghcr.io/dzervas/netshoot', {
-  //   namespace: namespace,
-  //   ports: [8080, 8081],
-  //   command: ['/bin/bash'],
-  //   args: ['-c', 'mitmweb --set confdir=/tmp --web-host 0.0.0.0 --no-web-open-browser'],
-  // }),
   // Normalize job names so they stay stable across renders
   // Maybe migrate to rustfs instead of minio?
   plane: planeHelmDef {
@@ -141,27 +128,19 @@ local planeHelmDef = std.prune(normalizeJobNames(
     // Add the magicentry.rs/enable label to the plane-api-wl deployment
     // by patching the deployment template in the Helm output
     // Also add pod affinity to colocate with PostgreSQL for low-latency
-    deployment_plane_api_wl+:
-      deployment.spec.template.metadata.withLabelsMixin({ 'magicentry.rs/enable': 'true' })
-      + colocateWithPgdb,
-    // + deployment.spec.template.spec.withContainers(std.map(
-    //   function(c)
-    //     c + container.withEnvMixin([{ name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' }]),
-    //   planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
-    // )),
-    // echo 'DATABASES["default"]["CONN_MAX_AGE"] = 600' >> plane/settings/common.py
+    // Manual patches before the exec entrypoint in the api:
+    // echo -e '\n\nDATABASES["default"]["CONN_MAX_AGE"] = 600' >> plane/settings/common.py
     // echo 'DATABASES["default"]["CONN_HEALTH_CHECKS"] = True' >> plane/settings/common.py
-    // sed -i 's/--max-requests 1200/--max-requests 0/; s/plane.asgi:application/plane.wsgi:application/' /code/bin/docker-entrypoint-api-ee.sh
-    // echo 'LOGGING["loggers"]["django.db.backends"] = {"handlers": ["console"], "level": "INFO"}' >> plane/settings/common.py
+    // sed -i 's/--max-requests 1200/--max-requests 0/' /code/bin/docker-entrypoint-api-ee.sh
+    // sed -i 's/uvicorn.workers.UvicornWorker/sync/; s/plane.asgi:application/plane.wsgi:application/' /code/bin/docker-entrypoint-api-ee.sh
+    // sed -i 's#OpenAI(api_key=LLM_API_KEY)#OpenAI(api_key=LLM_API_KEY, base_url="http://cliproxyapi.cliproxyapi.svc:8317/v1")#; s#OpenAI(api_key=api_key)#OpenAI(api_key=api_key, base_url="http://cliproxyapi.cliproxyapi.svc:8317/v1")#' plane/ee/views/app/ai/rephrase.py plane/app/views/external/base.py
+    deployment_plane_api_wl+:
+      colocateWithPgdb
+      + deployment.spec.template.metadata.withLabelsMixin({
+        'magicentry.rs/enable': 'true',
+        'ai/enable': 'true',
+      }),
 
-    // metrics exposure
-    // :9000/minio/v2/metrics/cluster
-    // stateful_set_plane_minio_wl+: statefulset.spec.template.spec.withContainers(std.map(
-    //   function(c)
-    //     c + container.withEnvMixin([{ name: 'MINIO_PROMETHEUS_AUTH_TYPE', value: 'public' }]),
-    //   planeHelmDef.stateful_set_plane_minio_wl.spec.template.spec.containers
-    // )),
-    // :15692/metrics
     service_plane_rabbitmq+:
       service.spec.withPortsMixin([{
         name: 'rabbitmq-metrics',
@@ -173,25 +152,11 @@ local planeHelmDef = std.prune(normalizeJobNames(
     stateful_set_plane_pgdb_wl+: statefulset.spec.template.spec.withContainers(std.map(
       function(c)
         c
+        + container.resources.withRequests({ memory: '500Mi' })
         + container.resources.withLimits({
           cpu: '500m',
           memory: '2Gi',
-        })
-        + container.resources.withRequests({
-          memory: '500Mi',
-        })
-        + container.withArgsMixin([
-          '-c',
-          'max_connections=300',
-          '-c',
-          'shared_preload_libraries=pg_stat_statements',
-          '-c',
-          'pg_stat_statements.track=all',
-          '-c',
-          'track_io_timing=on',
-          '-c',
-          'log_min_duration_statement=100',
-        ]),
+        }),
       planeHelmDef.stateful_set_plane_pgdb_wl.spec.template.spec.containers
     )),
   },
@@ -290,55 +255,6 @@ local planeHelmDef = std.prune(normalizeJobNames(
       ],
     },
   },
-
-  // planeMinioMetrics:
-  //   p.monitoring.v1.serviceMonitor.new('plane-minio')
-  //   + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-minio')
-  //   + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
-  //     p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('minio-api-9000')
-  //     + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/minio/v2/metrics/cluster'),
-  //   ])
-  //   + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
-  //     'app.name': 'plane-plane-minio',
-  //   }),
-
-  // planeRabbitMQMetrics:
-  //   p.monitoring.v1.serviceMonitor.new('plane-rabbitmq')
-  //   + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-rabbitmq')
-  //   + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
-  //     p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('rabbitmq-metrics')
-  //     + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
-  //   ])
-  //   + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
-  //     'app.name': 'plane-plane-rabbitmq',
-  //   }),
-
-
-  // pgExporter: dockerService.new('plane-pgdb-exporter', 'quay.io/prometheuscommunity/postgres-exporter', {
-  //   namespace: namespace,
-  //   ports: [9187],
-  //   args: [
-  //     '--collector.postmaster',
-  //     '--collector.process_idle',
-  //     '--collector.stat_statements',
-  //     '--collector.stat_wal_receiver',
-  //   ],
-  //   env: {
-  //     DATA_SOURCE_URI: 'plane-pgdb.plane.svc.cluster.local:5432/plane?sslmode=disable',
-  //     DATA_SOURCE_USER: 'plane',
-  //     DATA_SOURCE_PASS: 'plane',
-  //   },
-  // }) + { namespace: null },
-  // planePGMetrics:
-  //   p.monitoring.v1.serviceMonitor.new('plane-pgdb-exporter')
-  //   + p.monitoring.v1.serviceMonitor.spec.withJobLabel('plane-pgdb-exporter')
-  //   + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
-  //     p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('docker-9187')
-  //     + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
-  //   ])
-  //   + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
-  //     app: 'plane-pgdb-exporter',
-  //   }),
 
   // Backup configurations for all Plane PVCs using the wrapper function
   planeBackups: gemini.backupMany(
