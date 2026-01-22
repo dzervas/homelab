@@ -44,7 +44,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
               initContainers+: [
                 containerLib.new(
                   'init-dns-json',
-                  'busybox:1.36',
+                  'gcr.io/distroless/base-nossl-debian12:debug',
                   pvs=sharedPV,
                   command=['sh', '-c'],
                   args=['printf "[]" > /data/dns.json'],
