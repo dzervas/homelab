@@ -3,6 +3,7 @@ local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 local k = import 'k.libsonnet';
+local networkPolicy = k.networking.v1.networkPolicy;
 
 // local certificate = certManager.nogroup.v1.certificate;
 
@@ -148,24 +149,38 @@ local controllerAffinity = {
         },
       ],
 
-      storageClasses: [{
-        name: 'linstor',
-        annotations: {
-          'storageclass.kubernetes.io/is-default-class': 'true',
+      storageClasses: [
+        {
+          name: 'linstor',
+          annotations: {
+            'storageclass.kubernetes.io/is-default-class': 'true',
+          },
+          provisioner: 'linstor.csi.linbit.com',
+          // To patch all pvs to be Retain:
+          // k get pv -o json | jq -r '.items[] | select(.spec.storageClassName == "linstor").metadata.name' | xargs -L1 kubectl patch pv -p '{"spec": {"persistentVolumeReclaimPolicy": "Retain"}}'
+          reclaimPolicy: 'Retain',
+          allowVolumeExpansion: true,
+          volumeBindingMode: 'WaitForFirstConsumer',
+          parameters: {
+            'linstor.csi.linbit.com/autoPlace': '2',
+            'linstor.csi.linbit.com/storagePool': 'lvm-thin',
+            // This can (and probably should) be a complex rule-based placement strategy - https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#s-kubernetes-params-allow-remote-volume-access
+            'linstor.csi.linbit.com/allowRemoteVolumeAccess': std.manifestYamlDoc([{ fromSame: ['provider'] }]),
+          },
         },
-        provisioner: 'linstor.csi.linbit.com',
-        // To patch all pvs to be Retain:
-        // k get pv -o json | jq -r '.items[] | select(.spec.storageClassName == "linstor").metadata.name' | xargs -L1 kubectl patch pv -p '{"spec": {"persistentVolumeReclaimPolicy": "Retain"}}'
-        reclaimPolicy: 'Retain',
-        allowVolumeExpansion: true,
-        volumeBindingMode: 'WaitForFirstConsumer',
-        parameters: {
-          'linstor.csi.linbit.com/autoPlace': '2',
-          'linstor.csi.linbit.com/storagePool': 'lvm-thin',
-          // This can (and probably should) be a complex rule-based placement strategy - https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#s-kubernetes-params-allow-remote-volume-access
-          'linstor.csi.linbit.com/allowRemoteVolumeAccess': 'false',
+        {
+          name: 'linstor-ha',
+          provisioner: 'linstor.csi.linbit.com',
+          reclaimPolicy: 'Retain',
+          allowVolumeExpansion: true,
+          volumeBindingMode: 'WaitForFirstConsumer',
+          parameters: {
+            'linstor.csi.linbit.com/autoPlace': '3',
+            'linstor.csi.linbit.com/storagePool': 'lvm-thin',
+            'linstor.csi.linbit.com/allowRemoteVolumeAccess': 'true',
+          },
         },
-      }],
+      ],
 
       // https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#_restoring_from_remote_snapshots
       volumeSnapshotClasses: [{
@@ -188,7 +203,6 @@ local controllerAffinity = {
         },
       }],
 
-      // TODO: Make sure this works
       monitoring: {
         enabled: true,
       },
@@ -197,46 +211,18 @@ local controllerAffinity = {
 
   // The csi-node pods run in host network and they need to be able to reach the controller pod
   // Host networking pods means that they have an IP from a non-k8s CIDR, hence the 0/0 CIDR
-  linstorHostNetworkPolicy: {
-    apiVersion: 'networking.k8s.io/v1',
-    kind: 'NetworkPolicy',
-    metadata: {
-      name: 'allow-hostnetwork-controller-access',
-      namespace: namespace,
-    },
-    spec: {
-      podSelector: {
-        matchLabels: {
-          'app.kubernetes.io/component': 'linstor-controller',
-        },
-      },
-      policyTypes: ['Ingress'],
-      ingress: [
-        {
-          from: [
-            {
-              // For some reason VPN CIDR doesn't work
-              ipBlock: {
-                cidr: '0.0.0.0/0',
-              },
-            },
-          ],
-          ports: [
-            {
-              protocol: 'TCP',
-              port: 3370,
-              endPort: 3371,
-            },
-          ],
-        },
-      ],
-    },
-  },
+  linstorHostNetworkPolicy:
+    networkPolicy.new('allow-hostnetwork-controller-access')
+    + networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/component': 'linstor-controller' })
+    + networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + networkPolicy.spec.withIngress([{
+      from: [{ ipBlock: { cidr: '0.0.0.0/0' } }],
+      ports: [{ port: 3370, endPort: 3371, protocol: 'TCP' }],
+    }]),
 
   // This is absolutely needed
   operatorWebhookNetworkPolicy:
     k.networking.v1.networkPolicy.new('piraeus-webhook')
-    + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
     + k.networking.v1.networkPolicy.spec.podSelector.withMatchLabels({
       'app.kubernetes.io/name': 'piraeus-datastore',
       'app.kubernetes.io/component': 'piraeus-operator',
@@ -255,7 +241,6 @@ local controllerAffinity = {
   // Unsure if this is required - is only the controller speaking to the satellites?
   satelliteNetworkPolicy:
     k.networking.v1.networkPolicy.new('linstor-satellite')
-    + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
     + k.networking.v1.networkPolicy.spec.podSelector.withMatchLabels({
       'app.kubernetes.io/component': 'linstor-satellite',
     })
