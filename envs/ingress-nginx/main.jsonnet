@@ -79,6 +79,9 @@ local defaultBackend = {
         hostPort: { enabled: true },
         service: { type: 'ClusterIP' },
 
+        // Change the default self-signed cert to a Let's Encrypt certificate
+        // extraArgs: { 'default-ssl-certificate': 'ingress/letsencrypt-prod' },
+
         config: {
           'custom-http-errors': std.join(',', errorCodes),
           'annotations-risk-level': 'Critical',

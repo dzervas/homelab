@@ -22,9 +22,9 @@ local className(domain) = if std.endsWith(domain, '.vpn.dzerv.art') || std.endsW
     'nginx.ingress.kubernetes.io/auth-tls-verify-depth': '1',
     'nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream': 'true',
   } + sslOnlyAnnotations,
-  oidcAnnotations(svcName):: {
-    'magicentry.rs/name': svcName,
-    'magicentry.rs/realms': svcName,
+  oidcAnnotations(name, realms):: {
+    'magicentry.rs/name': name,
+    'magicentry.rs/realms': realms,
     'magicentry.rs/auth-url': 'true',
 
     'nginx.ingress.kubernetes.io/auth-url': 'http://magicentry.auth.svc.cluster.local:8080/auth-url/status',

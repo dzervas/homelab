@@ -75,7 +75,7 @@ local pvc = k.core.v1.persistentVolumeClaim;
     + (if std.startsWith(image, 'ghcr.io/dzervas/') then workload.spec.template.spec.withImagePullSecrets([{ name: 'ghcr-cluster-secret' }]) else {})
     + workload.spec.template.spec.securityContext.withFsGroup(cfg.runAsUser)
     + workload.spec.template.spec.securityContext.withRunAsNonRoot(true)
-    // "Mixin" to use the default "name" label as well
-    + workload.spec.template.metadata.withLabelsMixin(cfg.labels)
-    + workload.spec.selector.withMatchLabelsMixin(cfg.labels),
+    // Replace labels to allow custom selectors (e.g., for TF migrations)
+    + workload.spec.template.metadata.withLabels(cfg.labels)
+    + workload.spec.selector.withMatchLabels(cfg.labels),
 }

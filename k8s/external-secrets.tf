@@ -12,6 +12,8 @@ resource "helm_release" "external_secrets" {
   values = [yamlencode({
     serviceMonitor   = { enabled = true }
     grafanaDashboard = { enabled = true }
+    # Limit concurrent reconciliations to reduce API pressure
+    concurrent = 1
   })]
 
   lifecycle {
@@ -54,6 +56,11 @@ resource "kubernetes_manifest" "_1password_store" {
       name = "1password"
     }
     spec = {
+      # Reduce retry aggressiveness to avoid hitting 1Password rate limits
+      retrySettings = {
+        maxRetries    = 24
+        retryInterval = "5m"
+      }
       provider = {
         onepasswordSDK = {
           vault = "k8s-secrets"
