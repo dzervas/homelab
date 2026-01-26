@@ -64,5 +64,5 @@ requires:
   - chart: jetstack/cert-manager
     version: v1.19.2
   - chart: external-secrets/external-secrets
-    version: 0.18.2
+    version: 1.3.1
 version: 1
