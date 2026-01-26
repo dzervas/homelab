@@ -26,6 +26,8 @@ repositories:
     url: oci://ghcr.io/dzervas/charts
   - name: grafana
     url: https://grafana.github.io/helm-charts
+  - name: jetstack
+    url: https://charts.jetstack.io
 requires:
   - chart: plane/plane-enterprise
     version: 1.8.0
@@ -57,4 +59,6 @@ requires:
     version: 10.5.12
   - chart: grafana/grafana-mcp
     version: 0.3.0
+  - chart: jetstack/cert-manager
+    version: v1.18.2
 version: 1
