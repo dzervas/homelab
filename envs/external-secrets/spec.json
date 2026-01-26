@@ -1,0 +1,13 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": { "name": "envs/external-secrets" },
+  "spec": {
+    "contextNames": ["gr"],
+    "namespace": "external-secrets",
+    "injectLabels": true,
+    "applyStrategy": "server",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

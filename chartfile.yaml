@@ -2,6 +2,8 @@ directory: charts
 repositories:
   - name: stable
     url: https://charts.helm.sh/stable
+  - name: external-secrets
+    url: https://charts.external-secrets.io
   - name: plane
     url: https://helm.plane.so
   - name: piraeus
@@ -60,5 +62,7 @@ requires:
   - chart: grafana/grafana-mcp
     version: 0.3.0
   - chart: jetstack/cert-manager
-    version: v1.18.2
+    version: v1.19.2
+  - chart: external-secrets/external-secrets
+    version: 0.18.2
 version: 1
