@@ -1,12 +1,10 @@
-local opsecretLib = import 'docker-service/opsecret.libsonnet';
 local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 local namespace = 'n8n';
 
 {
-  // 1Password external secret for n8n encryption key
-  n8nOp: opsecretLib.new('n8n'),
+  // Note: n8n-op secret is created by dockerService in n8n.libsonnet via op_envs
 
   // Generated password for n8n runner auth token
   n8nRunnerToken:

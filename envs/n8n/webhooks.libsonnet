@@ -17,10 +17,6 @@ local webhookHost = 'hook.' + domain;
     + ing.metadata.withAnnotations(ingress.sslOnlyAnnotations {
       'nginx.ingress.kubernetes.io/proxy-body-size': '16m',
     })
-    + ing.metadata.withLabels({
-      managed_by: 'terraform',
-      service: 'n8n',
-    })
     + ing.spec.withIngressClassName('nginx')
     + ing.spec.withRules([
       ingressRule.withHost(webhookHost)

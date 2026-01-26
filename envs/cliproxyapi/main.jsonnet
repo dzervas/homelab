@@ -10,10 +10,10 @@ local exporterDef = dockerService.new('cliproxyapi-exporter', 'ghcr.io/dzervas/c
 });
 
 {
-  cliproxyapi: dockerService.new('cliproxyapi', 'eceasy/cli-proxy-api', {
+  cliproxyapi: dockerService.new('cliproxyapi', 'eceasy/cli-proxy-api-plus', {
     fqdn: 'ai.vpn.dzerv.art',
     ports: [8317],
-    args: ['./CLIProxyAPI', '-config', '/data/config.yaml'],
+    args: ['./CLIProxyAPIPlus', '-config', '/data/config.yaml'],
     ingressAnnotations: {
       'nginx.ingress.kubernetes.io/proxy-body-size': '10m',
       'nginx.ingress.kubernetes.io/proxy-connect-timeout': '120',
