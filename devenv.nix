@@ -44,7 +44,7 @@
       )) | .[]'
       '';
 
-    tk-ns.exec = ''tk --ext-code namespaces=$(kubectl get ns -o json | jq -c '[.items[].metadata.name]') $@'';
+    tk-ns.exec = ''exec tk --ext-code namespaces=$(kubectl get ns -o json | jq -c '[.items[].metadata.name]') $@'';
   };
 
   env = {

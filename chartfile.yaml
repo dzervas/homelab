@@ -28,6 +28,8 @@ repositories:
     url: oci://ghcr.io/dzervas/charts
   - name: grafana
     url: https://grafana.github.io/helm-charts
+  - name: retool
+    url: https://charts.retool.com
   - name: jetstack
     url: https://charts.jetstack.io
 requires:
@@ -65,4 +67,6 @@ requires:
     version: v1.19.2
   - chart: external-secrets/external-secrets
     version: 1.3.1
+  - chart: retool/retool
+    version: 6.9.1
 version: 1

@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/retool"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "retool",
+		"applyStrategy": "server",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}
