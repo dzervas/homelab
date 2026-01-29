@@ -85,3 +85,8 @@ All accessible via `<node>.dzerv.art` FQDN.
 ## Development Environment
 
 Uses `devenv` with direnv.
+
+## Claude Code Rules
+
+- **Never run `tk apply`** - only diff, the user will apply manually
+- **Never run `deploy`** - only generate/edit configs, the user will deploy manually
