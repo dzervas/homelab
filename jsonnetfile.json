@@ -72,6 +72,15 @@
         }
       },
       "version": "main"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/piraeusdatastore/linstor-scheduler-extender.git",
+          "subdir": ""
+        }
+      },
+      "version": "master"
     }
   ],
   "legacyImports": true

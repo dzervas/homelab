@@ -8,7 +8,7 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "5270fb9cf5dbca3c9f9017cbfe8846cae7d8c025",
+      "version": "517e2f277e18152b2a941133f7aab80ccf73bd1e",
       "sum": "0y3AFX9LQSpfWTxWKSwoLgbt0Wc9nnCwhMH2szKzHv0="
     },
     {
@@ -18,7 +18,7 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "5270fb9cf5dbca3c9f9017cbfe8846cae7d8c025",
+      "version": "517e2f277e18152b2a941133f7aab80ccf73bd1e",
       "sum": "ShSIissXdvCy1izTCDZX6tY7qxCoepE5L+WJ52Hw7ZQ="
     },
     {
@@ -38,8 +38,8 @@
           "subdir": ""
         }
       },
-      "version": "a446f72305009ebcacba37e7fa793bd571c4c5e4",
-      "sum": "8KDPEu67vPTRBLE2bxZXw7uJkg78kRTnQGk1xBlUn9s="
+      "version": "ae8dca53562a92f87ed183b9d4b02bff69b51c39",
+      "sum": "xKPlvWS71dRnVPDBfejmOwLDB/FV7APNe974PQy+6/8="
     },
     {
       "source": {
@@ -58,8 +58,8 @@
           "subdir": ""
         }
       },
-      "version": "cbc2b4842c0888c74c2b895d54edce027ae3c4bd",
-      "sum": "BLM4mFfioz+RpDKA2qbwVornorne87tyQh9s8AlhrL4="
+      "version": "ddce992764944c4e8e93de79a593a4c8a9768ed2",
+      "sum": "WSLTwihG8gFYVJYKhORLGE7KeONIAaUgf8R2Njgd33o="
     },
     {
       "source": {
@@ -78,8 +78,8 @@
           "subdir": ""
         }
       },
-      "version": "e74ac47c28bc29c2d7e7bc15286bc2dc99c2d7f6",
-      "sum": "whw8ujSBVQeepXGByNqlSTfHpFn2ZdAfAAdHsAMM1Dc="
+      "version": "91d2d9355cbef02035d84e54ac6bebcf9d29afa7",
+      "sum": "J7eMYFgmlTD3eX+ZZJw6T3c9XnHiti9Jqe6oviJ9VWo="
     },
     {
       "source": {
@@ -88,8 +88,18 @@
           "subdir": ""
         }
       },
-      "version": "2cfc4ba81906b125870f231534d9fcbbc488a832",
-      "sum": "/iWRlM5Q2fJTRhdT575pETKiNGkri9pPRipza2l1FYc="
+      "version": "3a75e2820f26db809f02d7d16261d5984d4bb9b4",
+      "sum": "A1OmAOQ0K6mxzhSxhlsgZ3lf2i23NqBqlH0SmKxHans="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/piraeusdatastore/linstor-scheduler-extender.git",
+          "subdir": ""
+        }
+      },
+      "version": "f6e4253aaa81b1a1a8a992429d169b63a1de72ce",
+      "sum": "i1vcx4UjJSAVye+zuyOqWSfjAZHJERCnT3jAL19oLWM="
     }
   ],
   "legacyImports": false
