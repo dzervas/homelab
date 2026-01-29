@@ -34,7 +34,7 @@ repositories:
     url: https://charts.jetstack.io
 requires:
   - chart: plane/plane-enterprise
-    version: 1.8.0
+    version: 1.8.3
   - chart: piraeus/piraeus
     version: 2.10.3
   - chart: linstor/linstor-cluster
