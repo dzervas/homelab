@@ -1,4 +1,6 @@
-{ home-vpn-iface, node-vpn-iface, ... }: {
+{ home-vpn-iface, node-vpn-iface, ... }: let
+	cni-iface = ''{ "cilium_*", "lxc*" }'';
+in {
   networking.nftables.tables.vpn_split = {
     family = "ip";
     content = ''
@@ -26,45 +28,29 @@
 
     # Allow pod & service traffic
     extraInputRules = ''
-      # Allow Calico IPIP encapsulation over WireGuard
-      # ip protocol 4 iifname ${node-vpn-iface} accept
-
-      iifname "cali*" accept
+      iifname ${cni-iface} accept
     '';
 
     filterForward = true;
     # Allow pod & service routing through k3s interface
     extraForwardRules = ''
-      # Calico stuff
       # Always allow established/related early
       ct state { established, related } accept
 
-      # Allow Calico IPIP encapsulated traffic
-      # ip protocol 4 iifname ${node-vpn-iface} accept
-      # ip protocol 4 oifname ${node-vpn-iface} accept
-
-      # Allow pod <-> pod and pod <-> service everywhere
-      ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-      ip daddr { 10.42.0.0/16, 10.43.0.0/16 } accept
-
-      # BGP migration
-      iifname ${node-vpn-iface} oifname ${node-vpn-iface} ip saddr {10.42.0.0/16, 10.43.0.0/16} ip daddr {10.42.0.0/16, 10.43.0.0/16} accept
-
       # Calico interfaces (veth pairs, etc.)
-      iifname "cali*" accept
-      oifname "cali*" accept
-
-      # Allow routing between calico and wireguard
-      iifname "cali*" oifname ${node-vpn-iface} accept
-      iifname ${node-vpn-iface} oifname "cali*" accept
-      iifname "cali*" oifname { eth0, enp* } accept
-      iifname { eth0, enp* } oifname "cali*" accept
+      iifname ${cni-iface} accept
+      oifname ${cni-iface} accept
 
       # Host -> host traffic over the VPN
       iifname ${node-vpn-iface} oifname ${node-vpn-iface} accept
+      iifname ${home-vpn-iface} oifname { eth0, enp* } accept
 
       # Enable internet (podman and kubernetes)
       iifname podman0 oifname { eth0, enp* } accept
+    '';
+
+    extraReversePathFilterRules = ''
+	    iifname ${cni-iface} accept
     '';
   };
 

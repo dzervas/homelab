@@ -10,7 +10,7 @@ local nodeSelector = { 'linstor/enable': 'true' };
       linstorCluster: {
         nodeSelector: nodeSelector,
         nfsServer: {
-          enabled: false,
+          enabled: true,
         },
 
         tolerations: [{

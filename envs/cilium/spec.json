@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/cilium"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "cilium",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"applyStrategy": "server",
+		"expectVersions": {}
+	}
+}
