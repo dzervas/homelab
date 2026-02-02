@@ -2,7 +2,6 @@
   config,
   hostIndex,
   node-vpn-prefix,
-  pkgs,
   role,
   ...
 }:
@@ -17,7 +16,7 @@
 
   # TODO: Add graceful shutdown like the k3s module
   services.rke2 = let
-    isMaster = hostIndex == "100";
+    is-master = hostIndex == "100";
   in {
     inherit role;
 
@@ -25,9 +24,10 @@
 
     # Could be in the config but they need to be here
     nodeIP = "${node-vpn-prefix}.${hostIndex}"; # RKE2 bug recreates the cluster
+    # TODO: Define external ip
     # NixOS modules bug doesn't like the default configFile
-    tokenFile = if isMaster then null else "/etc/k3s-token";
-    serverAddr = if isMaster then "" else "https://${node-vpn-prefix}.100:9345";
+    tokenFile = if is-master then null else "/etc/k3s-token";
+    serverAddr = if is-master then "" else "https://${node-vpn-prefix}.100:9345";
 
     # TODO: Requires https://docs.rke2.io/security/hardening_guide/
     # cisHardening = true;

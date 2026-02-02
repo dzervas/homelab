@@ -82,7 +82,9 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
       ]),
     ])
     + ciliumClusterwideNetworkPolicy.spec.withIngress([
+      ciliumClusterwideNetworkPolicy.spec.ingress.withFromEntities(['host', 'remote-node']),  // hostNetwork pods are NOT treated as ns pods
       ciliumClusterwideNetworkPolicy.spec.ingress.withFromEndpoints([
+        {},  // Same namespace pods
         ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.withMatchExpressions([
           ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withKey('k8s:io.kubernetes.pod.namespace')
           + ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withOperator('In')

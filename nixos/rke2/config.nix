@@ -9,8 +9,8 @@
   ...
 }: let
   # Denotes the "master" node, where the initial clusterInit happens
-  isMaster = hostIndex == "100";
-  nodeIP = "${node-vpn-prefix}.${hostIndex}";
+  is-master = hostIndex == "100";
+  node-ip = "${node-vpn-prefix}.${hostIndex}";
 in {
   environment.etc."rancher/rke2/config.yaml".text = builtins.toJSON ({
     node-name = config.networking.hostName;
@@ -20,12 +20,14 @@ in {
       "linstor/enable=true"
     ];
 
+    # node-external-ip = if (config.setup.provider != "homelab") then node-ip else null;
+
     resolv-conf = "/etc/rancher/rke2/resolv.conf";
   } // (if role == "server" then {
     cni = "none";
     disable-kube-proxy = true; # Calico handles it in eBPF mode
 
-    advertise-address = nodeIP;
+    advertise-address = node-ip;
     service-node-port-range = "25000-32767";
 
     etcd-snapshot-compress = true;
@@ -44,7 +46,7 @@ in {
 
     tls-san = [
       "${home-vpn-prefix}.${hostIndex}"
-      nodeIP
+      node-ip
       config.networking.fqdn
       "kube.vpn.${config.networking.domain}"
       "${hostName}.ts.${config.networking.domain}"
@@ -59,7 +61,7 @@ in {
   systemd.services."rke2-${role}".restartTriggers = [ config.environment.etc."rancher/rke2/config.yaml".source ];
 
   # Extra manifests to configure rke2 plugins
-  systemd.tmpfiles.settings."10-rke2-config" = if isMaster then (let
+  systemd.tmpfiles.settings."10-rke2-config" = if is-master then (let
 	  # rke2-calico-config = pkgs.writeTextFile {
 	  #   name = "rke2-calico-config";
 	  #   text = builtins.readFile ./rke2-calico-config.yaml;
@@ -105,15 +107,3 @@ in {
   #     RUN+="${pkgs.lvm2}/bin/vgscan --mknodes"
   # '';
 }
-
-# For some reason, the tigera-operator (calico's operator) didn't find an IPPool and I had to create it manually:
-# apiVersion: crd.projectcalico.org/v1
-# kind: IPPool
-# metadata:
-#   name: gr0
-# spec:
-#   cidr: 10.42.0.0/24
-#   blockSize: 24
-#   ipipMode: Never
-#   vxlanMode: Never
-#   nodeSelector: "kubernetes.io/hostname == 'gr0'"

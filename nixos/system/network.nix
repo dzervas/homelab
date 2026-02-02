@@ -64,7 +64,8 @@ in {
 	          inherit (machine) publicKey;
             # NOTE: For some reason I had to manually add the allowed IPs for SOME nodes
             # wg set wg0 peer <publicKey> allowed-ips +10.42.101.0/24
-            allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32" "10.42.${machine.hostIndex}.0/24"];
+            # allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32" "10.42.${machine.hostIndex}.0/24"];
+            allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32"];
 
             # Use it as an endpoint only if it's a k3s server
             # TODO: Filter based on provider

@@ -11,11 +11,13 @@ local namespace = 'cilium';
   cilium: helm.template('cilium', '../../charts/cilium', {
     namespace: namespace,
     values: {
-      routingMode: 'native',
-      tunnelProtocol: '',
+      // No encapsulation mode:
+      // routingMode: 'native',
+      // tunnelProtocol: '',
       // devices: ['wg0'],
-      MTU: 1392,
-      autoDirectNodeRoutes: true,  // Let cilium handle pod routes in nodes
+      // MTU: 1392,
+      // autoDirectNodeRoutes: true,  // Let cilium handle pod routes in nodes
+      // Probably also needs IPAM kubernetes and custom podCIDR per node and wireguard acceptips
 
       ipv4NativeRoutingCIDR: '10.200.0.0/16',
 
@@ -27,13 +29,14 @@ local namespace = 'cilium';
       },
       bpf: {
         hostLegacyRouting: false,
+        // TODO: Disable after moving to gateway api
+        // hostLegacyRouting: true,
         lbExternalClusterIP: true,
         masquerade: true,
       },
       extraConfig: {
         'enable-host-reachable-services': 'true',
       },
-      nodePort: { enabled: true },
       socketLB: { enabled: true },
       kubeProxyReplacement: 'true',
 
