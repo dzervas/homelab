@@ -1,4 +1,4 @@
-local calico = import 'calico-libsonnet/3.28/main.libsonnet';
+local cilium = import 'cilium-libsonnet/1.18/main.libsonnet';
 local k = import 'k.libsonnet';
 
 local serviceAccount = k.core.v1.serviceAccount;
@@ -6,7 +6,7 @@ local clusterRole = k.rbac.v1.clusterRole;
 local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
 local networkPolicy = k.networking.v1.networkPolicy;
 local networkPolicyIngressRule = k.networking.v1.networkPolicyIngressRule;
-local globalNetworkPolicy = calico.crd.v1.globalNetworkPolicy;
+local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetworkPolicy;
 
 {
   kubenav: {
@@ -70,24 +70,29 @@ local globalNetworkPolicy = calico.crd.v1.globalNetworkPolicy;
       }]),
   },
 
-  defaultDenyNP: {
-    apiVersion: 'projectcalico.org/v3',
-    kind: 'GlobalNetworkPolicy',
-    metadata: {
-      name: 'default-ingress',
-    },
-    spec: {
-      order: 1000,
-      types: ['Ingress'],
-      namespaceSelector: "projectcalico.org/name not in {'kube-system', 'default', 'ingress'}",
-      ingress: [{
-        action: 'Allow',
-        source: {
-          namespaceSelector: 'kubernetes.io/metadata.name in {"ingress","victoriametrics"}',
-        },
-      }],
-    },
-  },
+  defaultDenyNP:
+    ciliumClusterwideNetworkPolicy.new('default-ingress')
+    + ciliumClusterwideNetworkPolicy.spec.endpointSelector.withMatchExpressions([
+      ciliumClusterwideNetworkPolicy.spec.endpointSelector.matchExpressions.withKey('k8s:io.kubernetes.pod.namespace')
+      + ciliumClusterwideNetworkPolicy.spec.endpointSelector.matchExpressions.withOperator('NotIn')
+      + ciliumClusterwideNetworkPolicy.spec.endpointSelector.matchExpressions.withValues([
+        'kube-system',
+        'default',
+        'ingress',
+      ]),
+    ])
+    + ciliumClusterwideNetworkPolicy.spec.withIngress([
+      ciliumClusterwideNetworkPolicy.spec.ingress.withFromEndpoints([
+        ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.withMatchExpressions([
+          ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withKey('k8s:io.kubernetes.pod.namespace')
+          + ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withOperator('In')
+          + ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withValues([
+            'ingress',
+            'victoriametrics',
+          ]),
+        ]),
+      ]),
+    ]),
 
   defaultAllowNSNP: std.map(
     function(ns)

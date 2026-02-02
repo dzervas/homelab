@@ -11,27 +11,53 @@ local namespace = 'cilium';
   cilium: helm.template('cilium', '../../charts/cilium', {
     namespace: namespace,
     values: {
-      // routingMode: 'native',
-      // tunnelProtocol: '',
-      // devices: 'wg0',
-      // MTU: 1392,
-      // autoDirectNodeRoutes: true,
+      routingMode: 'native',
+      tunnelProtocol: '',
+      // devices: ['wg0'],
+      MTU: 1392,
+      autoDirectNodeRoutes: true,  // Let cilium handle pod routes in nodes
+
+      ipv4NativeRoutingCIDR: '10.200.0.0/16',
 
       ipam: {
         mode: 'cluster-pool',
         operator: {
-          clusterPoolIPv4PodCIDRList: ['10.200.0.0/16'],  // Migration: Ensure this is distinct and unused
+          clusterPoolIPv4PodCIDRList: ['10.200.0.0/16'],
         },
       },
-      policyEnforcementMode: 'never',  // Migration: Disable policy enforcement
       bpf: {
-        hostLegacyRouting: true,  // Migration: Allow for routing between Cilium and the existing overlay
-        // masquerade: true,
+        hostLegacyRouting: false,
+        lbExternalClusterIP: true,
+        masquerade: true,
       },
-      socketLB: {
-        enabled: true,  // Required for hostPort support
+      extraConfig: {
+        'enable-host-reachable-services': 'true',
       },
+      nodePort: { enabled: true },
+      socketLB: { enabled: true },
       kubeProxyReplacement: 'true',
+
+      // Direct API server access - avoids chicken-and-egg with kube-proxy disabled
+      // TODO: If gr0 is down the cluster might get stuck during a cold start
+      k8sServiceHost: '10.20.30.100',
+      k8sServicePort: '6443',
+
+      // hubble: { tls: { auto: {
+      //   method: 'certmanager',
+      //   certManagerIssuerRef: {
+      //     name: 'selfsigned',
+      //     kind: 'ClusterIssuer',
+      //     group: 'cert-manager.io',
+      //   },
+      // } } },
+      // clustermesh: { apiserver: { tls: { auto: {
+      //   method: 'certmanager',
+      //   certManagerIssuerRef: {
+      //     name: 'selfsigned',
+      //     kind: 'ClusterIssuer',
+      //     group: 'cert-manager.io',
+      //   },
+      // } } } },
 
       // No reason since everything is on top of wireguard
       // bgpControlPlane: {

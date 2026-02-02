@@ -1,87 +1,96 @@
 {
-  "version": 1,
-  "dependencies": [
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/grafana/jsonnet-libs.git",
-          "subdir": "ksonnet-util"
-        }
-      },
-      "version": "master"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/grafana/jsonnet-libs.git",
-          "subdir": "tanka-util"
-        }
-      },
-      "version": "master"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/jsonnet-libs/calico-libsonnet.git",
-          "subdir": ""
-        }
-      },
-      "version": "main"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/jsonnet-libs/cert-manager-libsonnet.git",
-          "subdir": ""
-        }
-      },
-      "version": "main"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/jsonnet-libs/external-secrets-libsonnet.git",
-          "subdir": ""
-        }
-      },
-      "version": "main"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/jsonnet-libs/k8s-libsonnet.git",
-          "subdir": "1.33"
-        }
-      },
-      "version": "main"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/jsonnet-libs/prometheus-operator-libsonnet.git",
-          "subdir": ""
-        }
-      },
-      "version": "main"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/jsonnet-libs/victoria-metrics-operator-libsonnet.git",
-          "subdir": ""
-        }
-      },
-      "version": "main"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/piraeusdatastore/linstor-scheduler-extender.git",
-          "subdir": ""
-        }
-      },
-      "version": "master"
-    }
-  ],
-  "legacyImports": true
+	"version": 1,
+	"dependencies": [
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/grafana/jsonnet-libs.git",
+					"subdir": "ksonnet-util"
+				}
+			},
+			"version": "master"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/grafana/jsonnet-libs.git",
+					"subdir": "tanka-util"
+				}
+			},
+			"version": "master"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/calico-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/cilium-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/cert-manager-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/external-secrets-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/k8s-libsonnet.git",
+					"subdir": "1.33"
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/prometheus-operator-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/victoria-metrics-operator-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/piraeusdatastore/linstor-scheduler-extender.git",
+					"subdir": ""
+				}
+			},
+			"version": "master"
+		}
+	],
+	"legacyImports": true
 }

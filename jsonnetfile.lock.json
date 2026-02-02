@@ -44,6 +44,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/cilium-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "add73a2cf00dadee047fc5c6835c374cdcb8c1e1",
+      "sum": "qamtU1V7CZP4XlV5jGuGBP31LwoMCX/jJHXILLuouD4="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/docsonnet.git",
           "subdir": "doc-util"
         }
