@@ -54,4 +54,28 @@ local domain = 'dzerv.art';
     + certificate.spec.withDnsNames(['vpn.' + domain])
     + certificate.spec.issuerRef.withName('letsencrypt')
     + certificate.spec.issuerRef.withKind('ClusterIssuer'),
+
+  // CiliumNetworkPolicy to allow webhook egress to kube-apiserver.
+  // Standard NetworkPolicy ipBlock CIDR rules don't match Cilium's
+  // reserved kube-apiserver identity, so we need an explicit entity allow.
+  webhookApiserverEgress: {
+    apiVersion: 'cilium.io/v2',
+    kind: 'CiliumNetworkPolicy',
+    metadata: {
+      name: 'cert-manager-webhook-apiserver-egress',
+      namespace: namespace,
+    },
+    spec: {
+      endpointSelector: {
+        matchLabels: {
+          'app.kubernetes.io/component': 'webhook',
+          'app.kubernetes.io/instance': 'cert-manager',
+          'app.kubernetes.io/name': 'webhook',
+        },
+      },
+      egress: [{
+        toEntities: ['kube-apiserver'],
+      }],
+    },
+  },
 } + pki + pkiGlobal
