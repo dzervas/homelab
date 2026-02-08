@@ -75,6 +75,9 @@ local defaultBackend = {
 
         networkPolicy: { enabled: true },
 
+        // Temporarily disabled - migrating to Cilium Gateway API
+        nodeSelector: { 'non-existent-disable': 'true' },
+
         kind: 'DaemonSet',
         hostPort: { enabled: true },
         service: { type: 'ClusterIP' },
