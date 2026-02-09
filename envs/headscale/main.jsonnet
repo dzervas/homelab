@@ -2,6 +2,7 @@ local dockerService = import 'docker-service.libsonnet';
 local containerLib = import 'docker-service/container.libsonnet';
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
 local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
+local gatewayApi = import 'gateway-api-libsonnet/1.4-experimental/main.libsonnet';
 local k = import 'k.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 local serviceAccount = k.core.v1.serviceAccount;
@@ -9,6 +10,7 @@ local clusterRole = k.rbac.v1.clusterRole;
 local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
 local container = k.core.v1.container;
 local envVar = k.core.v1.envVar;
+local httpRoute = gatewayApi.gateway.v1.httpRoute;
 
 local namespace = 'headscale';
 local domain = 'dzerv.art';
@@ -168,4 +170,15 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
     }]),
 
   dnsControllerOpSecret: opsecretLib.new('dns-controller'),
+
+  httpRoute:
+    httpRoute.new('headscale')
+    + httpRoute.spec.withHostnames(['vpn.dzerv.art'])
+    + httpRoute.spec.withParentRefs([{ name: 'cilium-gateway' }])
+    + httpRoute.spec.withRules([{
+      matches: [{
+        path: { type: 'PathPrefix', value: '/' },
+      }],
+      backendRefs: [{ name: 'headscale', port: 8080 }],
+    }]),
 }

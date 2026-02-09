@@ -96,7 +96,7 @@ local defaultBackend = {
         },
       },
 
-      defaultBackend: defaultBackend,
+      // defaultBackend: defaultBackend,
     },
   }),
 
@@ -163,4 +163,28 @@ local defaultBackend = {
         { port: 7443, protocol: 'TCP' },
       ],
     }]),
+
+  // CiliumNetworkPolicy to allow webhook egress to kube-apiserver.
+  // Standard NetworkPolicy ipBlock CIDR rules don't match Cilium's
+  // reserved kube-apiserver identity, so we need an explicit entity allow.
+  webhookApiserverEgress: {
+    apiVersion: 'cilium.io/v2',
+    kind: 'CiliumNetworkPolicy',
+    metadata: {
+      name: 'ingress-nginx-webhook-apiserver-egress',
+      namespace: namespace,
+    },
+    spec: {
+      endpointSelector: {
+        matchLabels: {
+          'app.kubernetes.io/component': 'controller',
+          'app.kubernetes.io/instance': 'ingress-nginx',
+          'app.kubernetes.io/name': 'ingress-nginx',
+        },
+      },
+      egress: [{
+        toEntities: ['kube-apiserver'],
+      }],
+    },
+  },
 }

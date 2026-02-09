@@ -2,19 +2,16 @@ local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 local affinity = import 'helpers/affinity.libsonnet';
-
-local namespace = 'cilium';
+local gatewayApi = import 'github.com/jsonnet-libs/gateway-api-libsonnet/1.4-experimental/main.libsonnet';
+local httpRoute = gatewayApi.v1.httpRoute;
 
 {
-  namespace: k.core.v1.namespace.new(namespace),
-
   // Self-signed certificate for the Gateway HTTPS listener
   gatewayCert: {
     apiVersion: 'cert-manager.io/v1',
     kind: 'Certificate',
     metadata: {
       name: 'gateway-cert',
-      namespace: namespace,
     },
     spec: {
       secretName: 'gateway-tls',
@@ -22,8 +19,8 @@ local namespace = 'cilium';
         name: 'letsencrypt',
         kind: 'ClusterIssuer',
       },
-      // dnsNames: ['*.dzerv.art', 'dzerv.art'],
-      dnsNames: ['dzerv.art'],
+      dnsNames: ['*.dzerv.art', 'dzerv.art'],
+      // dnsNames: ['dzerv.art'],
     },
   },
 
@@ -34,7 +31,6 @@ local namespace = 'cilium';
     kind: 'Gateway',
     metadata: {
       name: 'cilium-gateway',
-      namespace: namespace,
     },
     spec: {
       gatewayClassName: 'cilium',
@@ -67,8 +63,14 @@ local namespace = 'cilium';
   },
 
   cilium: helm.template('cilium', '../../charts/cilium', {
-    namespace: namespace,
+    namespace: 'kube-system',
     values: {
+      rollOutCiliumPods: true,
+      hubble: {
+        relay: { enabled: true },
+        ui: { enabled: true },
+      },
+
       // No encapsulation mode:
       // routingMode: 'native',
       // tunnelProtocol: '',
@@ -133,10 +135,11 @@ local namespace = 'cilium';
           },
         },
       },
+      envoyConfig: { enabled: true },
 
       gatewayAPI: {
         enabled: true,
-        hostNetwork: { enabled: true },
+        // hostNetwork: { enabled: true },
         gatewayClass: { create: 'true' },
       },
 

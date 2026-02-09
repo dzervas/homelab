@@ -31,15 +31,6 @@
 		{
 			"source": {
 				"git": {
-					"remote": "https://github.com/jsonnet-libs/cilium-libsonnet.git",
-					"subdir": ""
-				}
-			},
-			"version": "main"
-		},
-		{
-			"source": {
-				"git": {
 					"remote": "https://github.com/jsonnet-libs/cert-manager-libsonnet.git",
 					"subdir": ""
 				}
@@ -49,7 +40,25 @@
 		{
 			"source": {
 				"git": {
+					"remote": "https://github.com/jsonnet-libs/cilium-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
 					"remote": "https://github.com/jsonnet-libs/external-secrets-libsonnet.git",
+					"subdir": ""
+				}
+			},
+			"version": "main"
+		},
+		{
+			"source": {
+				"git": {
+					"remote": "https://github.com/jsonnet-libs/gateway-api-libsonnet.git",
 					"subdir": ""
 				}
 			},

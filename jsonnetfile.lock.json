@@ -8,7 +8,7 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "517e2f277e18152b2a941133f7aab80ccf73bd1e",
+      "version": "5a573cd6b179ac3ce46bcf74db290a941f6f5f0d",
       "sum": "0y3AFX9LQSpfWTxWKSwoLgbt0Wc9nnCwhMH2szKzHv0="
     },
     {
@@ -18,7 +18,7 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "517e2f277e18152b2a941133f7aab80ccf73bd1e",
+      "version": "5a573cd6b179ac3ce46bcf74db290a941f6f5f0d",
       "sum": "ShSIissXdvCy1izTCDZX6tY7qxCoepE5L+WJ52Hw7ZQ="
     },
     {
@@ -74,11 +74,21 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/gateway-api-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "bc2c4d27488d85054f7035620507e524bde22a13",
+      "sum": "0ItZkzKbx2eJD2aC8wmOtcOD6JVSJ1751sw3DmKcXn0="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/k8s-libsonnet.git",
           "subdir": "1.33"
         }
       },
-      "version": "291653b2c17d03e855e7e00ce0e4ec25502b2ce2",
+      "version": "55380470fb7979e6ce0c4316cb9c27a266caf298",
       "sum": "FTic3KWLxPcO/DpkwJ6AgvWmbxouYiAVrflXtbAiIhY="
     },
     {

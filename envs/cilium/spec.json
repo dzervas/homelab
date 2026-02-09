@@ -6,7 +6,7 @@
 	},
 	"spec": {
 		"contextNames": ["gr"],
-		"namespace": "cilium",
+		"namespace": "kube-system",
 		"injectLabels": true,
 		"resourceDefaults": {},
 		"applyStrategy": "server",
