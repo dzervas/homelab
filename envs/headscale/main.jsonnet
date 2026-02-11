@@ -200,22 +200,24 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
     kind: 'CiliumEnvoyConfig',
     metadata: {
       name: 'headscale-upgrade-config',
+      namespace: namespace,
     },
     spec: {
       backendServices: [{
         name: 'headscale',
-        namespace: 'headscale',
+        namespace: namespace,
+        number: ['8080'],
       }],
       resources: [{
-
         '@type': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
-        upgrade_configs: [{
-          upgrade_type: 'tailscale-control-protocol',
-          enabled: true,
-        }, {
-          upgrade_type: 'websocket',
-          enabled: true,
-        }],
+        statPrefix: 'headscale',
+        httpFilters: [
+          { name: 'envoy.filters.http.router' },
+        ],
+        upgradeConfigs: [
+          { upgradeType: 'tailscale-control-protocol' },
+          { upgradeType: 'websocket' },
+        ],
       }],
     },
   },
