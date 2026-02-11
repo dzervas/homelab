@@ -66,31 +66,11 @@ local gateway = import './gateway.libsonnet';
       //   },
       // } } } },
 
-      envoy: {
-        securityContext: {
-          capabilities: {
-            envoy: [
-              // Needed by envoy, check values.yaml
-              'NET_ADMIN',
-              'SYS_ADMIN',
-              'NET_BIND_SERVICE',
-            ],
-            keepCapNetBindService: true,
-          },
-        },
-      },
-      envoyConfig: { enabled: true },
-
-      gatewayAPI: {
-        enabled: true,
-        hostNetwork: { enabled: true },
-        gatewayClass: { create: 'true' },
-      },
-
       // No reason since everything is on top of wireguard
       // bgpControlPlane: {
       //   enabled: true,
       // },
     },
   }),
-} + gateway
+  // } + gateway
+}

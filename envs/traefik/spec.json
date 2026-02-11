@@ -1,0 +1,16 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "envs/traefik"
+  },
+  "spec": {
+    "contextNames": [
+      "gr"
+    ],
+    "namespace": "traefik",
+    "injectLabels": true,
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

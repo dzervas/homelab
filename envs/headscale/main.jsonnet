@@ -174,51 +174,11 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
   httpRoute:
     httpRoute.new('headscale')
     + httpRoute.spec.withHostnames(['vpn.dzerv.art'])
-    + httpRoute.spec.withParentRefs([{ name: 'cilium-gateway', namespace: 'kube-system' }])
+    + httpRoute.spec.withParentRefs([{ name: 'traefik-gateway', namespace: 'traefik' }])
     + httpRoute.spec.withRules([{
       matches: [{
         path: { type: 'PathPrefix', value: '/' },
       }],
       backendRefs: [{ name: 'headscale', port: 8080 }],
-      filters: [
-        {
-          type: 'ExtensionRef',
-          extensionRef: {
-            group: 'cilium.io',
-            kind: 'CiliumEnvoyConfig',
-            name: 'headscale-upgrade-config',
-          },
-        },
-        // httpRoute.spec.rules.filters.extensionRef.withGroup('cilium.io'),
-        // httpRoute.spec.rules.filters.extensionRef.withKind('CiliumEnvoyConfig'),
-        // httpRoute.spec.rules.filters.extensionRef.withName('headscale-upgrade-config'),
-      ],
     }]),
-
-  envoyConfig: {
-    apiVersion: 'cilium.io/v2',
-    kind: 'CiliumEnvoyConfig',
-    metadata: {
-      name: 'headscale-upgrade-config',
-      namespace: namespace,
-    },
-    spec: {
-      backendServices: [{
-        name: 'headscale',
-        namespace: namespace,
-        number: ['8080'],
-      }],
-      resources: [{
-        '@type': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
-        statPrefix: 'headscale',
-        httpFilters: [
-          { name: 'envoy.filters.http.router' },
-        ],
-        upgradeConfigs: [
-          { upgradeType: 'tailscale-control-protocol' },
-          { upgradeType: 'websocket' },
-        ],
-      }],
-    },
-  },
 }
