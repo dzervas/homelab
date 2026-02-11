@@ -61,23 +61,23 @@ local httpRoute = gatewayApi.v1.httpRoute;
   // CiliumNetworkPolicy to allow webhook egress to kube-apiserver.
   // Standard NetworkPolicy ipBlock CIDR rules don't match Cilium's
   // reserved kube-apiserver identity, so we need an explicit entity allow.
-  envoyNetworkPolicy: {
-    apiVersion: 'cilium.io/v2',
-    kind: 'CiliumNetworkPolicy',
-    metadata: {
-      name: 'envoy-allow',
-    },
-    spec: {
-      endpointSelector: {
-        matchLabels: { 'k8s-app': 'cilium-envoy' },
-      },
-      ingress: [{
-        fromEntities: ['world', 'cluster', 'ingress'],
-        toPorts: [{ ports: [
-          { port: '80', protocol: 'TCP' },
-          { port: '443', protocol: 'TCP' },
-        ] }],
-      }],
-    },
-  },
+  // envoyNetworkPolicy: {
+  //   apiVersion: 'cilium.io/v2',
+  //   kind: 'CiliumNetworkPolicy',
+  //   metadata: {
+  //     name: 'envoy-allow',
+  //   },
+  //   spec: {
+  //     endpointSelector: {
+  //       matchLabels: { 'k8s-app': 'cilium-envoy' },
+  //     },
+  //     ingress: [{
+  //       fromEntities: ['world', 'cluster', 'ingress'],
+  //       toPorts: [{ ports: [
+  //         { port: '80', protocol: 'TCP' },
+  //         { port: '443', protocol: 'TCP' },
+  //       ] }],
+  //     }],
+  //   },
+  // },
 }
