@@ -12,6 +12,23 @@ local namespace = 'traefik';
   //   'pod-security.kubernetes.io/enforce-version': 'latest',
   // }),
 
+  gatewayCert: {
+    apiVersion: 'cert-manager.io/v1',
+    kind: 'Certificate',
+    metadata: {
+      name: 'gateway-cert',
+    },
+    spec: {
+      secretName: 'gateway-tls',
+      issuerRef: {
+        name: 'letsencrypt',
+        kind: 'ClusterIssuer',
+      },
+      dnsNames: ['*.dzerv.art', 'dzerv.art'],
+      // dnsNames: ['dzerv.art'],
+    },
+  },
+
   traefik:
     helm.template('traefik', '../../charts/traefik', {
       namespace: namespace,
@@ -47,6 +64,10 @@ local namespace = 'traefik';
               port: 8443,
               protocol: 'HTTPS',
               namespacePolicy: { from: 'All' },
+              certificateRefs: [{
+                name: 'gateway-tls',
+                kind: 'Secret',
+              }],
             },
           },
         },
@@ -59,20 +80,8 @@ local namespace = 'traefik';
         // ocsp: { enabled: true },
 
         ports: {
-          web: {
-            // port: 7080,
-            // containerPort: 7080,
-            // exposedPort: 7080,
-            hostPort: 80,
-            // hostIP: '127.0.0.1',
-          },
-          websecure: {
-            // port: 7443,
-            // containerPort: 7443,
-            // exposedPort: 7443,
-            hostPort: 443,
-            // hostIP: '127.0.0.1',
-          },
+          web: { hostPort: 80 },
+          websecure: { hostPort: 443 },
         },
       },
     }),
