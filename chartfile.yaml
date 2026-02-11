@@ -1,76 +1,76 @@
 directory: charts
 repositories:
-- name: stable
-  url: https://charts.helm.sh/stable
-- name: external-secrets
-  url: https://charts.external-secrets.io
-- name: plane
-  url: https://helm.plane.so
-- name: piraeus
-  url: oci://ghcr.io/piraeusdatastore/piraeus-operator
-- name: linstor
-  url: oci://ghcr.io/piraeusdatastore/helm-charts
-- name: descheduler
-  url: https://kubernetes-sigs.github.io/descheduler/
-- name: victoriametrics
-  url: https://victoriametrics.github.io/helm-charts/
-- name: prometheus
-  url: https://prometheus-community.github.io/helm-charts
-- name: ingress-nginx
-  url: https://kubernetes.github.io/ingress-nginx
-- name: bitnami-mariadb
-  url: oci://registry-1.docker.io/bitnamicharts
-- name: gemini
-  url: https://charts.fairwinds.com/stable
-- name: woodpecker
-  url: oci://ghcr.io/woodpecker-ci/helm
-- name: dzervas
-  url: oci://ghcr.io/dzervas/charts
-- name: grafana
-  url: https://grafana.github.io/helm-charts
-- name: retool
-  url: https://charts.retool.com
-- name: jetstack
-  url: https://charts.jetstack.io
-- name: cilium
-  url: https://helm.cilium.io/
+  - name: stable
+    url: https://charts.helm.sh/stable
+  - name: external-secrets
+    url: https://charts.external-secrets.io
+  - name: plane
+    url: https://helm.plane.so
+  - name: piraeus
+    url: oci://ghcr.io/piraeusdatastore/piraeus-operator
+  - name: linstor
+    url: oci://ghcr.io/piraeusdatastore/helm-charts
+  - name: descheduler
+    url: https://kubernetes-sigs.github.io/descheduler/
+  - name: victoriametrics
+    url: https://victoriametrics.github.io/helm-charts/
+  - name: prometheus
+    url: https://prometheus-community.github.io/helm-charts
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: bitnami-mariadb
+    url: oci://registry-1.docker.io/bitnamicharts
+  - name: gemini
+    url: https://charts.fairwinds.com/stable
+  - name: woodpecker
+    url: oci://ghcr.io/woodpecker-ci/helm
+  - name: dzervas
+    url: oci://ghcr.io/dzervas/charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: retool
+    url: https://charts.retool.com
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: cilium
+    url: https://helm.cilium.io/
 requires:
-- chart: plane/plane-enterprise
-  version: 1.8.4
-- chart: piraeus/piraeus
-  version: 2.10.3
-- chart: linstor/linstor-cluster
-  version: 1.1.1
-- chart: descheduler/descheduler
-  version: 0.34.0
-- chart: victoriametrics/victoria-metrics-k8s-stack
-  version: 0.69.0
-- chart: prometheus/prometheus-operator-crds
-  version: 26.0.0
-- chart: ingress-nginx/ingress-nginx
-  version: 4.14.1
-- chart: victoriametrics/victoria-logs-collector
-  version: 0.2.7
-- chart: victoriametrics/victoria-logs-single
-  version: 0.11.24
-- chart: bitnami-mariadb/mariadb
-  version: 21.0.8
-- chart: gemini/gemini
-  version: 2.1.3
-- chart: woodpecker/woodpecker
-  version: 3.4.2
-- chart: dzervas/audiobookshelf
-  version: 0.2.4
-- chart: grafana/grafana
-  version: 10.5.12
-- chart: grafana/grafana-mcp
-  version: 0.3.1
-- chart: jetstack/cert-manager
-  version: v1.19.2
-- chart: external-secrets/external-secrets
-  version: 1.3.1
-- chart: retool/retool
-  version: 6.9.1
-- chart: cilium/cilium
-  version: 1.18.6
+  - chart: plane/plane-enterprise
+    version: 1.8.4
+  - chart: piraeus/piraeus
+    version: 2.10.3
+  - chart: linstor/linstor-cluster
+    version: 1.1.1
+  - chart: descheduler/descheduler
+    version: 0.34.0
+  - chart: victoriametrics/victoria-metrics-k8s-stack
+    version: 0.69.0
+  - chart: prometheus/prometheus-operator-crds
+    version: 26.0.0
+  - chart: ingress-nginx/ingress-nginx
+    version: 4.14.1
+  - chart: victoriametrics/victoria-logs-collector
+    version: 0.2.7
+  - chart: victoriametrics/victoria-logs-single
+    version: 0.11.24
+  - chart: bitnami-mariadb/mariadb
+    version: 21.0.8
+  - chart: gemini/gemini
+    version: 2.1.3
+  - chart: woodpecker/woodpecker
+    version: 3.4.2
+  - chart: dzervas/audiobookshelf
+    version: 0.2.4
+  - chart: grafana/grafana
+    version: 10.5.12
+  - chart: grafana/grafana-mcp
+    version: 0.3.1
+  - chart: jetstack/cert-manager
+    version: v1.19.2
+  - chart: external-secrets/external-secrets
+    version: 1.3.1
+  - chart: retool/retool
+    version: 6.9.1
+  - chart: cilium/cilium
+    version: 1.18.2 # Wait for https://github.com/cilium/cilium/issues/42786
 version: 1

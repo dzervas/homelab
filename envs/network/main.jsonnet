@@ -72,6 +72,7 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
 
   defaultDenyNP:
     ciliumClusterwideNetworkPolicy.new('default-ingress')
+    // NS to affect
     + ciliumClusterwideNetworkPolicy.spec.endpointSelector.withMatchExpressions([
       ciliumClusterwideNetworkPolicy.spec.endpointSelector.matchExpressions.withKey('k8s:io.kubernetes.pod.namespace')
       + ciliumClusterwideNetworkPolicy.spec.endpointSelector.matchExpressions.withOperator('NotIn')
@@ -82,13 +83,14 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
       ]),
     ])
     + ciliumClusterwideNetworkPolicy.spec.withIngress([
-      ciliumClusterwideNetworkPolicy.spec.ingress.withFromEntities(['host', 'remote-node']),  // hostNetwork pods are NOT treated as ns pods
+      ciliumClusterwideNetworkPolicy.spec.ingress.withFromEntities(['host', 'remote-node', 'ingress']),  // hostNetwork pods are NOT treated as ns pods
       ciliumClusterwideNetworkPolicy.spec.ingress.withFromEndpoints([
         {},  // Same namespace pods
         ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.withMatchExpressions([
           ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withKey('k8s:io.kubernetes.pod.namespace')
           + ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withOperator('In')
           + ciliumClusterwideNetworkPolicy.spec.ingress.fromEndpoints.matchExpressions.withValues([
+            'kube-system',
             'ingress',
             'victoriametrics',
           ]),

@@ -2,6 +2,7 @@
   mkMachine = {
     hostName,
     hostIndex,
+    hostIP,
     machines ? {},
     role ? "agent",
     system ? "x86_64-linux",
@@ -10,7 +11,7 @@
     inherit system;
 
     specialArgs = {
-      inherit hostName hostIndex machines role;
+      inherit hostName hostIndex machines role hostIP;
 
       node-vpn-prefix = "10.20.30";
       node-vpn-iface = "wg0";

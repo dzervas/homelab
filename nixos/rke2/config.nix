@@ -2,6 +2,7 @@
   config,
   hostName,
   hostIndex,
+  hostIP,
   home-vpn-prefix,
   node-vpn-prefix,
   pkgs,
@@ -20,7 +21,7 @@ in {
       "linstor/enable=true"
     ];
 
-    # node-external-ip = if (config.setup.provider != "homelab") then node-ip else null;
+    node-external-ip = hostIP;
 
     resolv-conf = "/etc/rancher/rke2/resolv.conf";
   } // (if role == "server" then {
@@ -62,16 +63,11 @@ in {
 
   # Extra manifests to configure rke2 plugins
   systemd.tmpfiles.settings."10-rke2-config" = if is-master then (let
-	  # rke2-calico-config = pkgs.writeTextFile {
-	  #   name = "rke2-calico-config";
-	  #   text = builtins.readFile ./rke2-calico-config.yaml;
-	  # };
     rke2-coredns-config = pkgs.writeTextFile {
       name = "rke2-coredns-config";
       text = builtins.readFile ./rke2-coredns-config.yaml;
     };
   in {
-	  # "/var/lib/rancher/rke2/server/manifests/rke2-calico-config.yaml".C.argument = toString rke2-calico-config;
     "/var/lib/rancher/rke2/server/manifests/rke2-coredns-config.yaml".C.argument = toString rke2-coredns-config;
   }) else {};
 

@@ -7,60 +7,60 @@ local httpRoute = gatewayApi.v1.httpRoute;
 
 {
   // Self-signed certificate for the Gateway HTTPS listener
-  gatewayCert: {
-    apiVersion: 'cert-manager.io/v1',
-    kind: 'Certificate',
-    metadata: {
-      name: 'gateway-cert',
-    },
-    spec: {
-      secretName: 'gateway-tls',
-      issuerRef: {
-        name: 'letsencrypt',
-        kind: 'ClusterIssuer',
-      },
-      dnsNames: ['*.dzerv.art', 'dzerv.art'],
-      // dnsNames: ['dzerv.art'],
-    },
-  },
+  // gatewayCert: {
+  //   apiVersion: 'cert-manager.io/v1',
+  //   kind: 'Certificate',
+  //   metadata: {
+  //     name: 'gateway-cert',
+  //   },
+  //   spec: {
+  //     secretName: 'gateway-tls',
+  //     issuerRef: {
+  //       name: 'letsencrypt',
+  //       kind: 'ClusterIssuer',
+  //     },
+  //     dnsNames: ['*.dzerv.art', 'dzerv.art'],
+  //     // dnsNames: ['dzerv.art'],
+  //   },
+  // },
 
   // Empty Gateway - no routes attached, just listens on 80/443
   // NOTE: Needs k apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/experimental-install.yaml
-  gateway: {
-    apiVersion: 'gateway.networking.k8s.io/v1',
-    kind: 'Gateway',
-    metadata: {
-      name: 'cilium-gateway',
-    },
-    spec: {
-      gatewayClassName: 'cilium',
-      listeners: [
-        {
-          name: 'http',
-          protocol: 'HTTP',
-          port: 80,
-          allowedRoutes: {
-            namespaces: { from: 'All' },
-          },
-        },
-        {
-          name: 'https',
-          protocol: 'HTTPS',
-          port: 443,
-          tls: {
-            mode: 'Terminate',
-            certificateRefs: [{
-              kind: 'Secret',
-              name: 'gateway-tls',
-            }],
-          },
-          allowedRoutes: {
-            namespaces: { from: 'All' },
-          },
-        },
-      ],
-    },
-  },
+  // gateway: {
+  //   apiVersion: 'gateway.networking.k8s.io/v1',
+  //   kind: 'Gateway',
+  //   metadata: {
+  //     name: 'cilium-gateway',
+  //   },
+  //   spec: {
+  //     gatewayClassName: 'cilium',
+  //     listeners: [
+  //       {
+  //         name: 'http',
+  //         protocol: 'HTTP',
+  //         port: 80,
+  //         allowedRoutes: {
+  //           namespaces: { from: 'All' },
+  //         },
+  //       },
+  //       {
+  //         name: 'https',
+  //         protocol: 'HTTPS',
+  //         port: 443,
+  //         tls: {
+  //           mode: 'Terminate',
+  //           certificateRefs: [{
+  //             kind: 'Secret',
+  //             name: 'gateway-tls',
+  //           }],
+  //         },
+  //         allowedRoutes: {
+  //           namespaces: { from: 'All' },
+  //         },
+  //       },
+  //     ],
+  //   },
+  // },
 
   cilium: helm.template('cilium', '../../charts/cilium', {
     namespace: 'kube-system',
@@ -88,9 +88,9 @@ local httpRoute = gatewayApi.v1.httpRoute;
         },
       },
       bpf: {
-        hostLegacyRouting: false,
+        // hostLegacyRouting: false,
         // TODO: Disable after moving to gateway api
-        // hostLegacyRouting: true,
+        hostLegacyRouting: true,
         lbExternalClusterIP: true,
         masquerade: true,
       },
@@ -122,26 +122,26 @@ local httpRoute = gatewayApi.v1.httpRoute;
       //   },
       // } } } },
 
-      envoy: {
-        securityContext: {
-          capabilities: {
-            envoy: [
-              // Needed by envoy, check values.yaml
-              'NET_ADMIN',
-              'SYS_ADMIN',
-              'NET_BIND_SERVICE',
-            ],
-            keepCapNetBindService: true,
-          },
-        },
-      },
-      envoyConfig: { enabled: true },
+      // envoy: {
+      //   securityContext: {
+      //     capabilities: {
+      //       envoy: [
+      //         // Needed by envoy, check values.yaml
+      //         'NET_ADMIN',
+      //         'SYS_ADMIN',
+      //         'NET_BIND_SERVICE',
+      //       ],
+      //       keepCapNetBindService: true,
+      //     },
+      //   },
+      // },
+      // envoyConfig: { enabled: true },
 
-      gatewayAPI: {
-        enabled: true,
-        // hostNetwork: { enabled: true },
-        gatewayClass: { create: 'true' },
-      },
+      // gatewayAPI: {
+      //   enabled: true,
+      //   hostNetwork: { enabled: true },
+      //   gatewayClass: { create: 'true' },
+      // },
 
       // No reason since everything is on top of wireguard
       // bgpControlPlane: {
@@ -149,4 +149,27 @@ local httpRoute = gatewayApi.v1.httpRoute;
       // },
     },
   }),
+
+  // CiliumNetworkPolicy to allow webhook egress to kube-apiserver.
+  // Standard NetworkPolicy ipBlock CIDR rules don't match Cilium's
+  // reserved kube-apiserver identity, so we need an explicit entity allow.
+  // envoyNetworkPolicy: {
+  //   apiVersion: 'cilium.io/v2',
+  //   kind: 'CiliumNetworkPolicy',
+  //   metadata: {
+  //     name: 'envoy-allow',
+  //   },
+  //   spec: {
+  //     endpointSelector: {
+  //       matchLabels: { 'k8s-app': 'cilium-envoy' },
+  //     },
+  //     ingress: [{
+  //       fromEntities: ['world', 'cluster', 'ingress'],
+  //       toPorts: [{ ports: [
+  //         { port: '80', protocol: 'TCP' },
+  //         { port: '443', protocol: 'TCP' },
+  //       ] }],
+  //     }],
+  //   },
+  // },
 }

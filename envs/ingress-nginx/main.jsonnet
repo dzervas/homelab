@@ -76,7 +76,7 @@ local defaultBackend = {
         networkPolicy: { enabled: true },
 
         // Temporarily disabled - migrating to Cilium Gateway API
-        nodeSelector: { 'non-existent-disable': 'true' },
+        // nodeSelector: { 'non-existent-disable': 'true' },
 
         kind: 'DaemonSet',
         hostPort: { enabled: true },
@@ -86,7 +86,7 @@ local defaultBackend = {
         // extraArgs: { 'default-ssl-certificate': 'ingress/letsencrypt-prod' },
 
         config: {
-          'custom-http-errors': std.join(',', errorCodes),
+          // 'custom-http-errors': std.join(',', errorCodes),
           'annotations-risk-level': 'Critical',
         },
 

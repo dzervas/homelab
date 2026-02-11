@@ -1,11 +1,11 @@
 {
   outputs = { self, nixpkgs, deploy-rs, disko, ... }: let
     machines = {
-      gr0 =  { hostIndex = "100"; publicKey = "IL/4BsJxWB+D+k9tAyz3VaQD4F1J6+C1/FXByrUr9Ak="; role = "server"; };
-      gr1 =  { hostIndex = "101"; publicKey = "Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8="; };
-      srv0 = { hostIndex = "150"; publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw="; };
-      fra0 = { hostIndex = "200"; publicKey = "nJLpWuGE+NQA5k1nSAgTeFMpGbyGuT4ZAfi2OzsKjzY="; role = "server"; system = "aarch64-linux"; };
-      fra1 = { hostIndex = "201"; publicKey = "gdS1om0jFmLu3omuE+aMwFpW1iMse0wjVEkPgZB67xs="; role = "server"; system = "aarch64-linux"; };
+      gr0 =  { hostIndex = "100"; hostIP = "83.212.173.226"; publicKey = "IL/4BsJxWB+D+k9tAyz3VaQD4F1J6+C1/FXByrUr9Ak="; role = "server"; };
+      gr1 =  { hostIndex = "101"; hostIP = "83.212.175.41" ; publicKey = "Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8="; };
+      srv0 = { hostIndex = "150"; hostIP = "10.13.37.120"  ; publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw="; };
+      fra0 = { hostIndex = "200"; hostIP = "152.70.165.139"; publicKey = "nJLpWuGE+NQA5k1nSAgTeFMpGbyGuT4ZAfi2OzsKjzY="; role = "server"; system = "aarch64-linux"; };
+      fra1 = { hostIndex = "201"; hostIP = "130.162.36.16" ; publicKey = "gdS1om0jFmLu3omuE+aMwFpW1iMse0wjVEkPgZB67xs="; role = "server"; system = "aarch64-linux"; };
     };
 
     inherit (import ./mkMachines.nix { inherit disko nixpkgs; }) mkMachines mkNode;

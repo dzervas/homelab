@@ -1,23 +1,28 @@
-{ lib, pkgs, ... }: {
-  environment.systemPackages = map lib.lowPrio (with pkgs; [
-    btop
-    curl
-    dig
-    dnslookup
-    git
-    iperf
-    ipset
-    jq
-    nvme-cli # For OpenEBS management
-    tcpdump
-    iptables-nftables-compat
-    sysstat
+{ lib, pkgs, ... }:
+{
+  environment.systemPackages = map lib.lowPrio (
+    with pkgs;
+    [
+      btop
+      curl
+      dig
+      dnslookup
+      git
+      iperf
+      ipset
+      jq
+      lsof
+      nvme-cli # For OpenEBS management
+      tcpdump
+      iptables-nftables-compat
+      sysstat
 
-    calicoctl
-    kubectx
-    kubectl
-    kubectl-linstor
-  ]);
+      calicoctl
+      kubectx
+      kubectl
+      kubectl-linstor
+    ]
+  );
 
   programs = {
     bash = {

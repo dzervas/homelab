@@ -1,6 +1,8 @@
-{ home-vpn-iface, node-vpn-iface, ... }: let
-	cni-iface = ''{ "cilium_*", "lxc*" }'';
-in {
+{ home-vpn-iface, node-vpn-iface, ... }:
+let
+  cni-iface = ''{ "cilium_*", "lxc*" }'';
+in
+{
   networking.nftables.tables.vpn_split = {
     family = "ip";
     content = ''
@@ -17,13 +19,17 @@ in {
   networking.firewall = {
     trustedInterfaces = [ node-vpn-iface ];
 
-    allowedTCPPorts = [ 80 443 ]; # HTTP/S access to the cluster
+    allowedTCPPorts = [
+      80
+      443
+    ]; # HTTP/S access to the cluster
     interfaces.${home-vpn-iface}.allowedTCPPorts = [
       # Kubernetes API
       6443
 
       # Home VPN ingress
-      7080 7443
+      7080
+      7443
     ];
 
     # Allow pod & service traffic
@@ -50,7 +56,7 @@ in {
     '';
 
     extraReversePathFilterRules = ''
-	    iifname ${cni-iface} accept
+      	    iifname ${cni-iface} accept
     '';
   };
 

@@ -174,7 +174,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
   httpRoute:
     httpRoute.new('headscale')
     + httpRoute.spec.withHostnames(['vpn.dzerv.art'])
-    + httpRoute.spec.withParentRefs([{ name: 'cilium-gateway' }])
+    + httpRoute.spec.withParentRefs([{ name: 'cilium-gateway', namespace: 'kube-system' }])
     + httpRoute.spec.withRules([{
       matches: [{
         path: { type: 'PathPrefix', value: '/' },
