@@ -57,6 +57,7 @@ in
 
     extraReversePathFilterRules = ''
       	    iifname ${cni-iface} accept
+           meta mark & 0xf00 == 0x200 accept comment "Cilium TPROXY mark - bypass rpfilter"
     '';
   };
 
