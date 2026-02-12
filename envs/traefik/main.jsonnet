@@ -76,7 +76,14 @@ local middleware = import './middleware.libsonnet';
         // ocsp: { enabled: true },
 
         ports: {
-          web: { hostPort: 80 },
+          web: {
+            hostPort: 80,
+            http: { redirections: { entryPoint: {
+              to: 'websecure',
+              scheme: 'https',
+              permanent: true,
+            } } },
+          },
           websecure: { hostPort: 443 },
         },
       },

@@ -17,7 +17,7 @@ local namespace = 'rclone';
       rclone serve webdav remote: --cache-dir /tmp/.cache --vfs-cache-mode full --addr 0.0.0.0:80 --config /tmp/rclone.conf --temp-dir /tmp --metrics-addr 0.0.0.0:9090
     |||],
 
-    secrets: { '/secret': 'rclone-secrets-op:rw' },
+    secrets: { '/secret': 'rclone-secrets-op:ro' },
   }),
 
   rcloneS3: dockerService.new('rclone-s3', 'rclone/rclone:1', {
@@ -31,7 +31,7 @@ local namespace = 'rclone';
       rclone serve s3 s3: --cache-dir /tmp/.cache --vfs-cache-mode full --addr 0.0.0.0:80 --config /tmp/rclone.conf --temp-dir /tmp --metrics-addr 0.0.0.0:9090
     |||],
 
-    secrets: { '/secret': 'rclone-secrets-op:rw' },
+    secrets: { '/secret': 'rclone-secrets-op:ro' },
   }),
 
   secret:

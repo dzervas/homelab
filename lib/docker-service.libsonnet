@@ -9,9 +9,12 @@ local opsecretLib = import 'docker-service/opsecret.libsonnet';
 
 {
   new(name, image, config={})::
+    local defaultAuth = if std.objectHas(config, 'fqdn') && (std.endsWith(config.fqdn, '.vpn.dzerv.art') || std.endsWith(config.fqdn, '.ts.dzerv.art')) then 'vpn' else 'mtls';
+
     local defaults = {
       type: if std.objectHas(config, 'pvs') then 'StatefulSet' else 'Deployment',
       namespace: name,
+      auth: defaultAuth,
       command: null,
       args: null,
       ports: [80],
@@ -31,6 +34,7 @@ local opsecretLib = import 'docker-service/opsecret.libsonnet';
       },
     };
     local cfg = defaults + config;
+
     if cfg.type != 'Deployment' && cfg.type != 'StatefulSet' then
       error ('Unsupported type: ' + cfg.type)
     else {
