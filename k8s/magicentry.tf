@@ -153,7 +153,7 @@ resource "kubernetes_network_policy_v1" "magicentry_ingress" {
       from {
         namespace_selector {
           match_labels = {
-            "kubernetes.io/metadata.name" = "ingress"
+            "kubernetes.io/metadata.name" = "traefik"
           }
         }
         pod_selector {

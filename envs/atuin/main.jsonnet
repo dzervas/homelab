@@ -3,7 +3,7 @@ local timezone = import 'helpers/timezone.libsonnet';
 
 dockerService.new('atuin', 'ghcr.io/atuinsh/atuin', {
   // TODO: Support statefulsets and args
-  args: ['server', 'start'],
+  args: ['start'],
 
   fqdn: 'sh.vpn.dzerv.art',
   ports: [8888],

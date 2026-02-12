@@ -1,7 +1,7 @@
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 local k = import 'k.libsonnet';
-local cm = import 'cert-manager-libsonnet/1.15/main.libsonnet';
+local cm = import 'cert-manager-libsonnet/1.19/main.libsonnet';
 local certificate = cm.nogroup.v1.certificate;
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
 

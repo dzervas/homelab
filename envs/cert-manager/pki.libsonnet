@@ -1,4 +1,4 @@
-local cm = import 'cert-manager-libsonnet/1.15/main.libsonnet';
+local cm = import 'cert-manager-libsonnet/1.19/main.libsonnet';
 local certificate = cm.nogroup.v1.certificate;
 local issuer = cm.nogroup.v1.issuer;
 

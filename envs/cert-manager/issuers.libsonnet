@@ -1,4 +1,4 @@
-local cm = import 'cert-manager-libsonnet/1.15/main.libsonnet';
+local cm = import 'cert-manager-libsonnet/1.19/main.libsonnet';
 local clusterIssuer = cm.nogroup.v1.clusterIssuer;
 
 local domain = 'dzerv.art';
@@ -36,7 +36,7 @@ local domain = 'dzerv.art';
       {
         http01: {
           ingress: {
-            ingressClassName: 'nginx',
+            ingressClassName: 'traefik',
           },
         },
       },

@@ -9,6 +9,7 @@ local namespace = 'rclone';
   rclone: dockerService.new('rclone', 'rclone/rclone:1', {
     ports: [80],
     fqdn: 'webdav.dzerv.art',
+    auth: 'mtls',
 
     command: ['sh', '-c'],
     args: [|||

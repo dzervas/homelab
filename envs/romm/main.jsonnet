@@ -15,10 +15,9 @@ local domain = 'dzerv.art';
       type: 'Deployment',
       namespace: namespace,
       fqdn: 'games.' + domain,
+      auth: 'magicentry',
       ports: [8080],
-      ingressAnnotations: ingress.oidcAnnotations('romm') + {
-        'nginx.ingress.kubernetes.io/proxy-body-size': '1g',
-      },
+      ingressAnnotations: ingress.magicentryAnnotations('romm', 'public'),
       env: {
         TZ: timezone,
         DB_HOST: 'mariadb-headless',

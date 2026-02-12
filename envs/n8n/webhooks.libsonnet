@@ -1,5 +1,5 @@
-local k = import 'k.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
+local k = import 'k.libsonnet';
 
 local ing = k.networking.v1.ingress;
 local ingressRule = k.networking.v1.ingressRule;
@@ -14,10 +14,8 @@ local webhookHost = 'hook.' + domain;
   n8nWebhooks:
     ing.new('n8n-webhooks')
     + ing.metadata.withNamespace(namespace)
-    + ing.metadata.withAnnotations(ingress.sslOnlyAnnotations {
-      'nginx.ingress.kubernetes.io/proxy-body-size': '16m',
-    })
-    + ing.spec.withIngressClassName('nginx')
+    + ing.metadata.withAnnotations(ingress.certAnnotations)
+    + ing.spec.withIngressClassName('traefik')
     + ing.spec.withRules([
       ingressRule.withHost(webhookHost)
       + ingressRule.http.withPaths([

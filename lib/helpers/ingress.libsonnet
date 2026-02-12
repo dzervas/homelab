@@ -1,51 +1,53 @@
-local sslOnlyAnnotations = {
-  'cert-manager.io/cluster-issuer': 'letsencrypt',
-  'nginx.ingress.kubernetes.io/ssl-redirect': 'true',
-};
-
-local common(domain) = {
-  enabled: true,
-  annotations: sslOnlyAnnotations,
-  tls: [{
-    hosts: [domain],
-    secretName: '%s-cert' % std.strReplace(domain, '.', '-'),
-  }],
-};
-
-local className(domain) = if std.endsWith(domain, '.vpn.dzerv.art') || std.endsWith(domain, '.ts.dzerv.art') then 'vpn' else 'nginx';
+local className = 'traefik';
 
 {
-  sslOnlyAnnotations:: sslOnlyAnnotations,
-  mtlsAnnotations(namespace):: {
-    'nginx.ingress.kubernetes.io/auth-tls-verify-client': 'on',
-    'nginx.ingress.kubernetes.io/auth-tls-secret': '%s/client-ca' % namespace,
-    'nginx.ingress.kubernetes.io/auth-tls-verify-depth': '1',
-    'nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream': 'true',
-  } + sslOnlyAnnotations,
-  oidcAnnotations(name, realms):: {
+  certAnnotations:: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
+  authAnnotation(auth='mtls')::
+    if auth == 'vpn' then
+      { 'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-vpnonly@kubernetescrd' }
+    else if auth == 'magicentry' then
+      { 'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-magicentry@kubernetescrd' }
+    else if auth == 'mtls' then
+      { 'traefik.ingress.kubernetes.io/router.tls.options': 'traefik-mtls@kubernetescrd' }
+    else if auth == 'public' then
+      {}
+    else
+      error 'Unsupported auth type for ingress',
+
+
+  common(domain):: {
+    enabled: true,
+    annotations:
+      $.certAnnotations +
+      if std.endsWith(domain, '.vpn.dzerv.art') || std.endsWith(domain, '.ts.dzerv.art')
+      then $.authAnnotation('vpn') else {},
+    tls: [{
+      hosts: [domain],
+      secretName: '%s-cert' % std.strReplace(domain, '.', '-'),
+    }],
+  },
+
+  vpnAnnotations(namespace):: $.certAnnotations + $.authAnnotation('vpn'),
+  mtlsAnnotations(namespace):: $.certAnnotations + $.authAnnotation('mtls'),
+  magicentryAnnotations(name, realms):: $.certAnnotations + $.authAnnotation('magicentry') + {
     'magicentry.rs/name': name,
     'magicentry.rs/realms': realms,
     'magicentry.rs/auth-url': 'true',
+  },
 
-    'nginx.ingress.kubernetes.io/auth-url': 'http://magicentry.auth.svc.cluster.local:8080/auth-url/status',
-    'nginx.ingress.kubernetes.io/auth-signin': 'https://auth.dzerv.art/login',
-    'nginx.ingress.kubernetes.io/auth-cache-duration': '200 202 10m',
-    'nginx.ingress.kubernetes.io/auth-cache-key': '$remote_user$http_authorization$http_cookie',
-  } + sslOnlyAnnotations,
-
-  hostString(domain, annotations={}):: common(domain) {
-    ingressClassName: className(domain),
+  hostString(domain, annotations={}):: $.common(domain) {
+    ingressClassName: className,
     host: domain,
-    annotations: sslOnlyAnnotations + annotations,
+    annotations+: annotations,
   },
-  hostList(domain, annotations={}):: common(domain) {
-    ingressClassName: className(domain),
+  hostList(domain, annotations={}):: $.common(domain) {
+    ingressClassName: className,
     hosts: [domain],
-    annotations: sslOnlyAnnotations + annotations,
+    annotations+: annotations,
   },
-  hostObj(domain, annotations={}):: common(domain) {
-    ingressClassName: className(domain),
-    annotations: sslOnlyAnnotations + annotations,
+  hostObj(domain, annotations={}):: $.common(domain) {
+    ingressClassName: className,
+    annotations+: annotations,
     hosts: [{
       host: domain,
       paths: [{
@@ -54,9 +56,9 @@ local className(domain) = if std.endsWith(domain, '.vpn.dzerv.art') || std.endsW
       }],
     }],
   },
-  hostObjSingle(domain, annotations={}):: common(domain) {
-    className: className(domain),
-    annotations: sslOnlyAnnotations + annotations,
+  hostObjSingle(domain, annotations={}):: $.common(domain) {
+    className: className,
+    annotations+: annotations,
     host: {
       name: domain,
       path: '/',

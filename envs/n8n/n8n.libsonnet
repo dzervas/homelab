@@ -11,6 +11,7 @@ local domain = 'dzerv.art';
   // Main n8n statefulset
   n8n: dockerService.new('n8n', 'ghcr.io/dzervas/n8n:latest', {
     fqdn: 'auto.' + domain,
+    auth: 'mtls',
     ports: [5678],
     labels: {},
     pvs: {
@@ -23,9 +24,9 @@ local domain = 'dzerv.art';
         size: '10Gi',
       },
     },
-    ingressAnnotations:
-      ingress.mtlsAnnotations(namespace)
-      + { 'nginx.ingress.kubernetes.io/proxy-body-size': '16m' },
+    // ingressAnnotations:
+    //   ingress.mtlsAnnotations(namespace)
+    //   + { 'nginx.ingress.kubernetes.io/proxy-body-size': '16m' },
 
     env: {
       TZ: timezone,

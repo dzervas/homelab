@@ -6,7 +6,7 @@ local gemini = import 'helpers/gemini.libsonnet';
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
 
 local namespace = 'grafana';
-local domain = 'dzerv.art';
+local domain = 'vpn.dzerv.art';
 local grafanaFqdn = 'grafana.' + domain;
 local mcpFqdn = 'mcp.' + grafanaFqdn;
 
@@ -24,7 +24,7 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
         storageClassName: 'openebs-replicated',
       },
 
-      ingress: ingress.hostList(grafanaFqdn, ingress.mtlsAnnotations(namespace) {
+      ingress: ingress.hostList(grafanaFqdn, ingress.vpnAnnotations(namespace) {
         'nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream': 'true',
       }),
       networkPolicy: { enabled: true },

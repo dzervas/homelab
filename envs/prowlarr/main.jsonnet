@@ -12,8 +12,8 @@ local networkPolicy = k.networking.v1.networkPolicy;
 {
   prowlarr: dockerService.new('prowlarr', 'ghcr.io/elfhosted/prowlarr-nightly:rolling', {
     fqdn: 'search.' + domain,
+    auth: 'mtls',
     ports: [9696],
-    ingressAnnotations: ingress.mtlsAnnotations(namespace),
     labels: {
       managed_by: 'terraform',
       service: 'prowlarr',

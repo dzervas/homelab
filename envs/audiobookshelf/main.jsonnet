@@ -12,7 +12,7 @@ local domain = 'dzerv.art';
   audiobookshelf: helm.template('audiobookshelf', '../../charts/audiobookshelf', {
     namespace: namespace,
     values: {
-      ingress: ingress.hostObj('audiobooks.' + domain, ingress.oidcAnnotations('Audiobookshelf', 'audiobooks,public')),
+      ingress: ingress.hostObj('audiobooks.' + domain, ingress.magicentryAnnotations('Audiobookshelf', 'audiobooks,public')),
       podLabels: {
         'magicentry.rs/enable': 'true',
       },
@@ -29,11 +29,6 @@ local domain = 'dzerv.art';
     namespace: namespace,
     fqdn: 'add.audiobooks.' + domain,
     ports: [8000],
-    ingressAnnotations: {
-      'nginx.ingress.kubernetes.io/auth-tls-secret': namespace + '/client-ca',
-      'nginx.ingress.kubernetes.io/auth-tls-verify-depth': '1',
-      'nginx.ingress.kubernetes.io/auth-tls-verify-client': 'on',
-    },
     labels: {
       managed_by: 'terraform',
       service: 'audiobookrequest',
