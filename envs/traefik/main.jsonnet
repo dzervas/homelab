@@ -4,13 +4,10 @@ local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'traefik';
 
+local middleware = import './middleware.libsonnet';
+
 {
-  namespace:
-    k.core.v1.namespace.new(namespace),
-  // + k.core.v1.namespace.metadata.withLabels({
-  //   'pod-security.kubernetes.io/enforce': 'privileged',
-  //   'pod-security.kubernetes.io/enforce-version': 'latest',
-  // }),
+  namespace: k.core.v1.namespace.new(namespace),
 
   gatewayCert: {
     apiVersion: 'cert-manager.io/v1',
@@ -53,9 +50,8 @@ local namespace = 'traefik';
         },
 
         ingressClass: {
-          enabled: false,
-          // name: 'vpn',
-          // isDefaultClass: false,
+          enabled: true,
+          isDefaultClass: false,
         },
         gateway: {
           listeners: {
@@ -72,7 +68,7 @@ local namespace = 'traefik';
           },
         },
         providers: {
-          kubernetesCRD: { enabled: false },
+          kubernetesCRD: { enabled: true },
           kubernetesIngress: { enabled: true },
           kubernetesGateway: { enabled: true },
         },
@@ -106,4 +102,4 @@ local namespace = 'traefik';
         protocol: 'TCP',
       }],
     }]),
-}
+} + middleware

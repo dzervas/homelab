@@ -7,7 +7,7 @@ local httpIngressPath = k.networking.v1.httpIngressPath;
 {
   new(name, cfg)::
     local hasIngress = cfg.ingressEnabled && cfg.fqdn != null;
-    local ingressClass = if std.endsWith(cfg.fqdn, '.vpn.dzerv.art') || std.endsWith(cfg.fqdn, '.ts.dzerv.art') then 'vpn' else 'nginx';
+    local middleware = if std.endsWith(cfg.fqdn, '.vpn.dzerv.art') || std.endsWith(cfg.fqdn, '.ts.dzerv.art') then 'traefik-vpnonly@kubernetescrd' else '';
 
     if hasIngress then {
       ingress:
@@ -15,9 +15,9 @@ local httpIngressPath = k.networking.v1.httpIngressPath;
         + ingress.metadata.withNamespace(cfg.namespace)
         + ingress.metadata.withAnnotations({
           'cert-manager.io/cluster-issuer': 'letsencrypt',
-          'nginx.ingress.kubernetes.io/ssl-redirect': 'true',
+          'traefik.ingress.kubernetes.io/router.middlewares': middleware,
         } + cfg.ingressAnnotations)
-        + ingress.spec.withIngressClassName(ingressClass)
+        + ingress.spec.withIngressClassName('traefik')
         + ingress.spec.withRules([
           ingressRule.withHost(cfg.fqdn)
           + ingressRule.http.withPaths([

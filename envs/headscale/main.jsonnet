@@ -59,7 +59,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
                   pvs=sharedPV,
                   op_envs={ HEADSCALE_API_KEY: 'HEADSCALE_API_KEY' },
                   env={
-                    INGRESS_CLASS: 'vpn',
+                    INGRESS_CLASS: 'traefik',
                     DOMAIN_SUFFIX: 'ts.%s' % domain,
                     OUTPUT_PATH: '/data/dns.json',
                     HEADSCALE_URL: 'http://127.0.0.1:8080',

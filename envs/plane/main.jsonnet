@@ -61,10 +61,10 @@ local planeHelmDef = std.prune(normalizeJobNames(
       },
       ingress: {
         enabled: true,
-        ingressClass: 'vpn',
+        ingressClass: 'traefik',
         ingress_annotations: {
           'cert-manager.io/cluster-issuer': 'letsencrypt',
-          'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
+          'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-vpnonly@kubernetescrd',
         },
 
         appHost: domain,
