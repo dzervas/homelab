@@ -6,6 +6,9 @@ local networkPolicy = k.networking.v1.networkPolicy;
 local namespace = 'rclone';
 
 {
+  // To refresh:
+  // rclone authorize onedrive <client_id> <client_secret>
+  // paste the output in 1password rclone token config
   rclone: dockerService.new('rclone', 'rclone/rclone:1', {
     ports: [80],
     fqdn: 'webdav.dzerv.art',

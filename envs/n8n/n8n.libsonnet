@@ -13,7 +13,6 @@ local domain = 'dzerv.art';
     fqdn: 'auto.' + domain,
     auth: 'mtls',
     ports: [5678],
-    labels: {},
     pvs: {
       '/home/node/.n8n': {
         name: 'data',
