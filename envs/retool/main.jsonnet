@@ -43,11 +43,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       },
     },
 
-    ingress: ingress.hostObj(domain) {
-      annotations+: {
-        'nginx.ingress.kubernetes.io/proxy-body-size': '10m',
-      },
-    },
+    ingress: ingress.hostObj(domain),
 
     // Enable workflows with local temporal
     workflows: {
@@ -108,6 +104,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
           memory: '512Mi',
         },
       },
+      securityContext: { privileged: false },
     },
 
     // Reduce resources for homelab
@@ -129,6 +126,9 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
 
     env: {
       TZ: timezone,
+      BASE_DOMAIN: domain,
+      CONTAINER_UNPRIVILEGED_MODE: 'true',
+      IGNORE_CODE_EXECUTOR_STARTUP_CHECK: 'true',
     },
   },
 });

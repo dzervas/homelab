@@ -70,6 +70,7 @@ First of all:
 
 ```bash
 k linstor error-reports l
+k linstor resource l --faulty
 ```
 
 ### StorageException: Failed to get block size...
@@ -123,4 +124,17 @@ iperf -c <machine 1 ip> -t 30 -i 1 # on the other machine
 
 # To flush conntrack:
 nix shell nixpkgs#conntrack-tools --command conntrack -F
+```
+
+## Drain & cordon a node
+
+```bash
+k cordon gr1
+k drain gr1 --ignore-daemonsets --delete-emptydir-data --grace-period=60 --timeout=10m
+k linstor node evacuate gr1
+k linstor node set-property gr1 AutoplaceTarget false
+
+# To make sure it worked:
+k linstor resource l --nodes gr1
+k linstor resource l --faulty
 ```

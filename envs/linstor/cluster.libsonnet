@@ -13,6 +13,25 @@ local nodeSelector = { 'linstor/enable': 'true' };
           enabled: true,
         },
 
+        properties: [
+          // Split-brain auto-recovery: safe with quorum + tiebreaker enabled.
+          // Without these, any transient network blip causes DRBD to go StandAlone
+          // and stay there forever until a manual pod restart.
+          // Ref: https://linbit.com/drbd-user-guide/drbd-guide-9_0-en/#s-automatic-split-brain-recovery-configuration
+          { name: 'DrbdOptions/Net/after-sb-0pri', value: 'discard-zero-changes' },
+          { name: 'DrbdOptions/Net/after-sb-1pri', value: 'discard-secondary' },
+          { name: 'DrbdOptions/Net/after-sb-2pri', value: 'disconnect' },
+
+          // Connection resilience tuning for cross-provider WireGuard links with latency
+          // Increase timeouts to tolerate transient network issues without dropping connections
+          { name: 'DrbdOptions/Net/ping-timeout', value: '30' },  // Default: 5s, 30s for high-latency links
+          { name: 'DrbdOptions/Net/connect-int', value: '10' },  // Retry every 10s (default)
+          { name: 'DrbdOptions/Net/ping-int', value: '10' },  // Keepalive every 10s (default)
+
+          // Prevent premature eviction during network instability
+          { name: 'DrbdOptions/AutoEvictAfterTime', value: '60' },  // 60 minutes before eviction (was unset)
+        ],
+
         tolerations: [{
           key: 'storage-only',
           operator: 'Equal',
