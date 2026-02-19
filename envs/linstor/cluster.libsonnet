@@ -30,14 +30,15 @@ local nodeSelector = { 'linstor/enable': 'true' };
 
           // Prevent premature eviction during network instability
           { name: 'DrbdOptions/AutoEvictAfterTime', value: '60' },  // 60 minutes before eviction (was unset)
+          { name: 'DrbdOptions/AutoEvictAllowEviction', value: 'true' },
         ],
 
-        tolerations: [{
-          key: 'storage-only',
-          operator: 'Equal',
-          value: 'true',
-          effect: 'NoSchedule',
-        }],
+        // tolerations: [{
+        //   key: 'storage-only',
+        //   operator: 'Equal',
+        //   value: 'true',
+        //   effect: 'NoSchedule',
+        // }],
 
         controller: {
           podTemplate: {

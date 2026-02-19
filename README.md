@@ -73,6 +73,19 @@ k linstor error-reports l
 k linstor resource l --faulty
 ```
 
+### Stuck Standalone faulty resources
+
+If a resource is stuck to `StandAlone` (in the resource l --faulty) and it's just a TieBreaker:
+
+```bash
+k linstor resource delete <node> <resource>
+k linstor resource create <node> <resource> --drbd-diskless
+k linstor resource resource-definition set-property <resource> DrbdOptions/Resource/quorum majority
+k linstor resource resource-definition set-property <resource> DrbdOptions/auto-add-quorum-tiebreaker True
+```
+
+If it's not a TieBreaker? no idea, it has data (not diskless)
+
 ### StorageException: Failed to get block size...
 
 If for any reason the block paths are missing (e.g. /dev/mainpool/pvc-...):

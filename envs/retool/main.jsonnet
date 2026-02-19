@@ -104,7 +104,12 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
           memory: '512Mi',
         },
       },
-      securityContext: { privileged: false },
+      securityContext: {
+        privileged: false,
+        runAsUser: 1001,
+        runAsGroup: 1001,
+        runAsNonRoot: true,
+      },
     },
 
     // Reduce resources for homelab
@@ -128,14 +133,52 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       TZ: timezone,
       BASE_DOMAIN: domain,
       CONTAINER_UNPRIVILEGED_MODE: 'true',
-      IGNORE_CODE_EXECUTOR_STARTUP_CHECK: 'true',
     },
   },
 });
 
+// Patch workflow pods only: chart uses postgres-password even when username is non-postgres.
+// Keep vendored chart untouched by rewriting the env entry in rendered Deployments.
+local fixWorkflowPostgresPasswordKey(obj) =
+  obj {
+    spec+: {
+      template+: {
+        spec+: {
+          containers: std.map(
+            function(c)
+              c {
+                env: std.map(
+                  function(e)
+                    if std.objectHas(e, 'name') && e.name == 'POSTGRES_PASSWORD' then
+                      e {
+                        valueFrom+: {
+                          secretKeyRef+: {
+                            key: 'password',
+                          },
+                        },
+                      }
+                    else
+                      e,
+                  c.env
+                ),
+              },
+            obj.spec.template.spec.containers
+          ),
+        },
+      },
+    },
+  };
+
 {
   namespace: k.core.v1.namespace.new(namespace),
-  retool: retoolHelmDef,
+  retool: retoolHelmDef {
+    deployment_retool_workflow_backend+: fixWorkflowPostgresPasswordKey(
+      retoolHelmDef.deployment_retool_workflow_backend
+    ),
+    deployment_retool_workflow_worker+: fixWorkflowPostgresPasswordKey(
+      retoolHelmDef.deployment_retool_workflow_worker
+    ),
+  },
 
   retoolSecrets: {
     apiVersion: 'external-secrets.io/v1',
