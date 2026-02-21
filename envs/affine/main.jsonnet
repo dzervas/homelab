@@ -9,17 +9,20 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
     + labsonnet.withCreateNamespace()
     + labsonnet.withType('StatefulSet')
     + labsonnet.withPort({ port: 3010 })
-    + labsonnet.withPV('/root/.affine/storage', { name: 'affine-storage', size: '10Gi' })
-    + labsonnet.withPV('/root/.affine/config', { name: 'affine-config', size: '1Gi' })
-    // + labsonnet.withEnv('AFFINE_INDEXER_ENABLED', 'false')
-    + labsonnet.withEnv({ REDIS_SERVER_HOST: 'redis' })
+    + labsonnet.withPV('/home/node/.affine/storage', { name: 'affine-storage', size: '10Gi' })
+    + labsonnet.withPV('/home/node/.affine/config', { name: 'affine-config', size: '1Gi' })
+    + labsonnet.withEnv({
+      AFFINE_INDEXER_ENABLED: 'false',
+      AFFINE_SERVER_EXTERNAL_URL: 'https://notes.vpn.dzerv.art',
+      REDIS_SERVER_HOST: 'redis',
+    })
     + labsonnet.withInitContainer({
       name: 'migrations',
-      image: 'ghcr.io/toeverything/affine:stable',
+      image: 'ghcr.io/dzervas/affine',
       command: ['sh', '-c', 'node ./scripts/self-host-predeploy.js'],
     })
     + labsonnet.withSecretEnv({
-      DATABASE_SERVER_URL: { name: 'affine-secrets-op', key: 'postgres_url' },
+      DATABASE_URL: { name: 'affine-secrets-op', key: 'postgres_url' },
     })
   ,
 
@@ -31,9 +34,10 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
   postgres:
     labsonnet.new('postgres', 'pgvector/pgvector:pg16')
     + labsonnet.withNamespace('affine')
+    + labsonnet.withRunAsUser(999)
     + labsonnet.withType('StatefulSet')
     + labsonnet.withPort({ port: 5432 })
-    + labsonnet.withPV('/var/lib/postgresql/data', { size: '2Gi' })
+    + labsonnet.withPV('/var/lib/postgresql', { size: '2Gi' })
     + labsonnet.withEnv({
       POSTGRES_USER: 'affine',
       POSTGRES_DB: 'affine',
@@ -52,6 +56,6 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
     + externalSecret.spec.withDataFrom([{ extract: { key: 'affine' } }])
     + externalSecret.spec.target.template.withData({
       password: '{{ .password }}',
-      postgres_url: 'postgres://affine@{{ .password }}:5432/affine',
+      postgres_url: 'postgres://affine:{{ .password }}@postgres:5432/affine',
     }),
 }
