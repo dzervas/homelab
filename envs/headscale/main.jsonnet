@@ -1,10 +1,8 @@
 local dockerService = import 'docker-service.libsonnet';
 local containerLib = import 'docker-service/container.libsonnet';
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
-local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local gatewayApi = import 'gateway-api-libsonnet/1.4-experimental/main.libsonnet';
 local k = import 'k.libsonnet';
-local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 local serviceAccount = k.core.v1.serviceAccount;
 local clusterRole = k.rbac.v1.clusterRole;
 local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
