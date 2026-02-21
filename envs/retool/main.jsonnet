@@ -2,6 +2,7 @@ local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
+local labsonnet = import 'labsonnet/main.libsonnet';
 
 local helm = tk.helm.new(std.thisFile);
 
@@ -12,13 +13,17 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
   namespace: namespace,
   values: {
     image: {
-      tag: '3.300.7-stable',
+      repository: 'ghcr.io/dzervas/retool',
+      pullSecrets: [{ name: 'ghcr-cluster-secret' }],
+      pullPolicy: 'Always',
+      tag: 'latest',
     },
 
     persistentVolumeClaim: { enabled: true },
 
+    deployment: { labels: { 'ai/enable': 'true' } },
+
     config: {
-      // Free edition - use default trial license
       licenseKey: 'EXPIRED-LICENSE-KEY-TRIAL',
       useInsecureCookies: false,
       // Secrets provided via ExternalSecret
@@ -170,7 +175,9 @@ local fixWorkflowPostgresPasswordKey(obj) =
   };
 
 {
-  namespace: k.core.v1.namespace.new(namespace),
+  namespace:
+    k.core.v1.namespace.new(namespace)
+    + k.core.v1.namespace.metadata.withLabels({ ghcrCreds: 'enabled' }),
   retool: retoolHelmDef {
     deployment_retool_workflow_backend+: fixWorkflowPostgresPasswordKey(
       retoolHelmDef.deployment_retool_workflow_backend
@@ -221,4 +228,10 @@ local fixWorkflowPostgresPasswordKey(obj) =
       ],
     },
   },
+
+  server:
+    labsonnet.new('retool-server', 'ghcr.io/dzervas/retool-server')
+    + labsonnet.withPort({ port: 8000 })
+    + labsonnet.withNamespace(namespace)
+    + labsonnet.withImagePullSecrets(['ghcr-cluster-secret']),
 }
