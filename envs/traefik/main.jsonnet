@@ -21,7 +21,7 @@ local middleware = import './middleware.libsonnet';
         name: 'letsencrypt',
         kind: 'ClusterIssuer',
       },
-      dnsNames: ['*.dzerv.art', 'dzerv.art'],
+      dnsNames: ['*.vpn.dzerv.art', '*.dzerv.art', 'dzerv.art'],
       // dnsNames: ['dzerv.art'],
     },
   },

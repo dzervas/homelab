@@ -30,6 +30,7 @@ local domain = 'dzerv.art';
           dnsNames: [
             domain,
             '*.' + domain,
+            '*.vpn.' + domain,
           ],
         },
       },

@@ -1,6 +1,6 @@
 local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local k = import 'k.libsonnet';
-local labsonnet = import 'labsonnet/main.libsonnet';
+local labsonnet = import 'labsonnet.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 {
@@ -8,7 +8,9 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
     labsonnet.new('affine', 'ghcr.io/dzervas/affine')
     + labsonnet.withCreateNamespace()
     + labsonnet.withType('StatefulSet')
-    + labsonnet.withPort({ port: 3010 })
+    // + labsonnet.withFqdn('notes.vpn.dzerv.art')
+    // + labsonnet.withPort({ port: 3010 })
+    + labsonnet.withVpnHttp(3010, fqdn='notes.vpn.dzerv.art')
     + labsonnet.withPV('/home/node/.affine/storage', { name: 'affine-storage', size: '10Gi' })
     + labsonnet.withPV('/home/node/.affine/config', { name: 'affine-config', size: '1Gi' })
     + labsonnet.withEnv({
@@ -29,7 +31,8 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
   redis:
     labsonnet.new('redis', 'redis')
     + labsonnet.withNamespace('affine')
-    + labsonnet.withPort({ port: 6379 }),
+    + labsonnet.withPort({ port: 6379 })
+    + labsonnet.withEmptyDir('/data'),
 
   postgres:
     labsonnet.new('postgres', 'pgvector/pgvector:pg16')
