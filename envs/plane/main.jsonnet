@@ -76,7 +76,9 @@ local planeHelmDef = std.prune(normalizeJobNames(
         silo_env_existingSecret: 'plane-silo-secrets',
       },
       env: {
+        web_url: 'https://' + domain,
         storageClass: 'openebs-replicated',  // This is incorrect but can't change now
+        pi_envs: { cors_allowed_origins: 'https://' + domain },
       },
       services: {
         api: {
@@ -85,21 +87,31 @@ local planeHelmDef = std.prune(normalizeJobNames(
           memoryLimit: '2Gi',
           memoryRequest: '500Mi',
         },
-        rabbbitmq: {
-          volumeSize: '1Gi',
+        rabbbitmq: { volumeSize: '1Gi' },
+        opensearch: { local_setup: true },
+        automation_consumer: { enabled: true },
+        pi: {
+          enabled: true,
+          ai_providers: {
+            custom_llm: {
+              enabled: true,
+              api_key: 'sk-dummy',
+              base_url: 'http://cliproxyapi.cliproxyapi.svc:8317/v1',
+              model_key: 'glm-4.7-flash',
+              name: 'GLM 4.7 Flash',
+              max_tokens: 128000,
+              provider: 'Z.AI',
+            },
+          },
         },
       },
       extraEnv: [
-        { name: 'WEB_URL', value: 'https://' + domain },
         { name: 'PAYMENT_SERVER_BASE_URL', value: prime_server },
         { name: 'PAYMENT_SERVER_AUTH_TOKEN', value: 'hello_world' },
         { name: 'FEATURE_FLAG_SERVER_BASE_URL', value: prime_server },
         { name: 'FEATURE_FLAG_SERVER_AUTH_TOKEN', value: 'hello_world' },
         { name: 'PRIME_SERVER_BASE_URL', value: prime_server },
         { name: 'PRIME_SERVER_AUTH_TOKEN', value: 'hello_world' },
-        { name: 'LLM_BASE_URL', value: 'http://cliproxyapi.cliproxyapi.svc:8317/v1' },
-        { name: 'LLM_API_KEY', value: 'sk-dummy' },
-        { name: 'LLM_MODEL', value: 'glm-4.7-flash' },
         { name: 'TZ', value: timezone },
         // { name: 'IS_AIRGAPPED', value: '1' },
         // { name: 'GUNICORN_WORKERS', value: '4' },
