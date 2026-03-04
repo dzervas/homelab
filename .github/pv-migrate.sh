@@ -9,8 +9,8 @@ yq --version | grep mikefarah || { echo "yq version is not compatible. Please in
 
 namespace=$1
 pvc_name=$2
-new_storage_class=linstor
-old_storage_class=openebs-replicated
+new_storage_class=${NEW_SC:-"linstor-ha"}
+old_storage_class=${OLD_SC:-"linstor"}
 
 if [ -z "$namespace" ] || [ -z "$pvc_name" ]; then
   echo "Usage: $0 <namespace> <pvc_name>"

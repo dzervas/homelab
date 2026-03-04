@@ -2,6 +2,7 @@
 {
   languages = {
     jsonnet.enable = true;
+    rust.enable = true;
     python = {
       enable = true;
 
@@ -9,9 +10,9 @@
       venv = {
         enable = true;
         requirements = ''
-            kr8s
-            requests
-            prometheus-client
+          kr8s
+          requests
+          prometheus-client
         '';
       };
     };
@@ -42,9 +43,9 @@
       " -> " + .latest_version.version + " 🔃"
       end
       )) | .[]'
-      '';
+    '';
 
-    tk-ns.exec = ''exec tk --ext-code namespaces=$(kubectl get ns -o json | jq -c '[.items[].metadata.name]') $@'';
+    tk-ns.exec = "exec tk --ext-code namespaces=$(kubectl get ns -o json | jq -c '[.items[].metadata.name]') $@";
   };
 
   env = {
