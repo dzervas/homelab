@@ -36,7 +36,7 @@ repositories:
   url: https://coredns.github.io/helm
 requires:
 - chart: plane/plane-enterprise
-  version: 2.1.0
+  version: 2.2.2
 - chart: piraeus/piraeus
   version: 2.10.4
 - chart: linstor/linstor-cluster

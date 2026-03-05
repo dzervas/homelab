@@ -82,13 +82,18 @@ local planeHelmDef = std.prune(normalizeJobNames(
       },
       services: {
         api: {
-          cpuLimit: '2',  // Can't unset this
+          cpuLimit: '2',
           cpuRequest: '500m',
           memoryLimit: '2Gi',
           memoryRequest: '500Mi',
         },
+        worker: { cpuLimit: '2' },
+        beatworker: { cpuLimit: '1' },
         rabbbitmq: { volumeSize: '1Gi' },
-        opensearch: { local_setup: true },
+        opensearch: {
+          local_setup: true,
+          cpuLimit: '2',
+        },
         automation_consumer: { enabled: true },
         pi: {
           enabled: true,
