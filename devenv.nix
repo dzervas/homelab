@@ -7,14 +7,14 @@
       enable = true;
 
       # https://devenv.sh/guides/python/#python_venv
-      venv = {
-        enable = true;
-        requirements = ''
-          kr8s
-          requests
-          prometheus-client
-        '';
-      };
+      # venv = {
+      #   enable = true;
+      #   requirements = ''
+      #     kr8s
+      #     requests
+      #     prometheus-client
+      #   '';
+      # };
     };
   };
 
