@@ -8,13 +8,16 @@ _: {
     '';
 
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       max-jobs = "auto";
-      cores = 0;  # Use all available cores
+      cores = 0; # Use all available cores
       build-cores = 0;
       http-connections = 50; # Parallel downloads
       auto-optimise-store = true;
-      download-buffer-size = 512 * 1024 * 1024; # 500MB buffer size
+      download-buffer-size = 512 * 1024 * 1024; # 512MB buffer size
 
       # Only allow wheel users to run nix
       trusted-users = [ "root" ];
@@ -39,7 +42,7 @@ _: {
 
     optimise = {
       automatic = true;
-      dates = ["09:00:00"];
+      dates = [ "09:00:00" ];
     };
   };
 }

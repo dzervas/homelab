@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/onedev"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "onedev",
+		"applyStrategy": "server",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}
