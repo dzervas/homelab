@@ -47,10 +47,13 @@ local namespace = 'victoriametrics';
       namespace: namespace,
       values: {
         fullnameOverride: 'victoriametrics',
+        vmagent: {
+
+        },
         vmsingle: {
           spec: {
             extraArgs: { 'opentelemetry.usePrometheusNaming': 'true' },
-            retentionPeriod: '6w', // 8W is more than 50Gi
+            retentionPeriod: '6w',  // 8W is more than 50Gi
             storage: {
               resources: {
                 requests: { storage: '50Gi' },

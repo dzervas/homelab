@@ -37,12 +37,6 @@ local vlsingleLabels = {
       remoteWrite: [
         { url: 'http://vlsingle-victorialogs-server:9428' },
       ],
-      tolerations: [{
-        key: 'storage-only',
-        operator: 'Equal',
-        value: 'true',
-        effect: 'NoSchedule',
-      }],
     },
   }),
 

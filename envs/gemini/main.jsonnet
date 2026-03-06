@@ -1,7 +1,14 @@
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
-helm.template('gemini', '../../charts/gemini')
+helm.template('gemini', '../../charts/gemini', {
+  namespace: 'gemini',
+  values: {
+    resources: {
+      limits: { cpu: '500m' },
+    },
+  },
+})
 
 // Restore PVC from snapshot procedure:
 // 1. Find the snapshot timestamp with `k get volumesnapshot` (my-pvc-name-<timestamp>)
