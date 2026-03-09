@@ -69,8 +69,21 @@ k get pv -o json | jq -r '.items[] | select(.spec.storageClassName == "openebs-r
 First of all:
 
 ```bash
+k linstor node l
 k linstor error-reports l
 k linstor resource l --faulty
+```
+
+### OFFLINE node reconnect
+
+```bash
+k linstor node reconnect <node>
+```
+
+### EVICTED node reconnect
+
+```bash
+k linstor node restore <node>
 ```
 
 ### Stuck Standalone faulty resources

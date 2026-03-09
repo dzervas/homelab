@@ -1,4 +1,10 @@
-{ config, home-vpn-iface, pkgs, ... }: {
+{
+  config,
+  home-vpn-iface,
+  pkgs,
+  ...
+}:
+{
   environment.systemPackages = [ pkgs.drbd ];
 
   boot = {
@@ -8,11 +14,15 @@
 
     kernelModules = [
       # Required by openebs
-      "nvme_tcp" "dm_snapshot"
+      "nvme_tcp"
+      "dm_snapshot"
 
       # Required by linstor
       "drbd"
-      "dm_cache" "dm_writecache"
+      "nvme_rdma"
+      "dm_cache"
+      "dm_writecache"
+      "bcache"
 
       # Maybe good for Calico
       "xt_bpf"
@@ -42,7 +52,7 @@
       # "net.ipv4.ip_local_port_range" = "1024 65000"; # Range of ports for ephemeral (client) connections
 
       # Linstor
-      "net.core.rmem_max"	= 1048576;
+      "net.core.rmem_max" = 1048576;
 
       # Allow hostport forwarding
       "net.ipv4.conf.${home-vpn-iface}.route_localnet" = 1;

@@ -50,21 +50,12 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
 
     ingress: ingress.hostObj(domain),
 
-    // Enable workflows with local temporal
-    workflows: {
-      enabled: true,
-      worker: {
-        replicaCount: 1,
-      },
-      backend: {
-        replicaCount: 1,
-      },
-    },
-
     // Enable local temporal cluster
     'retool-temporal-services-helm': {
-      enabled: true,
+      // enabled: true,
+      // Temporal does not support arm64
       server: {
+        nodeSelector: { 'kubernetes.io/arch': 'amd64' },
         config: {
           persistence: {
             default: {
@@ -91,14 +82,11 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
     },
 
     // Disable external temporal (use local)
-    temporal: {
-      enabled: false,
-    },
+    temporal: { enabled: false },
+    agents: { enabled: true },
 
     // Enable code executor for workflows
     codeExecutor: {
-      enabled: true,
-      replicaCount: 1,
       resources: {
         limits: {
           cpu: '1000m',

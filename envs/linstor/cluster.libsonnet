@@ -179,9 +179,10 @@ local nodeSelector = { 'linstor/enable': 'true' };
         },
       }],
 
-      monitoring: {
-        enabled: true,
-      },
+      // Causes significant performance degradation
+      // monitoring: {
+      //   enabled: true,
+      // },
     },
   }),
 }

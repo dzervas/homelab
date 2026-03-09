@@ -1,7 +1,20 @@
-{ config, home-vpn-iface, lib, modulesPath, ... }: {
+{
+  config,
+  home-vpn-iface,
+  lib,
+  modulesPath,
+  ...
+}:
+{
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "sd_mod" ];
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ahci"
+    "nvme"
+    "usb_storage"
+    "sd_mod"
+  ];
   boot.kernelModules = [ "kvm-intel" ];
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
@@ -29,6 +42,24 @@
         };
       };
     };
+    lvm_vg.mainpool.lvs.containerd = {
+      size = "50G";
+      lvm_type = "thinlv";
+      pool = "thinpool";
+      content = {
+        type = "filesystem";
+        format = "ext4";
+        mountpoint = "/var/lib/rancher/rke2/agent/containerd";
+        mountOptions = [
+          "discard"
+          "noatime"
+          "nodiratime"
+          "nodev"
+          "nosuid"
+          "commit=120"
+        ];
+      };
+    };
     lvm_vg.ssdpool = {
       type = "lvm_vg";
       lvs = {
@@ -41,6 +72,7 @@
             mountOptions = [
               "discard"
               "noatime"
+              "nodiratime"
               "nodev"
               "nosuid"
             ];
@@ -58,22 +90,24 @@
   virtualisation.oci-containers.containers = {
     faster-whisper = {
       image = "docker.io/rhasspy/wyoming-whisper";
-	    pull = "always";
-			autoRemoveOnStop = false;
+      pull = "always";
+      autoRemoveOnStop = false;
 
-			cmd = [
-				"--model" "base.en"
-				"--language" "en"
-			];
+      cmd = [
+        "--model"
+        "base.en"
+        "--language"
+        "en"
+      ];
 
-			volumes = [ "/builder/whisper:/data" ];
-			ports = [ "10300:10300" ];
+      volumes = [ "/builder/whisper:/data" ];
+      ports = [ "10300:10300" ];
     };
   };
-	virtualisation.podman = {
-		autoPrune.enable = true;
-		defaultNetwork.settings.dns_enabled = true;
-	};
+  virtualisation.podman = {
+    autoPrune.enable = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
   networking.firewall.interfaces.${home-vpn-iface}.allowedTCPPorts = [ 10300 ];
   networking.firewall.interfaces.podman0.allowedTCPPorts = [ 10300 ];
 }
