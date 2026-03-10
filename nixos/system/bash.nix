@@ -7,6 +7,7 @@
       curl
       dig
       dnslookup
+      file # Many workloads need this
       git
       iperf
       ipset

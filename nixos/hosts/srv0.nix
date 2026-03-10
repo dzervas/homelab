@@ -42,24 +42,24 @@
         };
       };
     };
-    lvm_vg.mainpool.lvs.containerd = {
-      size = "50G";
-      lvm_type = "thinlv";
-      pool = "thinpool";
-      content = {
-        type = "filesystem";
-        format = "ext4";
-        mountpoint = "/var/lib/rancher/rke2/agent/containerd";
-        mountOptions = [
-          "discard"
-          "noatime"
-          "nodiratime"
-          "nodev"
-          "nosuid"
-          "commit=120"
-        ];
-      };
-    };
+    # lvm_vg.mainpool.lvs.containerd = {
+    #   size = "50G";
+    #   lvm_type = "thinlv";
+    #   pool = "thinpool";
+    #   content = {
+    #     type = "filesystem";
+    #     format = "ext4";
+    #     mountpoint = "/var/lib/rancher/rke2/agent/containerd";
+    #     mountOptions = [
+    #       "discard"
+    #       "noatime"
+    #       "nodiratime"
+    #       "nodev"
+    #       "nosuid"
+    #       "commit=120"
+    #     ];
+    #   };
+    # };
     lvm_vg.ssdpool = {
       type = "lvm_vg";
       lvs = {
@@ -87,27 +87,27 @@
   };
 
   # Home Assistant whisper server
-  virtualisation.oci-containers.containers = {
-    faster-whisper = {
-      image = "docker.io/rhasspy/wyoming-whisper";
-      pull = "always";
-      autoRemoveOnStop = false;
+  # virtualisation.oci-containers.containers = {
+  #   faster-whisper = {
+  #     image = "docker.io/rhasspy/wyoming-whisper";
+  #     pull = "always";
+  #     autoRemoveOnStop = false;
 
-      cmd = [
-        "--model"
-        "base.en"
-        "--language"
-        "en"
-      ];
+  #     cmd = [
+  #       "--model"
+  #       "base.en"
+  #       "--language"
+  #       "en"
+  #     ];
 
-      volumes = [ "/builder/whisper:/data" ];
-      ports = [ "10300:10300" ];
-    };
-  };
-  virtualisation.podman = {
-    autoPrune.enable = true;
-    defaultNetwork.settings.dns_enabled = true;
-  };
-  networking.firewall.interfaces.${home-vpn-iface}.allowedTCPPorts = [ 10300 ];
-  networking.firewall.interfaces.podman0.allowedTCPPorts = [ 10300 ];
+  #     volumes = [ "/builder/whisper:/data" ];
+  #     ports = [ "10300:10300" ];
+  #   };
+  # };
+  # virtualisation.podman = {
+  #   autoPrune.enable = true;
+  #   defaultNetwork.settings.dns_enabled = true;
+  # };
+  # networking.firewall.interfaces.${home-vpn-iface}.allowedTCPPorts = [ 10300 ];
+  # networking.firewall.interfaces.podman0.allowedTCPPorts = [ 10300 ];
 }

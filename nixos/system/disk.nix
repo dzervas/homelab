@@ -1,4 +1,10 @@
-{ config, lib, role, ... }: {
+{
+  config,
+  lib,
+  role,
+  ...
+}:
+{
   disko.devices = {
     disk.root = {
       # `device` is defined in the host configuration
@@ -53,7 +59,10 @@
             type = "filesystem";
             format = "f2fs";
             mountpoint = "/";
-            extraArgs = [ "-O" "extra_attr,inode_checksum,sb_checksum,compression" ];
+            extraArgs = [
+              "-O"
+              "extra_attr,inode_checksum,sb_checksum,compression"
+            ];
             mountOptions = [
               "lazytime" # Update a/mtimes asynchronusely
               "nodiscard"
@@ -74,6 +83,30 @@
         thinpool = {
           size = "99%";
           lvm_type = "thin-pool";
+        };
+
+        containerd = {
+          size = "50G";
+          lvm_type = "thinlv";
+          pool = "thinpool";
+          content = {
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/var/lib/rancher/rke2/agent/containerd";
+            mountOptions = [
+              "discard"
+              "noatime"
+              "nodiratime"
+              "nodev"
+              "commit=120"
+            ];
+          };
+        };
+
+        longhorn = {
+          size = "100%";
+          lvm_type = "thinlv";
+          pool = "thinpool";
         };
       };
     };

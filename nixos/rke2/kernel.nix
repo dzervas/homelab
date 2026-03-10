@@ -5,23 +5,33 @@
   ...
 }:
 {
-  environment.systemPackages = [ pkgs.drbd ];
+  environment.systemPackages = with pkgs; [
+    drbd # linstor
+  ];
 
   boot = {
     # Use newer version of the module
     extraModulePackages = with config.boot.kernelPackages; [ drbd ];
     extraModprobeConfig = "options drbd usermode_helper=disabled";
 
+    kernelParams = [
+      # Required by longhorn
+      "hugepagesz=2M"
+      "hugepages=1024"
+    ];
     kernelModules = [
-      # Required by openebs
+      # Required by longhorn
       "nvme_tcp"
-      "dm_snapshot"
+      "vfio_pci"
+      "uio_pci_generic"
+      "dm_crypt"
 
       # Required by linstor
       "drbd"
       "nvme_rdma"
       "dm_cache"
       "dm_writecache"
+      "dm_snapshot"
       "bcache"
 
       # Maybe good for Calico
@@ -64,4 +74,19 @@
       # "net.ipv4.conf.cali*.rp_filter" = 0;
     };
   };
+
+  # Longhorn shenanigans
+  # https://github.com/longhorn/longhorn/issues/2166#issuecomment-2994323945
+  services.openiscsi = {
+    enable = true;
+    name = "${config.networking.hostName}-initiatorhost";
+  };
+  systemd.services.iscsid.serviceConfig = {
+    PrivateMounts = "yes";
+    BindPaths = "/run/current-system/sw/bin:/bin";
+  };
+  systemd.tmpfiles.rules = [
+    # Create a symbolic link /usr/bin/mount -> /run/current-system/sw/bin/mount
+    "L /usr/bin/mount - - - - /run/current-system/sw/bin/mount"
+  ];
 }
