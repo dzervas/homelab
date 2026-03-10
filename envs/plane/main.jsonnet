@@ -95,6 +95,16 @@ local planeHelmDef = std.prune(normalizeJobNames(
           cpuLimit: '2',
         },
         automation_consumer: { enabled: true },
+        redis: {
+          affinity: {
+            podAffinity: {
+              requiredDuringSchedulingIgnoredDuringExecution: [{
+                labelSelector: { matchLabels: { 'app.name': 'plane-plane-pgdb' } },
+                topologyKey: 'provider',
+              }],
+            },
+          },
+        },
         pi: {
           enabled: true,
           ai_providers: {

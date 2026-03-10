@@ -64,7 +64,7 @@ requires:
 - chart: dzervas/magicentry
   version: 0.8.3
 - chart: grafana/grafana
-  version: 11.3.0
+  version: 11.3.2
 - chart: grafana/grafana-mcp
   version: 0.8.0
 - chart: jetstack/cert-manager

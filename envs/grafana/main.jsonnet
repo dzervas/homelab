@@ -30,7 +30,7 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
       networkPolicy: { enabled: true },
 
       plugins: [
-        'grafana-llm-app',
+        // 'grafana-llm-app',
         'victoriametrics-logs-datasource',
         'victoriametrics-metrics-datasource',
       ],
@@ -115,6 +115,16 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
         userKey: 'username',
         passwordKey: 'password',
       },
+
+      extraVolumeMounts: [{
+        name: 'tmp',
+        mountPath: '/tmp',
+        readOnly: false,
+      }],
+      extraVolumes: [{
+        name: 'tmp',
+        emptyDir: {},
+      }],
     },
   }),
   grafanaOp: opsecretLib.new('grafana'),

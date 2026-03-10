@@ -36,7 +36,7 @@ local helm = tk.helm.new(std.thisFile);
         // Maybe interrupt mode at some point (needs iommu): https://longhorn.io/docs/1.11.0/v2-data-engine/features/interrupt-mode/
       },
 
-      // metrics: { serviceMonitor: { enabled: true } },
+      metrics: { serviceMonitor: { enabled: true } },
     },
   }),
 }
