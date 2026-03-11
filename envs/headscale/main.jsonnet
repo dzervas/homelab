@@ -18,7 +18,8 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
 {
   headscale:
     dockerService.new('headscale', 'ghcr.io/juanfont/headscale', {
-      fqdn: 'vpn.' + domain,
+      // fqdn: 'vpn.' + domain,
+      ingressEnabled: false,
       ports: [8080],
       args: ['serve'],
       pvs: sharedPV {
@@ -99,8 +100,9 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
           search_domains: ['vpn.%s' % domain],
           nameservers: {
             global: [
-              '8.8.8.8',
-              '1.1.1.1',
+              // https://adguard-dns.io/en/public-dns.html
+              '94.140.14.14',
+              '94.140.15.15',
             ],
           },
         },
