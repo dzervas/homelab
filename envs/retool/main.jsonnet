@@ -22,8 +22,16 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
     },
 
     persistentVolumeClaim: { enabled: true },
+    securityContext: {
+      enabled: true,
+      privileged: false,
+      runAsUser: 999,  // retool-user
+      runAsGroup: 999,
+      runAsNonRoot: true,
+    },
 
     deployment: { labels: { 'ai/enable': 'true' } },
+    dbconnector: { java: { enabled: false } },
 
     config: {
       licenseKey: 'EXPIRED-LICENSE-KEY-TRIAL',
