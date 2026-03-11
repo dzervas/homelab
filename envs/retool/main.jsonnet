@@ -6,8 +6,10 @@ local labsonnet = import 'labsonnet/main.libsonnet';
 
 local helm = tk.helm.new(std.thisFile);
 
+local deployment = k.apps.v1.deployment;
 local namespace = 'retool';
 local domain = 'retool.vpn.dzerv.art';
+local retoolVersion = '3.334.0';
 
 local retoolHelmDef = helm.template('retool', '../../charts/retool', {
   namespace: namespace,
@@ -83,7 +85,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
 
     // Disable external temporal (use local)
     temporal: { enabled: false },
-    agents: { enabled: true },
+    // agents: { enabled: true },
 
     // Enable code executor for workflows
     codeExecutor: {
@@ -126,6 +128,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       TZ: timezone,
       BASE_DOMAIN: domain,
       CONTAINER_UNPRIVILEGED_MODE: 'true',
+      DISABLE_IPTABLES_SECURITY_CONFIGURATION: 'true',
     },
   },
 });
@@ -173,6 +176,10 @@ local fixWorkflowPostgresPasswordKey(obj) =
     deployment_retool_workflow_worker+: fixWorkflowPostgresPasswordKey(
       retoolHelmDef.deployment_retool_workflow_worker
     ),
+    deployment_retool_code_executor+: deployment.spec.template.spec.withContainers(std.map(
+      function(c) c + k.core.v1.container.withImage('tryretool/code-executor-service:latest'),
+      retoolHelmDef.deployment_retool_code_executor.spec.template.spec.containers
+    )),
   },
 
   retoolSecrets: {

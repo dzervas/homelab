@@ -30,7 +30,7 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
       networkPolicy: { enabled: true },
 
       plugins: [
-        // 'grafana-llm-app',
+        'grafana-llm-app',
         'victoriametrics-logs-datasource',
         'victoriametrics-metrics-datasource',
       ],
