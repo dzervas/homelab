@@ -210,8 +210,9 @@ sleep 10
 
 echo "Migrating the data between the PVCs with pv-migrate"
 echo "namespace=$namespace pvc_name=$pvc_name"
+set -x
+pv-migrate --strategies mnt2 --source-namespace "$namespace" --dest-namespace "$namespace" --source "$pvc_name-old" --dest "$pvc_name" # --helm-set rsync.nodeSelector.provider=oracle
 set +x
-pv-migrate --strategies mnt2 --source-namespace "$namespace" --dest-namespace "$namespace" --source "$pvc_name-old" --dest "$pvc_name" --helm-set rsync.nodeSelector.provider=oracle
 
 # Restore workloads after successful migration
 echo ""

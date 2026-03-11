@@ -21,7 +21,10 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       tag: 'latest',
     },
 
-    persistentVolumeClaim: { enabled: true },
+    persistentVolumeClaim: {
+      enabled: true,
+      storageClass: 'longhorn',
+    },
     securityContext: {
       enabled: true,
       privileged: false,
@@ -30,7 +33,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       runAsNonRoot: true,
     },
 
-    deployment: { labels: { 'ai/enable': 'true' } },
+    podLabels: { 'ai/enable': 'true' },
     dbconnector: { java: { enabled: false } },
 
     config: {
@@ -62,7 +65,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
 
     // Enable local temporal cluster
     'retool-temporal-services-helm': {
-      // enabled: true,
+      enabled: true,
       // Temporal does not support arm64
       server: {
         nodeSelector: { 'kubernetes.io/arch': 'amd64' },
@@ -137,6 +140,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       BASE_DOMAIN: domain,
       CONTAINER_UNPRIVILEGED_MODE: 'true',
       DISABLE_IPTABLES_SECURITY_CONFIGURATION: 'true',
+      DISABLE_USER_PASS_LOGIN: 'false',
     },
   },
 });
