@@ -4,6 +4,7 @@ local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
+local networkPolicy = k.networking.v1.networkPolicy;
 
 local helm = tk.helm.new(std.thisFile);
 
@@ -30,7 +31,6 @@ local helm = tk.helm.new(std.thisFile);
         title: 'DZerv.Art Auth Service',
         request_enable: false,
         smtp_enable: true,
-        smtp_url: 'smtp://noreply%40dzerv.art:${local.op_secrets.magicentry.mail_pass}@smtp.office365.com:587/?tls=required',
         smtp_from: 'DZerv.Art Auth Service <noreply@dzerv.art>',
         smtp_body: 'Click the link to login: <a href="{magic_link}">Login</a>',
 
@@ -65,4 +65,22 @@ local helm = tk.helm.new(std.thisFile);
     + externalSecret.spec.target.template.withData({
       smtp_url: 'smtp://noreply%40dzerv.art:{{ .smtp_password }}@smtp.office365.com:587/?tls=required',
     }),
+
+  networkPolicy:
+    networkPolicy.new('allow-magicentry')
+    + networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/name': 'magicentry' })
+    + networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + networkPolicy.spec.withIngress([{
+      from: [
+        {
+          namespaceSelector: {},
+          podSelector: { matchLabels: { 'magicentry.rs/enable': 'true' } },
+        },
+        {
+          // Allow traefik for auth-url
+          namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'traefik' } },
+        },
+      ],
+      ports: [{ port: 8080, protocol: 'TCP' }],
+    }]),
 }

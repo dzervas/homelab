@@ -64,7 +64,7 @@ requires:
   - chart: dzervas/audiobookshelf
     version: 0.2.4
   - chart: dzervas/magicentry
-    version: 0.8.3
+    version: 0.8.4
   - chart: grafana/grafana
     version: 11.3.2
   - chart: grafana/grafana-mcp

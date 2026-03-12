@@ -1,8 +1,10 @@
+local externalSecrets = import 'external-secrets-libsonnet/1.1/main.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local labsonnet = import 'labsonnet/main.libsonnet';
+local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 local helm = tk.helm.new(std.thisFile);
 
@@ -37,13 +39,17 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
     dbconnector: { java: { enabled: false } },
 
     config: {
-      licenseKey: 'EXPIRED-LICENSE-KEY-TRIAL',
+      licenseKey: 'SSOP_LOCAL_ONLY',
       useInsecureCookies: false,
+
       // Secrets provided via ExternalSecret
       encryptionKeySecretName: 'retool-secrets',
       encryptionKeySecretKey: 'encryption-key',
       jwtSecretSecretName: 'retool-secrets',
       jwtSecretSecretKey: 'jwt-secret',
+
+      postgresql: { username: 'retool' },
+
       // Disable Google auth
       auth: {
         google: {
@@ -57,7 +63,8 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       auth: {
         database: 'retool',
         username: 'retool',
-        password: 'retool',
+        existingSecret: 'retool-secrets',
+        secretKeys: { userPasswordKey: 'postgres-password' },
       },
     },
 
@@ -77,7 +84,8 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
                 port: 5432,
                 database: 'temporal',
                 user: 'retool',
-                password: 'retool',
+                existingSecret: 'retool-secrets',
+                secretKey: 'postgres-password',
               },
             },
             visibility: {
@@ -86,7 +94,8 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
                 port: 5432,
                 database: 'temporal_visibility',
                 user: 'retool',
-                password: 'retool',
+                existingSecret: 'retool-secrets',
+                secretKey: 'postgres-password',
               },
             },
           },
@@ -135,12 +144,33 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
     // Remove amd64 node selector constraint
     nodeSelector: {},
 
+
+    service: {
+      labels: { 'magicentry.rs/enable': 'true' },
+      annotations: {
+        'magicentry.rs/name': 'Retool',
+        'magicentry.rs/url': 'https://retool.vpn.dzerv.art',
+        'magicentry.rs/realms': 'retool',
+        'magicentry.rs/oidc_redirect_urls': 'retool.vpn.dzerv.art/oauth2sso/callback',
+      },
+    },
+
+    environmentSecrets: [
+      { name: 'CUSTOM_OAUTH2_SSO_CLIENT_ID', secretKeyRef: { name: 'retool-magicentry', key: 'client_id' } },
+      { name: 'CUSTOM_OAUTH2_SSO_CLIENT_SECRET', secretKeyRef: { name: 'retool-magicentry', key: 'client_secret' } },
+    ],
+
     env: {
+      CUSTOM_OAUTH2_SSO_SCOPES: 'openid email profile offline_access',
+      CUSTOM_OAUTH2_SSO_AUTH_URL: 'https://auth.dzerv.art/oidc/authorize',
+      CUSTOM_OAUTH2_SSO_TOKEN_URL: 'https://magicentry.magicentry.svc.cluster.local:8080/oidc/token',
+      CUSTOM_OAUTH2_SSO_USERINFO_URL: 'https://magicentry.magicentry.svc.cluster.local:8080/oidc/userinfo',
+      CUSTOM_OAUTH2_SSO_JWT_EMAIL_KEY: 'idToken.email',
+
       TZ: timezone,
       BASE_DOMAIN: domain,
       CONTAINER_UNPRIVILEGED_MODE: 'true',
       DISABLE_IPTABLES_SECURITY_CONFIGURATION: 'true',
-      DISABLE_USER_PASS_LOGIN: 'false',
     },
   },
 });
@@ -148,40 +178,25 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
 // Patch workflow pods only: chart uses postgres-password even when username is non-postgres.
 // Keep vendored chart untouched by rewriting the env entry in rendered Deployments.
 local fixWorkflowPostgresPasswordKey(obj) =
-  obj {
-    spec+: {
-      template+: {
-        spec+: {
-          containers: std.map(
-            function(c)
-              c {
-                env: std.map(
-                  function(e)
-                    if std.objectHas(e, 'name') && e.name == 'POSTGRES_PASSWORD' then
-                      e {
-                        valueFrom+: {
-                          secretKeyRef+: {
-                            key: 'password',
-                          },
-                        },
-                      }
-                    else
-                      e,
-                  c.env
-                ),
-              },
-            obj.spec.template.spec.containers
-          ),
-        },
+  obj { spec+: { template+: { spec+: { containers: std.map(
+    function(c)
+      c {
+        env: std.map(
+          function(e) if std.objectHas(e, 'name') && e.name == 'POSTGRES_PASSWORD' then e { valueFrom+: { secretKeyRef+: { name: 'retool-secrets', key: 'postgres-password' } } } else e,
+          c.env
+        ),
       },
-    },
-  };
+    obj.spec.template.spec.containers
+  ) } } } };
 
 {
   namespace:
     k.core.v1.namespace.new(namespace)
     + k.core.v1.namespace.metadata.withLabels({ ghcrCreds: 'enabled' }),
   retool: retoolHelmDef {
+    deployment_retool+: fixWorkflowPostgresPasswordKey(
+      retoolHelmDef.deployment_retool
+    ),
     deployment_retool_workflow_backend+: fixWorkflowPostgresPasswordKey(
       retoolHelmDef.deployment_retool_workflow_backend
     ),
@@ -194,47 +209,46 @@ local fixWorkflowPostgresPasswordKey(obj) =
     )),
   },
 
-  retoolSecrets: {
-    apiVersion: 'external-secrets.io/v1',
-    kind: 'ExternalSecret',
-    metadata: {
-      name: 'retool-secrets',
-      namespace: namespace,
-    },
-    spec: {
-      refreshPolicy: 'OnChange',
-      target: {
-        template: {
-          data: {
-            'encryption-key': '{{ .encryption_key }}',
-            'jwt-secret': '{{ .jwt_secret }}',
+  retoolSecrets:
+    externalSecret.new('retool-secrets')
+    + externalSecret.spec.withRefreshPolicy('CreatedOnce')
+    + externalSecret.spec.withDataFrom([
+      {
+        sourceRef: {
+          generatorRef: {
+            apiVersion: 'generators.external-secrets.io/v1alpha1',
+            kind: 'ClusterGenerator',
+            name: 'password',
           },
         },
+        rewrite: [{ regexp: { source: 'password', target: 'encryption_key' } }],
       },
-      dataFrom: [
-        {
-          sourceRef: {
-            generatorRef: {
-              apiVersion: 'generators.external-secrets.io/v1alpha1',
-              kind: 'ClusterGenerator',
-              name: 'password',
-            },
+      {
+        sourceRef: {
+          generatorRef: {
+            apiVersion: 'generators.external-secrets.io/v1alpha1',
+            kind: 'ClusterGenerator',
+            name: 'password',
           },
-          rewrite: [{ regexp: { source: 'password', target: 'encryption_key' } }],
         },
-        {
-          sourceRef: {
-            generatorRef: {
-              apiVersion: 'generators.external-secrets.io/v1alpha1',
-              kind: 'ClusterGenerator',
-              name: 'password',
-            },
+        rewrite: [{ regexp: { source: 'password', target: 'jwt_secret' } }],
+      },
+      {
+        sourceRef: {
+          generatorRef: {
+            apiVersion: 'generators.external-secrets.io/v1alpha1',
+            kind: 'ClusterGenerator',
+            name: 'password',
           },
-          rewrite: [{ regexp: { source: 'password', target: 'jwt_secret' } }],
         },
-      ],
-    },
-  },
+        rewrite: [{ regexp: { source: 'password', target: 'postgres_password' } }],
+      },
+    ])
+    + externalSecret.spec.target.template.withData({
+      'encryption-key': '{{ .encryption_key }}',
+      'jwt-secret': '{{ .jwt_secret }}',
+      'postgres-password': '{{ .postgres_password }}',
+    }),
 
   server:
     labsonnet.new('retool-server', 'ghcr.io/dzervas/retool-server')
@@ -242,3 +256,9 @@ local fixWorkflowPostgresPasswordKey(obj) =
     + labsonnet.withNamespace(namespace)
     + labsonnet.withImagePullSecrets(['ghcr-cluster-secret']),
 }
+
+// PostgreSQL initialization:
+// k exec -it sts/retool-postgresql -it -- psql -U retool
+// CREATE DATABASE temporal;
+// CREATE DATABASE temporal_visibility;
+// CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
