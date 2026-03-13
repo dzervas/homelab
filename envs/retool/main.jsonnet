@@ -120,7 +120,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
 
     // Disable external temporal (use local)
     temporal: { enabled: false },
-    // agents: { enabled: true },
+    agents: { enabled: true },
 
     // Enable code executor for workflows
     codeExecutor: {
@@ -214,10 +214,17 @@ local fixWorkflowPostgresPasswordKey(obj) =
   namespace:
     k.core.v1.namespace.new(namespace)
     + k.core.v1.namespace.metadata.withLabels({ ghcrCreds: 'enabled' }),
+
   retool: retoolHelmDef {
     deployment_retool+: fixWorkflowPostgresPasswordKey(
       retoolHelmDef.deployment_retool
     ) + colocateWithPgdb,
+    deployment_retool_agent_eval_worker+: fixWorkflowPostgresPasswordKey(
+      retoolHelmDef.deployment_retool_agent_eval_worker
+    ),
+    deployment_retool_agent_worker+: fixWorkflowPostgresPasswordKey(
+      retoolHelmDef.deployment_retool_agent_worker
+    ),
     deployment_retool_workflow_backend+: fixWorkflowPostgresPasswordKey(
       retoolHelmDef.deployment_retool_workflow_backend
     ),
@@ -235,7 +242,7 @@ local fixWorkflowPostgresPasswordKey(obj) =
     values: {
       image: {
         repository: 'postgres',
-        tag: '13',
+        tag: '16',
       },
       auth: {
         database: 'retooldb',
@@ -294,3 +301,8 @@ local fixWorkflowPostgresPasswordKey(obj) =
 // CREATE DATABASE temporal;
 // CREATE DATABASE temporal_visibility;
 // CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+//
+// CREATE DATABASE retooldb;
+// CREATE USER retooldb WITH PASSWORD 'password' CREATEDB CREATEROLE;
+// ALTER DATABASE retooldb OWNER TO retooldb;
+// GRANT ALL PRIVILEGES ON DATABASE retooldb TO retooldb;
