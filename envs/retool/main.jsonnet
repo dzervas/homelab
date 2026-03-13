@@ -5,6 +5,7 @@ local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local labsonnet = import 'labsonnet/main.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
+local podAffinityTerm = k.core.v1.podAffinityTerm;
 
 local helm = tk.helm.new(std.thisFile);
 
@@ -12,6 +13,16 @@ local deployment = k.apps.v1.deployment;
 local namespace = 'retool';
 local domain = 'retool.vpn.dzerv.art';
 local retoolVersion = '3.334.0';
+
+local colocateWithPgdb = deployment.spec.template.spec.affinity.podAffinity.withRequiredDuringSchedulingIgnoredDuringExecution([{
+  labelSelector: {
+    matchLabels: {
+      'app.kubernetes.io/instance': 'retool',
+      'app.kubernetes.io/name': 'postgresql',
+    },
+  },
+  topologyKey: 'provider',
+}]);
 
 local retoolHelmDef = helm.template('retool', '../../charts/retool', {
   namespace: namespace,
@@ -65,6 +76,10 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
         username: 'retool',
         existingSecret: 'retool-secrets',
         secretKeys: { userPasswordKey: 'postgres-password' },
+      },
+      primary: {
+        // TODO: Remove once retool supports arm64
+        nodeSelector: { 'kubernetes.io/arch': 'amd64' },
       },
     },
 
@@ -142,8 +157,7 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
     replicaCount: 1,
 
     // Remove amd64 node selector constraint
-    nodeSelector: {},
-
+    // nodeSelector: { 'kubernetes.io/arch': null },
 
     service: {
       labels: { 'magicentry.rs/enable': 'true' },
@@ -151,14 +165,9 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
         'magicentry.rs/name': 'Retool',
         'magicentry.rs/url': 'https://retool.vpn.dzerv.art',
         'magicentry.rs/realms': 'retool',
-        'magicentry.rs/oidc_redirect_urls': 'retool.vpn.dzerv.art/oauth2sso/callback',
+        'magicentry.rs/oidc_redirect_urls': 'https://retool.vpn.dzerv.art/oauth2sso/callback',
       },
     },
-
-    environmentSecrets: [
-      { name: 'CUSTOM_OAUTH2_SSO_CLIENT_ID', secretKeyRef: { name: 'retool-magicentry', key: 'client_id' } },
-      { name: 'CUSTOM_OAUTH2_SSO_CLIENT_SECRET', secretKeyRef: { name: 'retool-magicentry', key: 'client_secret' } },
-    ],
 
     env: {
       CUSTOM_OAUTH2_SSO_SCOPES: 'openid email profile offline_access',
@@ -167,11 +176,23 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       CUSTOM_OAUTH2_SSO_USERINFO_URL: 'https://magicentry.magicentry.svc.cluster.local:8080/oidc/userinfo',
       CUSTOM_OAUTH2_SSO_JWT_EMAIL_KEY: 'idToken.email',
 
+      RETOOLDB_POSTGRES_HOST: 'retooldb-postgresql-hl',
+      RETOOLDB_POSTGRES_PORT: '5432',
+      RETOOLDB_POSTGRES_USER: 'retooldb',
+      RETOOLDB_POSTGRES_DB: 'retooldb',
+
       TZ: timezone,
-      BASE_DOMAIN: domain,
+      BASE_DOMAIN: 'https://' + domain,
       CONTAINER_UNPRIVILEGED_MODE: 'true',
       DISABLE_IPTABLES_SECURITY_CONFIGURATION: 'true',
     },
+
+    environmentSecrets: [
+      { name: 'CUSTOM_OAUTH2_SSO_CLIENT_ID', secretKeyRef: { name: 'retool-magicentry', key: 'client_id' } },
+      { name: 'CUSTOM_OAUTH2_SSO_CLIENT_SECRET', secretKeyRef: { name: 'retool-magicentry', key: 'client_secret' } },
+
+      { name: 'RETOOLDB_POSTGRES_PASSWORD', secretKeyRef: { name: 'retool-secrets', key: 'retooldb-postgres-password' } },
+    ],
   },
 });
 
@@ -196,7 +217,7 @@ local fixWorkflowPostgresPasswordKey(obj) =
   retool: retoolHelmDef {
     deployment_retool+: fixWorkflowPostgresPasswordKey(
       retoolHelmDef.deployment_retool
-    ),
+    ) + colocateWithPgdb,
     deployment_retool_workflow_backend+: fixWorkflowPostgresPasswordKey(
       retoolHelmDef.deployment_retool_workflow_backend
     ),
@@ -209,45 +230,56 @@ local fixWorkflowPostgresPasswordKey(obj) =
     )),
   },
 
+  retooldb: helm.template('retooldb', '../../charts/postgresql', {
+    namespace: namespace,
+    values: {
+      image: {
+        repository: 'postgres',
+        tag: '13',
+      },
+      auth: {
+        database: 'retooldb',
+        username: 'retooldb',
+        existingSecret: 'retool-secrets',
+        secretKeys: { userPasswordKey: 'retooldb-postgres-password' },
+      },
+      global: { storageClass: 'longhorn' },
+
+      primary: {
+        podSecurityContext: { fsGroup: 999 },
+        containerSecurityContext: { runAsUser: 999 },
+
+        // TODO: Remove once retool supports arm64
+        nodeSelector: { 'kubernetes.io/arch': 'amd64' },
+      },
+    },
+  }),
+
   retoolSecrets:
+    local newRandomTarget(name) = {
+      sourceRef: {
+        generatorRef: {
+          apiVersion: 'generators.external-secrets.io/v1alpha1',
+          kind: 'ClusterGenerator',
+          name: 'password',
+        },
+      },
+      rewrite: [{ regexp: { source: 'password', target: name } }],
+    };
+
     externalSecret.new('retool-secrets')
     + externalSecret.spec.withRefreshPolicy('CreatedOnce')
     + externalSecret.spec.withDataFrom([
-      {
-        sourceRef: {
-          generatorRef: {
-            apiVersion: 'generators.external-secrets.io/v1alpha1',
-            kind: 'ClusterGenerator',
-            name: 'password',
-          },
-        },
-        rewrite: [{ regexp: { source: 'password', target: 'encryption_key' } }],
-      },
-      {
-        sourceRef: {
-          generatorRef: {
-            apiVersion: 'generators.external-secrets.io/v1alpha1',
-            kind: 'ClusterGenerator',
-            name: 'password',
-          },
-        },
-        rewrite: [{ regexp: { source: 'password', target: 'jwt_secret' } }],
-      },
-      {
-        sourceRef: {
-          generatorRef: {
-            apiVersion: 'generators.external-secrets.io/v1alpha1',
-            kind: 'ClusterGenerator',
-            name: 'password',
-          },
-        },
-        rewrite: [{ regexp: { source: 'password', target: 'postgres_password' } }],
-      },
+      newRandomTarget('encryption_key'),
+      newRandomTarget('jwt_secret'),
+      newRandomTarget('postgres_password'),
+      newRandomTarget('retooldb_postgres_password'),
     ])
     + externalSecret.spec.target.template.withData({
       'encryption-key': '{{ .encryption_key }}',
       'jwt-secret': '{{ .jwt_secret }}',
       'postgres-password': '{{ .postgres_password }}',
+      'retooldb-postgres-password': '{{ .retooldb_postgres_password }}',
     }),
 
   server:
