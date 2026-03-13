@@ -2,6 +2,7 @@ local dockerService = import 'docker-service.libsonnet';
 local containerLib = import 'docker-service/container.libsonnet';
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
 local gatewayApi = import 'gateway-api-libsonnet/1.4-experimental/main.libsonnet';
+local affinity = import 'helpers/affinity.libsonnet';
 local k = import 'k.libsonnet';
 local serviceAccount = k.core.v1.serviceAccount;
 local clusterRole = k.rbac.v1.clusterRole;
@@ -40,6 +41,7 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
             spec+: {
               // SAs are pod-scoped so both containers are ran as dns-controller
               serviceAccountName: 'dns-controller',
+              affinity: affinity.avoidHomelab,
 
               // Create dummy file to avoid headscale init error
               initContainers+: [
