@@ -10,11 +10,11 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
     + labsonnet.withType('StatefulSet')
     // + labsonnet.withFqdn('notes.vpn.dzerv.art')
     // + labsonnet.withPort({ port: 3010 })
-    + labsonnet.withVpnHttp(3010, fqdn='notes.vpn.dzerv.art')
+    + labsonnet.withVpnHttp(3010, fqdn='docs.vpn.dzerv.art')
     + labsonnet.withPV('/home/node/.affine/storage', { name: 'affine-storage', size: '10Gi' })
     + labsonnet.withPV('/home/node/.affine/config', { name: 'affine-config', size: '1Gi' })
     + labsonnet.withEnv({
-      AFFINE_INDEXER_ENABLED: 'false',
+      AFFINE_INDEXER_ENABLED: 'true',
       AFFINE_SERVER_EXTERNAL_URL: 'https://notes.vpn.dzerv.art',
       REDIS_SERVER_HOST: 'redis',
     })
@@ -45,7 +45,6 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
       POSTGRES_USER: 'affine',
       POSTGRES_DB: 'affine',
       POSTGRES_INITDB_ARGS: '--data-checksums',
-      // + labsonnet.withEnv('POSTGRES_HOST_AUTH_METHOD', 'trust')
     })
     + labsonnet.withSecretEnv({
       POSTGRES_PASSWORD: { name: 'affine-secrets-op', key: 'password' },

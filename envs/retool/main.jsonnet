@@ -46,7 +46,10 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
       runAsNonRoot: true,
     },
 
-    podLabels: { 'ai/enable': 'true' },
+    podLabels: {
+      'ai/enable': 'true',
+      'magicentry.rs/enable': 'true',
+    },
     dbconnector: { java: { enabled: false } },
 
     config: {
@@ -172,9 +175,15 @@ local retoolHelmDef = helm.template('retool', '../../charts/retool', {
     env: {
       CUSTOM_OAUTH2_SSO_SCOPES: 'openid email profile offline_access',
       CUSTOM_OAUTH2_SSO_AUTH_URL: 'https://auth.dzerv.art/oidc/authorize',
-      CUSTOM_OAUTH2_SSO_TOKEN_URL: 'https://magicentry.magicentry.svc.cluster.local:8080/oidc/token',
-      CUSTOM_OAUTH2_SSO_USERINFO_URL: 'https://magicentry.magicentry.svc.cluster.local:8080/oidc/userinfo',
+      CUSTOM_OAUTH2_SSO_TOKEN_URL: 'http://magicentry.magicentry.svc.cluster.local:8080/oidc/token',
+      CUSTOM_OAUTH2_SSO_USERINFO_URL: 'http://magicentry.magicentry.svc.cluster.local:8080/oidc/userinfo',
       CUSTOM_OAUTH2_SSO_JWT_EMAIL_KEY: 'idToken.email',
+      CUSTOM_OAUTH2_SSO_JWT_FIRST_NAME_KEY: 'idToken.firstName',
+      CUSTOM_OAUTH2_SSO_JWT_LAST_NAME_KEY: 'idToken.lastName',
+      CUSTOM_OAUTH2_SSO_JWT_ROLES_KEY: 'idToken.groups',
+      CUSTOM_OAUTH2_SSO_ROLE_MAPPING: 'all -> admin, retool -> editor',
+      TRIGGER_OAUTH_2_SSO_LOGIN_AUTOMATICALLY: 'true',
+      JIT_ENABLED: 'true',
 
       RETOOLDB_POSTGRES_HOST: 'retooldb-postgresql-hl',
       RETOOLDB_POSTGRES_PORT: '5432',

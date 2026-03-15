@@ -16,10 +16,10 @@ local helm = tk.helm.new(std.thisFile);
   magicentry: helm.template('magicentry', '../../charts/magicentry', {
     namespace: $.namespace.metadata.name,
     values: {
-      image: {
-        repository: 'ghcr.io/dzervas/magicentry',
-        tag: 'latest-kube',
-      },
+      // image: {
+      //   repository: 'ghcr.io/dzervas/magicentry',
+      //   tag: 'latest-kube',
+      // },
 
       ingress: ingress.hostObj('auth.dzerv.art'),
       persistence: {
