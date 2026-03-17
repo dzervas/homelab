@@ -1,26 +1,18 @@
 local dockerService = import 'docker-service.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
+local lab = import 'labsonnet.libsonnet';
 
-dockerService.new('atuin', 'ghcr.io/atuinsh/atuin', {
-  // TODO: Support statefulsets and args
-  args: ['start'],
-
-  fqdn: 'sh.vpn.dzerv.art',
-  ports: [8888],
-
-  env: {
-    ATUIN_HOST: '0.0.0.0',
-    ATUIN_PORT: '8888',
-    ATUIN_OPEN_REGISTRATION: 'false',
-    ATUIN_DB_URI: 'sqlite:///db/atuin.db',
-    RUST_LOG: 'info',  // "info,atuin_server=debug"
-    TZ: timezone,
-  },
-
-  pvs: {
-    '/db': {
-      name: 'db',
-      size: '1Gi',
-    },
-  },
+lab.new('atuin', 'ghcr.io/atuinsh/atuin')
++ lab.withCreateNamespace()
++ lab.withType('StatefulSet')
++ lab.withArgs(['start'])
++ lab.withPV('/db', { name: 'db', size: '1Gi' })
++ lab.withVpnHttp(8888, 'sh.vpn.dzerv.art')
++ lab.withEnv({
+  ATUIN_HOST: '0.0.0.0',
+  ATUIN_PORT: '8888',
+  ATUIN_OPEN_REGISTRATION: 'false',
+  ATUIN_DB_URI: 'sqlite:///db/atuin.db',
+  RUST_LOG: 'info',  // "info,atuin_server=debug"
+  TZ: timezone,
 })
