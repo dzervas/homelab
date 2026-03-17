@@ -1,4 +1,6 @@
+local externalSecrets = import 'external-secrets-libsonnet/1.1/main.libsonnet';
 local lab = import 'labsonnet/main.libsonnet';
+local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 local traefik = {
   name: 'traefik-gateway',
@@ -6,29 +8,29 @@ local traefik = {
   sectionName: 'websecure',
 };
 
-lab {
-  withPublicHttp(port, name=null, matches=null, fqdn=null)::
-    lab.withPort({
-      port: port,
-      name: if name != null then name else 'http-%d' % port,
-      httpRoute: {
-        gateway: traefik,
-        annotations: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
-        [if fqdn != null then 'fqdn']: fqdn,
-      } + (if matches != null then { matches: matches } else {}),
-    }),
+local publicHttpOptions(port, fqdn, name=null, matches=null) = {
+  port: port,
+  name: if name != null then name else port,
+  httpRoute: {
+    gateway: traefik,
+    annotations: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
+    [if fqdn != null then 'fqdn']: fqdn,
+  } + (if matches != null then { matches: matches } else {}),
+};
 
-  withVpnHttp(port, name=null, matches=null, fqdn=null)::
-    lab.withPort({
-      port: port,
-      name: if name != null then name else 'vpn-http-%d' % port,
-      httpRoute: {
-        gateway: traefik,
-        annotations: {
-          'cert-manager.io/cluster-issuer': 'letsencrypt',
-          'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-vpnonly@kubernetescrd',
-        },
-        [if fqdn != null then 'fqdn']: fqdn,
-      } + (if matches != null then { matches: matches } else {}),
-    }),
+lab {
+  withPublicHttp(port, fqdn, name=null, matches=null)::
+    lab.withPort(publicHttpOptions(port, fqdn, name, matches)),
+
+  withVpnHttp(port, fqdn, name=null, matches=null)::
+    lab.withPort(
+      publicHttpOptions(port, fqdn, name, matches) + {
+        name: if name != null then name else 'vpn-%d' % port,
+        annotations+: { 'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-vpnonly@kubernetescrd' },
+      }
+    ),
+
+  withOpEnvs(envs, name=null)::
+    local secName = if name != null then name else $._name;
+    lab.withExternalSecretEnvs(secName + '-op', secName, { storeName: '1password' }),
 }

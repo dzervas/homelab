@@ -1,4 +1,3 @@
-local dockerService = import 'docker-service.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
