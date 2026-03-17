@@ -79,9 +79,9 @@
   avoidHomelab:: self.avoidProviders(['homelab']),
 
   // Prefer oracle provider nodes (most reliable and low latency)
-  preferOracle:: self.preferProviders(['oracle']),
+  preferHomelab:: self.preferProviders(['homelab']),
 
   // Alias for common use case
   ha:: self.avoidHomelab,
-  lowLatency:: self.preferOracle,
+  lowLatency:: self.preferHomelab,
 }

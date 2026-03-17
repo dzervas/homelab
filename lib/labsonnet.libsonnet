@@ -1,6 +1,5 @@
-local externalSecrets = import 'external-secrets-libsonnet/1.1/main.libsonnet';
+local affinity = import 'helpers/affinity.libsonnet';
 local lab = import 'labsonnet/main.libsonnet';
-local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 local traefik = {
   name: 'traefik-gateway',
@@ -10,7 +9,7 @@ local traefik = {
 
 local publicHttpOptions(port, fqdn, name=null, matches=null) = {
   port: port,
-  name: if name != null then name else port,
+  name: if name != null then name else std.toString(port),
   httpRoute: {
     gateway: traefik,
     annotations: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
@@ -19,8 +18,16 @@ local publicHttpOptions(port, fqdn, name=null, matches=null) = {
 };
 
 lab {
+  new(name, image, ghcr=false)::
+    lab.new(name, image)
+    + (if std.startsWith(image, 'ghcr.io/dzervas/') || ghcr then (
+         lab.withNamespaceLabels({ ghcrCreds: 'enabled' })
+         + lab.withImagePullSecrets(['ghcr-cluster-secret'])
+       ) else {})
+  ,
+
   withPublicHttp(port, fqdn, name=null, matches=null)::
-    lab.withPort(publicHttpOptions(port, fqdn, name, matches)),
+    lab.withPort(publicHttpOptions(port, fqdn, if name != null then name else 'http-%d' % port, matches)),
 
   withVpnHttp(port, fqdn, name=null, matches=null)::
     lab.withPort(
@@ -33,4 +40,9 @@ lab {
   withOpEnvs(envs, name=null)::
     local secName = if name != null then name else $._name;
     lab.withExternalSecretEnvs(secName + '-op', secName, { storeName: '1password' }),
+
+  withAffinityPreferHomelab()::
+    lab.withAffinity(affinity.preferHomelab),
+  withAffinityAvoidHomelab()::
+    lab.withAffinity(affinity.avoidHomelab),
 }

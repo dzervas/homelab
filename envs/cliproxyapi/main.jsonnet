@@ -1,7 +1,9 @@
 local dockerService = import 'docker-service.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
+local lab = import 'labsonnet.libsonnet';
 local p = import 'prometheus-operator-libsonnet/0.83/main.libsonnet';
+
 local networkPolicy = k.networking.v1.networkPolicy;
 
 local exporterDef = dockerService.new('cliproxyapi-exporter', 'ghcr.io/dzervas/cliproxyapi-exporter', {
@@ -10,26 +12,13 @@ local exporterDef = dockerService.new('cliproxyapi-exporter', 'ghcr.io/dzervas/c
 });
 
 {
-  cliproxyapi: dockerService.new('cliproxyapi', 'eceasy/cli-proxy-api-plus', {
-    fqdn: 'ai.vpn.dzerv.art',
-    ports: [8317],
-    args: ['./CLIProxyAPIPlus', '-config', '/data/config.yaml'],
-    // ingressAnnotations: {
-    //   'nginx.ingress.kubernetes.io/proxy-body-size': '10m',
-    //   'nginx.ingress.kubernetes.io/proxy-connect-timeout': '120',
-    //   'nginx.ingress.kubernetes.io/proxy-read-timeout': '120',
-    //   'nginx.ingress.kubernetes.io/proxy-send-timeout': '120',
-    // },
-
-    op_envs: { MANAGEMENT_PASSWORD: 'password' },
-
-    pvs: {
-      '/data': {
-        name: 'cliproxyapi',
-        size: '128Mi',
-      },
-    },
-  }) + { namespace: {} },
+  cliproxyapi:
+    lab.new('cliproxyapi', 'eceasy/cli-proxy-api-plus')
+    + lab.withType('StatefulSet')
+    + lab.withArgs(['./CLIProxyAPIPlus', '-config', '/data/config.yaml'])
+    + lab.withPV('/data', { name: 'cliproxyapi', size: '128Mi' })
+    + lab.withVpnHttp(8317, 'ai.vpn.dzerv.art')
+    + lab.withOpEnvs({ MANAGEMENT_PASSWORD: 'password' }),
 
   exporter: exporterDef {
     workload+: k.apps.v1.deployment.spec.template.spec.withContainers(std.map(
@@ -56,7 +45,6 @@ local exporterDef = dockerService.new('cliproxyapi-exporter', 'ghcr.io/dzervas/c
     + networkPolicy.spec.withPolicyTypes(['Ingress'])
     + networkPolicy.spec.withIngress([{
       from: [{
-        // For some reason VPN CIDR doesn't work
         namespaceSelector: {},
         podSelector: { matchLabels: { 'ai/enable': 'true' } },
       }],

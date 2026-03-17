@@ -9,7 +9,9 @@ local clusterRole = k.rbac.v1.clusterRole;
 local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
 local container = k.core.v1.container;
 local envVar = k.core.v1.envVar;
+local statefulSet = k.apps.v1.statefulSet;
 local httpRoute = gatewayApi.gateway.v1.httpRoute;
+local lab = import 'labsonnet.libsonnet';
 
 local namespace = 'headscale';
 local domain = 'dzerv.art';
@@ -18,60 +20,31 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
 
 {
   headscale:
-    dockerService.new('headscale', 'ghcr.io/juanfont/headscale', {
-      // fqdn: 'vpn.' + domain,
-      ingressEnabled: false,
-      ports: [8080],
-      args: ['serve'],
-      pvs: sharedPV {
-        '/var/lib/headscale': {
-          name: 'db',
-          size: '512Mi',
-        },
-      },
-      config_maps: {
-        '/etc/headscale': 'headscale-config:rw',
-      },
-    })
-    + {
-      namespace+: k.core.v1.namespace.metadata.withLabels({ ghcrCreds: 'enabled' }),
-      workload+: {
-        spec+: {
-          template+: {
-            spec+: {
-              // SAs are pod-scoped so both containers are ran as dns-controller
-              serviceAccountName: 'dns-controller',
-              affinity: affinity.avoidHomelab,
-
-              // Create dummy file to avoid headscale init error
-              initContainers+: [
-                containerLib.new(
-                  'init-dns-json',
-                  'gcr.io/distroless/base-nossl-debian12:debug',
-                  pvs=sharedPV,
-                  command=['sh', '-c'],
-                  args=['printf "[]" > /data/dns.json'],
-                ).container,
-              ],
-              containers+: [
-                containerLib.new(
-                  'dns-controller',
-                  'ghcr.io/dzervas/dns-controller',
-                  pvs=sharedPV,
-                  op_envs={ HEADSCALE_API_KEY: 'HEADSCALE_API_KEY' },
-                  env={
-                    INGRESS_CLASS: 'traefik',
-                    DOMAIN_SUFFIX: 'ts.%s' % domain,
-                    OUTPUT_PATH: '/data/dns.json',
-                    HEADSCALE_URL: 'http://127.0.0.1:8080',
-                  },
-                ).container,
-              ],
-            },
-          },
-        },
-      },
-    },
+    lab.new('headscale', 'ghcr.io/juanfont/headscale', ghcr=true)
+    + lab.withCreateNamespace()
+    + lab.withType('StatefulSet')
+    + lab.withArgs(['serve'])
+    + lab.withPV('/var/lib/headscale', { name: 'db', size: '512Mi' })
+    + lab.withPV('/data', { name: 'shared', readOnly: false, emptyDir: true })
+    + lab.withConfigMapMount('/etc/headscale', 'headscale-config')
+    + lab.withPublicHttp(8080, 'vpn.dzerv.art')
+    + lab.withAffinityAvoidHomelab()
+    + lab.withInitContainer(
+      container.new('init-dns-json', 'busybox')
+      + container.withCommand(['sh', '-c'])
+      + container.withArgs(['printf "[]" > /data/dns.json'])
+    )
+    + lab.withContainer(
+      container.new('dns-controller', 'ghcr.io/dzervas/dns-controller')
+      + container.withEnv([
+        { name: 'INGRESS_CLASS', value: 'traefik' },
+        { name: 'DOMAIN_SUFFIX', value: 'ts.%s' % domain },
+        { name: 'OUTPUT_PATH', value: '/data/dns.json' },
+        { name: 'HEADSCALE_URL', value: 'http://127.0.0.1:8080' },
+        { name: 'HEADSCALE_API_KEY', valueFrom: { secretKeyRef: { name: 'dns-controller-op', key: 'HEADSCALE_API_KEY' } } },
+      ])
+    )
+    + { workload+: statefulSet.spec.template.spec.withServiceAccountName('dns-controller') },
 
   headscaleConfig:
     k.core.v1.configMap.new('headscale-config')
@@ -172,15 +145,4 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
     }]),
 
   dnsControllerOpSecret: opsecretLib.new('dns-controller'),
-
-  httpRoute:
-    httpRoute.new('headscale')
-    + httpRoute.spec.withHostnames(['vpn.dzerv.art'])
-    + httpRoute.spec.withParentRefs([{ name: 'traefik-gateway', namespace: 'traefik' }])
-    + httpRoute.spec.withRules([{
-      matches: [{
-        path: { type: 'PathPrefix', value: '/' },
-      }],
-      backendRefs: [{ name: 'headscale', port: 8080 }],
-    }]),
 }
