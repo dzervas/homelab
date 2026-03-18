@@ -149,6 +149,7 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
     namespace: namespace,
     values: {
       extraArgs: ['--transport', 'streamable-http'],
+      ingress: ingress.hostObj(mcpFqdn),
       grafana: {
         url: 'http://grafana',
         apiKeySecret: {

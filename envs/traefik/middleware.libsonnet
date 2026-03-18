@@ -16,7 +16,7 @@
     metadata: { name: 'magicentry' },
     spec: {
       forwardAuth: {
-        address: 'http://magicentry.auth.svc.cluster.local:8080/auth-url/status',
+        address: 'http://magicentry.magicentry.svc.cluster.local:8080/auth-url/status',
         addAuthCookiesToResponse: ['magicentry_session_id'],
         authResponseHeaders: ['Set-Cookie'],
       },

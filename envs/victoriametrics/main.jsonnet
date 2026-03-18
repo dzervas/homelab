@@ -67,7 +67,7 @@ local namespace = 'victoriametrics';
 
         external: {
           grafana: {
-            host: 'grafana.dzerv.art',
+            host: 'grafana.vpn.dzerv.art',
             datasource: 'Victoria',
           },
         },

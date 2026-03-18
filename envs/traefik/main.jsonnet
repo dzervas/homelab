@@ -68,7 +68,10 @@ local middleware = import './middleware.libsonnet';
           },
         },
         providers: {
-          kubernetesCRD: { enabled: true },
+          kubernetesCRD: {
+            enabled: true,
+            allowCrossNamespace: true,
+          },
           kubernetesIngress: { enabled: true },
           kubernetesGateway: { enabled: true },
         },
