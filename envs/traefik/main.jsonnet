@@ -2,33 +2,15 @@ local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
-local namespace = 'traefik';
-
 local middleware = import './middleware.libsonnet';
+local anubis = import './anubis.libsonnet';
 
 {
-  namespace: k.core.v1.namespace.new(namespace),
-
-  gatewayCert: {
-    apiVersion: 'cert-manager.io/v1',
-    kind: 'Certificate',
-    metadata: {
-      name: 'gateway-cert',
-    },
-    spec: {
-      secretName: 'gateway-tls',
-      issuerRef: {
-        name: 'letsencrypt',
-        kind: 'ClusterIssuer',
-      },
-      dnsNames: ['*.vpn.dzerv.art', '*.dzerv.art', 'dzerv.art'],
-      // dnsNames: ['dzerv.art'],
-    },
-  },
+  namespace: k.core.v1.namespace.new('traefik'),
 
   traefik:
     helm.template('traefik', '../../charts/traefik', {
-      namespace: namespace,
+      namespace: $.namespace.metadata.name,
       values: {
         deployment: { kind: 'DaemonSet' },
         service: { type: 'ClusterIP' },
@@ -92,9 +74,26 @@ local middleware = import './middleware.libsonnet';
       },
     }),
 
+  gatewayCert: {
+    apiVersion: 'cert-manager.io/v1',
+    kind: 'Certificate',
+    metadata: {
+      name: 'gateway-cert',
+    },
+    spec: {
+      secretName: 'gateway-tls',
+      issuerRef: {
+        name: 'letsencrypt',
+        kind: 'ClusterIssuer',
+      },
+      dnsNames: ['*.vpn.dzerv.art', '*.dzerv.art', 'dzerv.art'],
+      // dnsNames: ['dzerv.art'],
+    },
+  },
+
+
   traefikNetworkPolicy:
     k.networking.v1.networkPolicy.new('allow-traefik')
-    + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
     + k.networking.v1.networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/name': 'traefik' })
     + k.networking.v1.networkPolicy.spec.withPolicyTypes(['Ingress'])
     + k.networking.v1.networkPolicy.spec.withIngress([{
@@ -112,4 +111,4 @@ local middleware = import './middleware.libsonnet';
         protocol: 'TCP',
       }],
     }]),
-} + middleware
+} + middleware + anubis

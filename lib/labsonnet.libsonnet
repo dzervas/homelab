@@ -7,12 +7,16 @@ local traefik = {
   sectionName: 'websecure',
 };
 
-local publicHttpOptions(port, fqdn, name=null, matches=null) = {
+local commonHttpOptions(port, fqdn, name=null, matches=null, prefix='common', middleware=[],) = {
   port: port,
-  name: if name != null then name else std.toString(port),
+  name: if name != null then name else '%s-%d' % [prefix, port],
   httpRoute: {
     gateway: traefik,
-    annotations: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
+    annotations:
+      { 'cert-manager.io/cluster-issuer': 'letsencrypt' }
+      + if std.length(middleware) > 0 then {
+        'traefik.ingress.kubernetes.io/router.middlewares': std.join(', ', [('traefik-%s@kubernetescrd' % m) for m in middleware]),
+      } else {},
     [if fqdn != null then 'fqdn']: fqdn,
   } + (if matches != null then { matches: matches } else {}),
 };
@@ -27,15 +31,13 @@ lab {
   ,
 
   withPublicHttp(port, fqdn, name=null, matches=null)::
-    lab.withPort(publicHttpOptions(port, fqdn, if name != null then name else 'http-%d' % port, matches)),
-
+    lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'http', [])),
+  withAnubisHttp(port, fqdn, name=null, matches=null)::
+    lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'anubis', ['anubis'])),
+  withMagicEntryHttp(port, fqdn, name=null, matches=null)::
+    lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'magicentry', ['magicentry'])),
   withVpnHttp(port, fqdn, name=null, matches=null)::
-    lab.withPort(
-      publicHttpOptions(port, fqdn, name, matches) + {
-        name: if name != null then name else 'vpn-%d' % port,
-        annotations+: { 'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-vpnonly@kubernetescrd' },
-      }
-    ),
+    lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'vpn', ['vpnonly'])),
 
   withOpEnvs(envs, name=null)::
     local secName = if name != null then name else $._name;

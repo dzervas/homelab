@@ -1,52 +1,52 @@
 local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local k = import 'k.libsonnet';
-local labsonnet = import 'labsonnet.libsonnet';
+local lab = import 'labsonnet.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 {
   affine:
-    labsonnet.new('affine', 'ghcr.io/dzervas/affine')
-    + labsonnet.withCreateNamespace()
-    + labsonnet.withType('StatefulSet')
-    // + labsonnet.withFqdn('notes.vpn.dzerv.art')
-    // + labsonnet.withPort({ port: 3010 })
-    + labsonnet.withVpnHttp(3010, fqdn='docs.vpn.dzerv.art')
-    + labsonnet.withPV('/home/node/.affine/storage', { name: 'affine-storage', size: '10Gi' })
-    + labsonnet.withPV('/home/node/.affine/config', { name: 'affine-config', size: '1Gi' })
-    + labsonnet.withEnv({
+    lab.new('affine', 'ghcr.io/dzervas/affine')
+    + lab.withCreateNamespace()
+    + lab.withType('StatefulSet')
+    // + lab.withFqdn('notes.vpn.dzerv.art')
+    // + lab.withPort({ port: 3010 })
+    + lab.withVpnHttp(3010, fqdn='docs.vpn.dzerv.art')
+    + lab.withPV('/home/node/.affine/storage', { name: 'affine-storage', size: '10Gi' })
+    + lab.withPV('/home/node/.affine/config', { name: 'affine-config', size: '1Gi' })
+    + lab.withEnv({
       AFFINE_INDEXER_ENABLED: 'true',
       AFFINE_SERVER_EXTERNAL_URL: 'https://notes.vpn.dzerv.art',
       REDIS_SERVER_HOST: 'redis',
     })
-    + labsonnet.withInitContainer({
+    + lab.withInitContainer({
       name: 'migrations',
       image: 'ghcr.io/dzervas/affine',
       command: ['sh', '-c', 'node ./scripts/self-host-predeploy.js'],
     })
-    + labsonnet.withSecretEnv({
+    + lab.withSecretEnv({
       DATABASE_URL: { name: 'affine-secrets-op', key: 'postgres_url' },
     })
   ,
 
   redis:
-    labsonnet.new('redis', 'redis')
-    + labsonnet.withNamespace('affine')
-    + labsonnet.withPort({ port: 6379 })
-    + labsonnet.withEmptyDir('/data'),
+    lab.new('redis', 'redis')
+    + lab.withNamespace('affine')
+    + lab.withPort({ port: 6379 })
+    + lab.withEmptyDir('/data'),
 
   postgres:
-    labsonnet.new('postgres', 'pgvector/pgvector:pg16')
-    + labsonnet.withNamespace('affine')
-    + labsonnet.withRunAsUser(999)
-    + labsonnet.withType('StatefulSet')
-    + labsonnet.withPort({ port: 5432 })
-    + labsonnet.withPV('/var/lib/postgresql', { size: '2Gi' })
-    + labsonnet.withEnv({
+    lab.new('postgres', 'pgvector/pgvector:pg16')
+    + lab.withNamespace('affine')
+    + lab.withRunAsUser(999)
+    + lab.withType('StatefulSet')
+    + lab.withPort({ port: 5432 })
+    + lab.withPV('/var/lib/postgresql', { size: '2Gi' })
+    + lab.withEnv({
       POSTGRES_USER: 'affine',
       POSTGRES_DB: 'affine',
       POSTGRES_INITDB_ARGS: '--data-checksums',
     })
-    + labsonnet.withSecretEnv({
+    + lab.withSecretEnv({
       POSTGRES_PASSWORD: { name: 'affine-secrets-op', key: 'password' },
     })
   ,
