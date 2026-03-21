@@ -9,39 +9,6 @@ local namespace = 'victoriametrics';
 {
   namespace: k.core.v1.namespace.new(namespace),
 
-  nodeExporterScrape:
-    vm.operator.v1beta1.vmNodeScrape.new('nixos-node-exporter')
-    + { metadata+: { namespace: namespace } }
-    + {
-      spec+: {
-        scheme: 'http',
-        port: '9100',
-        path: '/metrics',
-        interval: '30s',
-        jobLabel: 'jobLabel',
-        metricRelabelConfigs: [
-          {
-            action: 'drop',
-            source_labels: ['mountpoint'],
-            regex: '/var/lib/kubelet/pods.+',
-          },
-        ],
-      },
-    },
-
-  smartctlExporterScrape:
-    vm.operator.v1beta1.vmNodeScrape.new('nixos-smartctl-exporter')
-    + { metadata+: { namespace: namespace } }
-    + {
-      spec+: {
-        scheme: 'http',
-        port: '9633',
-        path: '/metrics',
-        interval: '1m',
-        jobLabel: 'jobLabel',
-      },
-    },
-
   victoriametrics:
     helm.template('victoriametrics', '../../charts/victoria-metrics-k8s-stack', {
       namespace: namespace,
@@ -53,7 +20,7 @@ local namespace = 'victoriametrics';
         vmsingle: {
           spec: {
             extraArgs: { 'opentelemetry.usePrometheusNaming': 'true' },
-            retentionPeriod: '6w',  // 8W is more than 50Gi
+            retentionPeriod: '1y',  // 8W is more than 50Gi
             storage: {
               resources: {
                 requests: { storage: '50Gi' },
@@ -155,4 +122,37 @@ local namespace = 'victoriametrics';
         ports: [{ protocol: 'TCP', port: 9443 }],
       },
     ]),
+
+  nodeExporterScrape:
+    vm.operator.v1beta1.vmNodeScrape.new('nixos-node-exporter')
+    + { metadata+: { namespace: namespace } }
+    + {
+      spec+: {
+        scheme: 'http',
+        port: '9100',
+        path: '/metrics',
+        interval: '30s',
+        jobLabel: 'jobLabel',
+        metricRelabelConfigs: [
+          {
+            action: 'drop',
+            source_labels: ['mountpoint'],
+            regex: '/var/lib/kubelet/pods.+',
+          },
+        ],
+      },
+    },
+
+  smartctlExporterScrape:
+    vm.operator.v1beta1.vmNodeScrape.new('nixos-smartctl-exporter')
+    + { metadata+: { namespace: namespace } }
+    + {
+      spec+: {
+        scheme: 'http',
+        port: '9633',
+        path: '/metrics',
+        interval: '1m',
+        jobLabel: 'jobLabel',
+      },
+    },
 }
