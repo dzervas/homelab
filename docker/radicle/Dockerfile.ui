@@ -1,0 +1,15 @@
+FROM node:20-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates curl
+RUN git clone https://seed.radicle.xyz/z4V1sjrXqjvFdnCUbxPFqd5p4DtH5 /code && chown 1000:1000 -R /code
+
+USER 1000:1000
+
+WORKDIR /code
+
+RUN npm ci
+
+ENV VITE_RUNTIME_CONFIG=true
+EXPOSE 3000
+
+CMD ["npm", "start"]
