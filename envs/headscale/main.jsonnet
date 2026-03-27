@@ -71,8 +71,9 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
           magic_dns: true,
           base_domain: 'ts.%s' % domain,
           extra_records_path: '/data/dns.json',
-          override_local_dns: true,
           search_domains: ['vpn.%s' % domain],
+          override_local_dns: false,
+
           nameservers: {
             global: [
               // https://adguard-dns.io/en/public-dns.html

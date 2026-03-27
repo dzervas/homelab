@@ -18,7 +18,7 @@
       forwardAuth: {
         address: 'http://magicentry.magicentry.svc.cluster.local:8080/auth-url/status',
         addAuthCookiesToResponse: ['magicentry_session_id'],
-        authResponseHeaders: ['Set-Cookie'],
+        maxResponseBodySize: 1048576 # 1MB
       },
     },
   },
