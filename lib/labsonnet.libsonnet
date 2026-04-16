@@ -1,5 +1,8 @@
 local affinity = import 'helpers/affinity.libsonnet';
 local lab = import 'labsonnet/main.libsonnet';
+local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
+
+local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 local traefik = {
   name: 'traefik-gateway',
@@ -42,6 +45,23 @@ lab {
   withOpEnvs(envs, name=null)::
     local secName = if name != null then name else $._name;
     lab.withExternalSecretEnvs(secName + '-op', secName, { storeName: '1password' }),
+
+  // TODO: this is not done
+  withRandomEnv(env, name=null)::
+    local secName = if name != null then name else $._name;
+    externalSecret.new(secName + '-op')
+    + externalSecret.spec.secretStoreRef.withKind('ClusterGenerator')
+    + externalSecret.spec.secretStoreRef.withName('password')
+    + externalSecret.spec.target.template.withData({ [env]: '{{ .password }}' })
+    + externalSecret.spec.withDataFrom([{
+        sourceRef: {
+          generatorRef: {
+            apiVersion: 'generators.external-secrets.io/v1alpha1',
+            kind: 'ClusterGenerator',
+            name: 'password',
+          },
+        },
+      }]),
 
   withAffinityPreferHomelab()::
     lab.withAffinity(affinity.preferHomelab),

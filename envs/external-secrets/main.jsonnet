@@ -27,7 +27,7 @@ local namespace = 'external-secrets';
   passwordGenerator:
     clusterGenerator.new('password')
     + clusterGenerator.spec.withKind('Password')
-    + clusterGenerator.spec.generator.passwordSpec.withLength(42)
+    + clusterGenerator.spec.generator.passwordSpec.withLength(50)
     + clusterGenerator.spec.generator.passwordSpec.withSymbolCharacters('-_,.')
     + clusterGenerator.spec.generator.passwordSpec.withAllowRepeat(true),
 
