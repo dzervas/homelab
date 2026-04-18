@@ -6,6 +6,7 @@ local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 {
+  // To create the initial user: bugsink-manage createsuperuser --username dzervas --email dzervas@dzervas.gr
   bugsink:
     lab.new('bugsink', 'bugsink/bugsink')
     + lab.withCreateNamespace()
@@ -14,7 +15,8 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
     + lab.withEnv({
         PORT: '8000',
         TZ: timezone,
-        DATABASE_URL: 'sqlite:///data/bugsink.sqlite',
+        TIME_ZONE: timezone,
+        DATABASE_PATH: '/data/bugsink.sqlite',
         BEHIND_HTTPS_PROXY: 'true',
         USE_X_FORWARDED_HOST: 'true',
         USE_X_REAL_IP: 'true',
