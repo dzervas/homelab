@@ -2,11 +2,11 @@
 	"apiVersion": "tanka.dev/v1alpha1",
 	"kind": "Environment",
 	"metadata": {
-		"name": "envs/tangled"
+		"name": "envs/gickup"
 	},
 	"spec": {
 		"contextNames": ["gr"],
-		"namespace": "tangled",
+		"namespace": "gickup",
 		"injectLabels": true,
 		"applyStrategy": "server",
 		"resourceDefaults": {},
