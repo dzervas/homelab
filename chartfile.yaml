@@ -70,9 +70,9 @@ requires:
   - chart: dzervas/magicentry
     version: 0.8.6
   - chart: grafana/grafana
-    version: 11.3.2
+    version: 12.3.0
   - chart: grafana/grafana-mcp
-    version: 0.8.0
+    version: 0.13.1
   - chart: jetstack/cert-manager
     version: v1.19.4
   - chart: external-secrets/external-secrets
@@ -88,7 +88,7 @@ requires:
   - chart: onedev/onedev
     version: 14.1.8
   - chart: longhorn/longhorn
-    version: 1.11.0
+    version: 1.11.2
   - chart: descheduler/descheduler
     version: 0.35.1
 version: 1

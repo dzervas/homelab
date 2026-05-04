@@ -1,43 +1,16 @@
-local dockerService = import 'docker-service.libsonnet';
-local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
-local p = import 'prometheus-operator-libsonnet/0.83/main.libsonnet';
 
 local networkPolicy = k.networking.v1.networkPolicy;
 
-local exporterDef = dockerService.new('cliproxyapi-exporter', 'ghcr.io/dzervas/cliproxyapi-exporter', {
-  namespace: 'cliproxyapi',
-  ports: [9090],
-});
-
 {
   cliproxyapi:
-    lab.new('cliproxyapi', 'eceasy/cli-proxy-api-plus')
+    lab.new('cliproxyapi', 'eceasy/cli-proxy-api')
     + lab.withType('StatefulSet')
-    + lab.withArgs(['./CLIProxyAPIPlus', '-config', '/data/config.yaml'])
+    + lab.withArgs(['./CLIProxyAPI', '-config', '/data/config.yaml'])
     + lab.withPV('/data', { name: 'cliproxyapi', size: '128Mi' })
     + lab.withVpnHttp(8317, 'ai.vpn.dzerv.art')
     + lab.withOpEnvs({ MANAGEMENT_PASSWORD: 'password' }),
-
-  exporter: exporterDef {
-    workload+: k.apps.v1.deployment.spec.template.spec.withContainers(std.map(
-      function(c)
-        c + k.core.v1.container.withEnvMixin([{ name: 'CLIPROXYAPI_TOKEN', valueFrom: { secretKeyRef: { name: 'cliproxyapi-op', key: 'password' } } }]),
-      exporterDef.workload.spec.template.spec.containers
-    )),
-  },
-
-  exporterServiceScraper:
-    p.monitoring.v1.serviceMonitor.new('cliproxyapi')
-    + p.monitoring.v1.serviceMonitor.spec.withJobLabel('cliproxyapi')
-    + p.monitoring.v1.serviceMonitor.spec.withEndpoints([
-      p.monitoring.v1.serviceMonitor.spec.endpoints.withPort('docker-9090')
-      + p.monitoring.v1.serviceMonitor.spec.endpoints.withPath('/metrics'),
-    ])
-    + p.monitoring.v1.serviceMonitor.spec.selector.withMatchLabels({
-      app: 'cliproxyapi-exporter',
-    }),
 
   networkPolicy:
     networkPolicy.new('allow-cliproxyapi')

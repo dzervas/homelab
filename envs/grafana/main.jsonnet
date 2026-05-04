@@ -18,6 +18,7 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
     values: {
       testFramework: { enabled: false },
       useStatefulSet: true,  // OpenEBS doesn't support RWX
+      podLabels: { 'ai/enable': 'true', },
 
       persistence: {
         enabled: true,
