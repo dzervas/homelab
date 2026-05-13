@@ -1,7 +1,7 @@
-local dockerService = import 'docker-service.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
+local lab = import 'labsonnet.libsonnet';
 local statefulset = k.apps.v1.statefulSet;
 
 local namespace = 'n8n';
@@ -9,28 +9,20 @@ local domain = 'dzerv.art';
 
 {
   // Main n8n statefulset
-  n8n: dockerService.new('n8n', 'ghcr.io/dzervas/n8n:latest', {
-    fqdn: 'auto.' + domain,
-    auth: 'mtls',
-    ports: [5678],
-    pvs: {
-      '/home/node/.n8n': {
-        name: 'data',
-        size: '10Gi',
-      },
-      '/home/node/backups': {
-        name: 'backups',
-        size: '10Gi',
-      },
-    },
-    // ingressAnnotations:
-    //   ingress.mtlsAnnotations(namespace)
-    //   + { 'nginx.ingress.kubernetes.io/proxy-body-size': '16m' },
-
-    env: {
+  n8n:
+    lab.new('n8n', 'ghcr.io/dzervas/n8n:latest')
+    + lab.withCreateNamespace()
+    + lab.withType('StatefulSet')
+    + lab.withPV('/home/node/.n8n', { name: 'data', size: '10Gi' })
+    + lab.withPV('/home/node/backups', { name: 'backups', size: '10Gi' })
+    + lab.withVpnHttp(5678, 'auto.dzerv.art')
+    + lab.withPort({ port: 5679 })
+    + lab.withSecretEnv({ N8N_RUNNERS_AUTH_TOKEN: { name: 'n8n-runners-auth-token', key: 'password' } })
+    + lab.withOpEnvs({ N8N_ENCRYPTION_KEY: 'encryption-key' }, 'n8n')
+    + lab.withEnv({
       TZ: timezone,
       GENERIC_TIMEZONE: timezone,
-
+      // N8N_MIGRATE_FS_STORAGE_PATH: 'true',
       N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true',
       N8N_DEFAULT_BINARY_DATA_MODE: 'filesystem',
 
@@ -39,8 +31,7 @@ local domain = 'dzerv.art';
       N8N_PROXY_HOPS: '1',
       N8N_PORT: '5678',
 
-      N8N_RUNNERS_ENABLED: 'true',
-      N8N_RUNNERS_MODE: 'internal',
+      N8N_RUNNERS_MODE: 'external',
       N8N_RUNNERS_BROKER_LISTEN_ADDRESS: '0.0.0.0',
 
       EXECUTIONS_TIMEOUT: '600',
@@ -70,18 +61,11 @@ local domain = 'dzerv.art';
 
       DB_SQLITE_POOL_SIZE: '10',
       DB_SQLITE_VACUUM_ON_STARTUP: 'true',  // Makes startup take years
+    }) + {
+      workload+:
+        statefulset.spec.template.metadata.withLabelsMixin({
+          'magicentry.rs/enable': 'true',
+          'ai/enable': 'true',
+        }),
     },
-
-    op_envs: {
-      N8N_ENCRYPTION_KEY: 'encryption-key',
-      // N8N_RUNNERS_AUTH_TOKEN: 'password',  // n8n-runner
-      // CREDENTIAL_OVERWRITE_DATA: 'credential_overwrite_data',  // browserless
-    },
-  }) + {
-    workload+:
-      statefulset.spec.template.metadata.withLabelsMixin({
-        'magicentry.rs/enable': 'true',
-        'ai/enable': 'true',
-      }),
-  },
 }
