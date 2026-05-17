@@ -132,6 +132,11 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
         resources: ['ingresses'],
         verbs: ['get', 'list', 'watch'],
       },
+      {
+        apiGroups: ['gateway.networking.k8s.io'],
+        resources: ['httproutes', 'gateways'],
+        verbs: ['get', 'list', 'watch'],
+      },
     ]),
 
   dnsControllerClusterRoleBinding:

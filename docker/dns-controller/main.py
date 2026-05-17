@@ -2,8 +2,8 @@
 import os
 import json
 import asyncio
-import requests
 import kr8s
+import httpx
 
 OUTPUT_PATH = os.getenv("OUTPUT_PATH", "/data/extra-records.json")
 INGRESS_CLASS = os.getenv("INGRESS_CLASS", "traefik")
@@ -12,6 +12,10 @@ KUBE_MASTER_DOMAIN = os.getenv("KUBE_MASTER_DOMAIN", "kube.vpn.dzerv.art")
 HS_BASE = os.environ["HEADSCALE_URL"].rstrip("/")
 HS_KEY = os.environ["HEADSCALE_API_KEY"]
 
+hs_client = httpx.AsyncClient(
+    headers={"Authorization": f"Bearer {HS_KEY}"},
+    timeout=10,
+)
 
 def atomic_write(path: str, obj) -> None:
     s = json.dumps(obj, sort_keys=True, indent=2) + "\n"
@@ -21,12 +25,8 @@ def atomic_write(path: str, obj) -> None:
         os.fsync(f.fileno())
 
 
-def headscale_node_v4_map() -> dict[str, str]:
-    r = requests.get(
-        f"{HS_BASE}/api/v1/node",
-        headers={"Authorization": f"Bearer {HS_KEY}"},
-        timeout=10,
-    )
+async def headscale_node_v4_map() -> dict[str, str]:
+    r = await hs_client.get(f"{HS_BASE}/api/v1/node")
     r.raise_for_status()
 
     out = {}
@@ -203,7 +203,7 @@ async def get_first_master_node() -> str | None:
 
 
 async def rebuild_records(pod_mapping: dict[str, set[str]]) -> None:
-    node_v4 = headscale_node_v4_map()
+    node_v4 = await headscale_node_v4_map()
     records = []
 
     resources_to_process: set[str] = set()
@@ -284,41 +284,63 @@ async def rebuild_records(pod_mapping: dict[str, set[str]]) -> None:
 
 
 async def watch_ingresses(queue: asyncio.Queue) -> None:
-    print("Starting ingress watcher...")
-    async for event_type, ingress in kr8s.asyncio.watch("Ingress", namespace="all"):
-        ingressClass = (ingress.spec or {}).get("ingressClassName") or ""
-        if ingressClass != INGRESS_CLASS:
-            continue
-        print(
-            f"Ingress event: {event_type} {ingress.metadata.namespace}/{ingress.metadata.name}"
-        )
-        await queue.put("ingress")
+    while True:
+        try:
+            print("Starting ingress watcher...")
+            async for event_type, ingress in kr8s.asyncio.watch("Ingress", namespace="all"):
+                ingressClass = (ingress.spec or {}).get("ingressClassName") or ""
+                if ingressClass != INGRESS_CLASS:
+                    continue
+                print(
+                    f"Ingress event: {event_type} {ingress.metadata.namespace}/{ingress.metadata.name}"
+                )
+                await queue.put("ingress")
+        except (httpx.HTTPError, httpx.NetworkError) as e:
+            print(f"Ingress watcher: {type(e).__name__}: {e}, reconnecting in 5s")
+            await asyncio.sleep(5)
 
 
 async def watch_httproutes(queue: asyncio.Queue) -> None:
-    print("Starting HTTPRoute watcher...")
-    async for event_type, httproute in kr8s.asyncio.watch("HTTPRoute", namespace="all"):
-        print(
-            f"HTTPRoute event: {event_type} {httproute.metadata.namespace}/{httproute.metadata.name}"
-        )
-        await queue.put("ingress")
+    while True:
+        try:
+            print("Starting HTTPRoute watcher...")
+            async for event_type, httproute in kr8s.asyncio.watch("HTTPRoute", namespace="all"):
+                print(
+                    f"HTTPRoute event: {event_type} {httproute.metadata.namespace}/{httproute.metadata.name}"
+                )
+                await queue.put("ingress")
+        except (httpx.HTTPError, httpx.NetworkError) as e:
+            print(f"HTTPRoute watcher: {type(e).__name__}: {e}, reconnecting in 5s")
+            await asyncio.sleep(5)
 
 
 async def watch_nodes(queue: asyncio.Queue) -> None:
-    print("Starting node watcher...")
-    async for event_type, node in kr8s.asyncio.watch(
-        "Node", label_selector="node-role.kubernetes.io/control-plane"
-    ):
-        print(f"Node event: {event_type} {node.metadata.name}")
-        await queue.put("node")
+    while True:
+        try:
+            print("Starting node watcher...")
+            async for event_type, node in kr8s.asyncio.watch(
+                "Node", label_selector="node-role.kubernetes.io/control-plane"
+            ):
+                print(f"Node event: {event_type} {node.metadata.name}")
+                await queue.put("node")
+        except (httpx.HTTPError, httpx.NetworkError) as e:
+            print(f"Node watcher: {type(e).__name__}: {e}, reconnecting in 5s")
+            await asyncio.sleep(5)
 
 
-async def watch_pods(queue: asyncio.Queue) -> None:
-    print("Starting pod watcher...")
-    async for event_type, pod in kr8s.asyncio.watch("Pod", namespace="all"):
-        pod_key = f"{pod.metadata.namespace}/{pod.metadata.name}"
-        print(f"Pod event: {event_type} {pod_key}")
-        await queue.put("pod")
+async def watch_pods(queue: asyncio.Queue, pod_mapping: dict[str, set[str]]) -> None:
+    while True:
+        try:
+            print("Starting pod watcher...")
+            async for event_type, pod in kr8s.asyncio.watch("Pod", namespace="all"):
+                pod_key = f"{pod.metadata.namespace}/{pod.metadata.name}"
+                if pod_key not in pod_mapping:
+                    continue
+                print(f"Pod event: {event_type} {pod_key}")
+                await queue.put("pod")
+        except (httpx.HTTPError, httpx.NetworkError) as e:
+            print(f"Pod watcher: {type(e).__name__}: {e}, reconnecting in 5s")
+            await asyncio.sleep(5)
 
 
 async def process_updates(
@@ -329,13 +351,16 @@ async def process_updates(
         msg_type = await queue.get()
         print(f"Processing update: {msg_type}")
 
-        if msg_type == "ingress" or msg_type == "full":
-            pod_mapping.clear()
-            pod_mapping.update(await build_pod_mapping())
-        elif msg_type == "pod" or msg_type == "node":
-            pass
+        try:
+            if msg_type == "ingress" or msg_type == "full":
+                new_mapping = await build_pod_mapping()
+                pod_mapping.clear()
+                pod_mapping.update(new_mapping)
 
-        await rebuild_records(pod_mapping)
+            await rebuild_records(pod_mapping)
+        except (httpx.HTTPError, httpx.NetworkError) as e:
+            print(f"Update {msg_type}: {type(e).__name__}: {e}, will retry on next event")
+
         queue.task_done()
 
 
@@ -356,7 +381,7 @@ async def main() -> None:
         watch_ingresses(queue),
         watch_httproutes(queue),
         watch_nodes(queue),
-        watch_pods(queue),
+        watch_pods(queue, pod_mapping),
         process_updates(queue, pod_mapping),
         periodic_reconcile(queue),
     )
