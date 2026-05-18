@@ -19,7 +19,7 @@ local helm = tk.helm.new(std.thisFile);
       },
 
       persistence: {
-        defaultClass: false,
+        defaultClass: true,
         reclaimPolicy: 'Retain',
         defaultClassReplicaCount: 2,
         defaultDataLocality: 'best-effort',
