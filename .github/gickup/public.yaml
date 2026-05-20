@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cooperspencer/gickup/refs/heads/main/gickup_spec.json
+source:
+  github:
+    - user: dzervas
+      token: GICKUP_GITHUB_TOKEN
+      wiki: true
+      starred: false
+      issues: true
+
+destination:
+  gitea:
+    - user: dzervas
+      token: GICKUP_CODEBERG_TOKEN
+      url: https://codeberg.org
+      lfs: true
+      mirror:
+        mirrorinterval: 24h
+        enabled: false
+      visibility:
+        repositories: public
+      force: true
