@@ -44,7 +44,7 @@ lab {
 
   withOpEnvs(envs, name=null)::
     local secName = if name != null then name else $._name;
-    lab.withExternalSecretEnvs(secName + '-op', envs, { store: '1password' }),
+    lab.withExternalSecretEnvs(secName + '-op', envs, { store: '1password', remoteKey: secName }),
 
   // TODO: this is not done
   withRandomEnv(env, name=null)::
