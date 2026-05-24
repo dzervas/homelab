@@ -23,7 +23,17 @@ local helm = tk.helm.new(std.thisFile);
           },
         },
         server: {
-          networkPolicy: { enabled: true },
+          networkPolicy: {
+            enabled: true,
+            egress: {
+              extra: [{
+                ports: [{ port: 80, protocol: "TCP" }],
+                to: [{
+                  podSelector: { matchLabels: { app: "forgejo" } }
+                }]
+              }]
+            }
+          },
           ingress: ingress.hostObj('ci.vpn.dzerv.art'),
           createAgentSecret: false,
           extraSecretNamesForEnvFrom: [
@@ -34,8 +44,11 @@ local helm = tk.helm.new(std.thisFile);
             WOODPECKER_HOST: 'https://ci.vpn.dzerv.art',
             WOODPECKER_OPEN: 'false',
             WOODPECKER_ADMIN: 'dzervas',
+
             WOODPECKER_FORGEJO: 'true',
-            WOODPECKER_FORGEJO_URL: 'https://git.vpn.dzerv.art',
+            WOODPECKER_FORGEJO_URL: 'http://forgejo',
+            // WOODPECKER_EXPERT_FORGE_OAUTH_HOST: 'https://git.vpn.dzerv.art',
+            WOODPECKER_FORCE_IGNORE_SERVICE_FAILURE: 'false',
 
             TZ: timezone,
           },

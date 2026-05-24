@@ -9,6 +9,9 @@ local woodpecker = import './woodpecker.libsonnet';
     + lab.withType('StatefulSet')
     + lab.withPV('/var/lib/gitea', { name: 'data', size: '10Gi', storageClassName: 'longhorn' })
     + lab.withPV('/etc/gitea', { name: 'config', size: '128Mi', storageClassName: 'longhorn' })
-    + lab.withVpnHttp(3000, 'git.vpn.dzerv.art')
-    + lab.withEnv({ TZ: timezone }),
-} // + woodpecker
+    + lab.withVpnHttp(80, 'git.vpn.dzerv.art')
+    + lab.withEnv({
+      FORGEJO__server__HTTP_PORT: '80',
+      TZ: timezone
+    }),
+} + woodpecker
