@@ -40,7 +40,7 @@
       inherit system;
       overlays = [
         deploy-rs.overlays.default
-        (self: super: { deploy-rs = { inherit (pkgs) deploy-rs; lib = super.deploy-rs.lib; }; })
+        (_self: super: { deploy-rs = { inherit (pkgs) deploy-rs; lib = super.deploy-rs.lib; }; })
       ];
     };
   in {
@@ -49,12 +49,10 @@
         user = "root";
         sshUser = "root";
         path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.${name};
-      } // (if name == "gr1" then  {
-	      # gr1 is fucking slow...
-				gr1.profiles.system = {
-		      activationTimeout = 600;
-		      confirmTimeout = 120;
-        };
-      } else {});
+
+        # Big updates sometimes time out
+        activationTimeout = 600;
+        confirmTimeout = 120;
+      };
   };
 }
