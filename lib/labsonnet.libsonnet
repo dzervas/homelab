@@ -41,6 +41,12 @@ lab {
     lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'magicentry', ['magicentry'])),
   withVpnHttp(port, fqdn, name=null, matches=null)::
     lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'vpn', ['vpnonly'])),
+  withPublicTCP(port, sectionName, name=null)::
+    lab.withPort({
+      port: port,
+      name: if name != null then name else '%s-%d' % ['tcp', port],
+      tcpRoute: { gateway: traefik { sectionName: sectionName } },
+    }),
 
   withOpEnvs(envs, name=null)::
     local secName = if name != null then name else $._name;

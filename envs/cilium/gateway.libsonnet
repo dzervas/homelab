@@ -1,4 +1,4 @@
-local gatewayApi = import 'github.com/jsonnet-libs/gateway-api-libsonnet/1.4-experimental/main.libsonnet';
+local gatewayApi = import 'gateway-api-libsonnet/1.4-experimental/main.libsonnet';
 local httpRoute = gatewayApi.v1.httpRoute;
 
 {
@@ -21,7 +21,7 @@ local httpRoute = gatewayApi.v1.httpRoute;
   },
 
   // Empty Gateway - no routes attached, just listens on 80/443
-  // NOTE: Needs k apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/experimental-install.yaml
+  // NOTE: Needs k apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml
   gateway: {
     apiVersion: 'gateway.networking.k8s.io/v1',
     kind: 'Gateway',

@@ -13,7 +13,7 @@ local anubis = import './anubis.libsonnet';
       namespace: $.namespace.metadata.name,
       values: {
         deployment: { kind: 'DaemonSet' },
-        service: { type: 'ClusterIP' },
+        service: { spec: { type: 'ClusterIP' } },
         updateStrategy: {
           // Required due to hostNetwork
           rollingUpdate: {
@@ -47,6 +47,11 @@ local anubis = import './anubis.libsonnet';
                 kind: 'Secret',
               }],
             },
+            ssh: {
+              port: 2222,
+              protocol: 'TCP',
+              namespacePolicy: { from: 'All' },
+            },
           },
         },
         providers: {
@@ -55,7 +60,10 @@ local anubis = import './anubis.libsonnet';
             allowCrossNamespace: true,
           },
           kubernetesIngress: { enabled: true },
-          kubernetesGateway: { enabled: true },
+          kubernetesGateway: {
+            enabled: true,
+            experimentalChannel: true,  // Enables TCPRoute
+          },
         },
         // TODO: Enable this
         // ocsp: { enabled: true },
@@ -70,6 +78,14 @@ local anubis = import './anubis.libsonnet';
             } } },
           },
           websecure: { hostPort: 443 },
+          ssh: {
+            containerPort: 2222,
+            exposedPort: 2222,
+            hostPort: 2222,
+            port: 2222,
+            protocol: 'TCP',
+            expose: { default: true },
+          },
         },
       },
     }),
