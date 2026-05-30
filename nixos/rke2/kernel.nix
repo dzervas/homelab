@@ -49,9 +49,6 @@
       "xt_MASQUERADE"
     ];
 
-    # Why not?
-    kernelPackages = pkgs.linuxPackages_hardened;
-
     kernel.sysctl = {
       # Enable hugepages (for openEBS)
       "vm.nr_hugepages" = 1024;

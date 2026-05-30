@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   environment = {
     systemPackages = [ pkgs.etcd ];
     variables = {
@@ -6,7 +7,6 @@
       ETCDCTL_CACERT = "/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt";
       ETCDCTL_CERT = "/var/lib/rancher/rke2/server/tls/etcd/server-client.crt";
       ETCDCTL_KEY = "/var/lib/rancher/rke2/server/tls/etcd/server-client.key";
-      ETCDCTL_API = "3";
     };
   };
 }
