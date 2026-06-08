@@ -6,11 +6,12 @@ local networkPolicy = k.networking.v1.networkPolicy;
 {
   cliproxyapi:
     lab.new('cliproxyapi', 'eceasy/cli-proxy-api')
+    + lab.withCreateNamespace()
     + lab.withType('StatefulSet')
     + lab.withArgs(['./CLIProxyAPI', '-config', '/data/config.yaml'])
     + lab.withPV('/data', { name: 'cliproxyapi', size: '128Mi' })
     + lab.withVpnHttp(8317, 'ai.vpn.dzerv.art')
-    + lab.withOpEnvs({ MANAGEMENT_PASSWORD: 'password' }),
+    + lab.withOpEnvs({ MANAGEMENT_PASSWORD: 'password' }, 'cliproxyapi'),
 
   networkPolicy:
     networkPolicy.new('allow-cliproxyapi')
