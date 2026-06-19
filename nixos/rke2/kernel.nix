@@ -6,7 +6,6 @@
 }:
 {
   environment.systemPackages = with pkgs; [
-    drbd # linstor
     cilium-cli # cilium
   ];
 
@@ -14,6 +13,12 @@
     # Use newer version of the module
     extraModulePackages = with config.boot.kernelPackages; [ drbd ];
     extraModprobeConfig = "options drbd usermode_helper=disabled";
+
+    # Required by longhorn RWX volumes, which are NFS-backed via
+    # share-manager. Loads the nfs/nfs4 kernel modules and installs the
+    # nfs-utils mount.nfs helper, without which kubelet's mount fails with
+    # "NFS: mount program didn't pass remote address".
+    supportedFilesystems = [ "nfs" ];
 
     kernelParams = [
       # Required by longhorn
@@ -26,9 +31,9 @@
       "vfio_pci"
       "uio_pci_generic"
       "dm_crypt"
+      "nfs"
 
       # Required by linstor
-      "drbd"
       "nvme_rdma"
       "dm_cache"
       "dm_writecache"

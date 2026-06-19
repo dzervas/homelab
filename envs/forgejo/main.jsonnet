@@ -15,6 +15,8 @@ local lab = import 'labsonnet.libsonnet';
       FORGEJO__server__HTTP_PORT: '80',
       // FORGEJO__server__SSH_PORT: '2222',
       FORGEJO__server__SSH_DOMAIN: 'dzerv.art',
+
+      FORGEJO__webhook__ALLOWED_HOST_LIST: 'woodpecker-server',
       TZ: timezone,
     }),
 } + woodpecker

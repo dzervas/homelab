@@ -15,7 +15,15 @@ local helm = tk.helm.new(std.thisFile);
       values: {
         fullnameOverride: 'woodpecker',
         agent: {
-          networkPolicy: { enabled: true },
+          networkPolicy: {
+            enabled: true,
+            egress: {
+              // The chart's default apiserver rule uses an ipBlock CIDR, which
+              // doesn't match Cilium's reserved kube-apiserver identity. Drop it
+              // and rely on the CiliumNetworkPolicy below instead.
+              apiserver: null,
+            },
+          },
           mapAgentSecret: false,
           extraSecretNamesForEnvFrom: ['woodpecker-agent-op'],
           env: {
@@ -65,4 +73,27 @@ local helm = tk.helm.new(std.thisFile);
 
   woodpeckerAgentSecret: opsecretLib.new('woodpecker-agent'),
   woodpeckerServerSecret: opsecretLib.new('woodpecker-server'),
+
+  // CiliumNetworkPolicy to allow agent egress to kube-apiserver.
+  // Standard NetworkPolicy ipBlock CIDR rules don't match Cilium's
+  // reserved kube-apiserver identity, so we need an explicit entity allow.
+  woodpeckerAgentApiserverEgress: {
+    apiVersion: 'cilium.io/v2',
+    kind: 'CiliumNetworkPolicy',
+    metadata: {
+      name: 'woodpecker-agent-apiserver-egress',
+      namespace: 'forgejo',
+    },
+    spec: {
+      endpointSelector: {
+        matchLabels: {
+          'app.kubernetes.io/instance': 'woodpecker',
+          'app.kubernetes.io/name': 'agent',
+        },
+      },
+      egress: [{
+        toEntities: ['kube-apiserver'],
+      }],
+    },
+  },
 }

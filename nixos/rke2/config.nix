@@ -19,10 +19,7 @@ in
     {
       node-name = config.networking.hostName;
       node-taint = config.setup.taints;
-      node-label = [
-        "provider=${config.setup.provider}"
-        "linstor/enable=true"
-      ];
+      node-label = [ "provider=${config.setup.provider}" ];
 
       node-external-ip = hostIP;
 
@@ -116,7 +113,7 @@ in
   # Allow enough time for graceful shutdown
   services.logind.settings.Login.InhibitDelayMaxSec = toString (15 * 60);
 
-  # Linstor lvm volumes discovery
+  # LVM volumes discovery
   services.udev.packages = with pkgs; [ lvm2 ];
   boot.initrd.services.udev.packages = with pkgs; [ lvm2 ];
 
@@ -138,13 +135,4 @@ in
       }
     '';
   };
-
-  # Alternative fix that just runs vgscan --mknodes every time a new device appears
-  # Fix for LINSTOR satellite running with udev_sync=0
-  # This rule triggers vgscan to create LVM symlinks when DM devices appear
-  # services.udev.extraRules = ''
-  #   # When a DM device with LVM UUID appears, create the VG symlinks if missing
-  #   ACTION=="add|change", SUBSYSTEM=="block", KERNEL=="dm-*", ENV{DM_UUID}=="LVM-*", \
-  #     RUN+="${pkgs.lvm2}/bin/vgscan --mknodes"
-  # '';
 }

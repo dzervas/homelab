@@ -64,84 +64,6 @@ k get pvc -A -o json | jq -r '.items[] | select(.spec.storageClassName == "opene
 k get pv -o json | jq -r '.items[] | select(.spec.storageClassName == "openebs-replicated")|.metadata.name'|xargs -n1 kubectl patch pv --type json -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
 ```
 
-## Linstor troubles
-
-First of all:
-
-```bash
-k linstor node l
-k linstor error-reports l
-k linstor resource l --faulty
-```
-
-### OFFLINE node reconnect
-
-```bash
-k linstor node reconnect <node>
-```
-
-### EVICTED node reconnect
-
-```bash
-k linstor node restore <node>
-```
-
-### Stuck Standalone faulty resources
-
-If a resource is stuck to `StandAlone` (in the resource l --faulty) and it's just a TieBreaker:
-
-```bash
-k linstor resource delete <node> <resource>
-k linstor resource create <node> <resource> --drbd-diskless
-k linstor resource resource-definition set-property <resource> DrbdOptions/Resource/quorum majority
-k linstor resource resource-definition set-property <resource> DrbdOptions/auto-add-quorum-tiebreaker True
-```
-
-If it's not a TieBreaker? no idea, it has data (not diskless)
-
-### StorageException: Failed to get block size...
-
-If for any reason the block paths are missing (e.g. /dev/mainpool/pvc-...):
-
-```bash
-ssh <node> vgscan --mknodes
-# Maybe lvscan too for good measure
-```
-
-### Failed/Stuck/Orphaned Snapshots (might result in stuck suspended PVs)
-
-List stuck snapshots:
-
-```bash
-# K8s VolumeSnapshots not ready
-kubectl get volumesnapshot -A -o json | jq -r '.items[] | select(.status.readyToUse != true) | "\(.metadata.namespace)/\(.metadata.name)"'
-
-# LINSTOR incomplete/failed snapshots
-kubectl linstor snapshot list | rg "Incomplete|Failed"
-```
-
-Find orphaned snapshots:
-
-```bash
-# Orphaned LINSTOR snapshots (in LINSTOR but not K8s)
-comm -23 <(kubectl linstor snapshot list -p | jq -r '.[].snapshot_dfns[].snapshot_name' | sort -u) <(kubectl get volumesnapshot -A -o jsonpath='{.items[*].metadata.uid}' | tr ' ' '\n' | sort -u)
-
-# Orphaned K8s VolumeSnapshots (in K8s but not LINSTOR)
-comm -13 <(kubectl linstor snapshot list -p | jq -r '.[].snapshot_dfns[].snapshot_name' | sort -u) <(kubectl get volumesnapshot -A -o jsonpath='{.items[*].metadata.uid}' | tr ' ' '\n' | sort -u)
-```
-
-Check for suspended DRBD resources (caused by stuck snapshots):
-
-```bash
-ssh <node>.dzerv.art "drbdsetup status --json" | jq '.[] | select(.suspended) | .name'
-```
-
-### Checking options/protocol/etc. for a pvc
-
-```bash
-k exec ds/linstor-satellite.fra0 -- cat /var/lib/linstor.d/pvc-0769addf-02f2-44b3-a9eb-4ee357c78d87.res
-```
-
 ## Network troubles
 
 ```bash
@@ -150,17 +72,4 @@ iperf -c <machine 1 ip> -t 30 -i 1 # on the other machine
 
 # To flush conntrack:
 nix shell nixpkgs#conntrack-tools --command conntrack -F
-```
-
-## Drain & cordon a node
-
-```bash
-k cordon gr1
-k drain gr1 --ignore-daemonsets --delete-emptydir-data --grace-period=60 --timeout=10m
-k linstor node evacuate gr1
-k linstor node set-property gr1 AutoplaceTarget false
-
-# To make sure it worked:
-k linstor resource l --nodes gr1
-k linstor resource l --faulty
 ```

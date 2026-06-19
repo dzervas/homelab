@@ -21,7 +21,6 @@
       calicoctl
       kubectx
       kubectl
-      kubectl-linstor
     ]
   );
 
