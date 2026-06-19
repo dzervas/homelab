@@ -1,0 +1,25 @@
+when:
+  event: push
+  branch: main
+
+matrix:
+  image:
+    - dns-controller
+    - netshoot
+    - cliproxyapi-exporter
+    - affine
+
+steps:
+  - name: publish-image
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      registry: forgejo
+      repo: git.vpn.dzerv.art/${CI_REPO_OWNER}/homelab
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: forgejo_token
+
+      context: docker/${image}
+      dockerfile: docker/${image}/Dockerfile
+      platforms: linux/amd64,linux/arm64
+      auto_tag: true # git tag or latest
