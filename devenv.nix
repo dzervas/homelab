@@ -3,6 +3,7 @@
   languages = {
     jsonnet.enable = true;
     rust.enable = true;
+    helm.enable = true;
     python = {
       enable = true;
 

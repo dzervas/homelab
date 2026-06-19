@@ -1,8 +1,8 @@
-local k = import 'k.libsonnet';
+local opsecretLib = import 'docker-service/opsecret.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
-local opsecretLib = import 'docker-service/opsecret.libsonnet';
+local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 {
@@ -27,12 +27,12 @@ local helm = tk.helm.new(std.thisFile);
             enabled: true,
             egress: {
               extra: [{
-                ports: [{ port: 80, protocol: "TCP" }],
+                ports: [{ port: 80, protocol: 'TCP' }],
                 to: [{
-                  podSelector: { matchLabels: { app: "forgejo" } }
-                }]
-              }]
-            }
+                  podSelector: { matchLabels: { app: 'forgejo' } },
+                }],
+              }],
+            },
           },
           ingress: ingress.hostObj('ci.vpn.dzerv.art'),
           createAgentSecret: false,
@@ -47,7 +47,7 @@ local helm = tk.helm.new(std.thisFile);
 
             WOODPECKER_FORGEJO: 'true',
             WOODPECKER_FORGEJO_URL: 'http://forgejo',
-            // WOODPECKER_EXPERT_FORGE_OAUTH_HOST: 'https://git.vpn.dzerv.art/',
+            WOODPECKER_EXPERT_FORGE_OAUTH_HOST: 'https://git.vpn.dzerv.art/',
             WOODPECKER_FORCE_IGNORE_SERVICE_FAILURE: 'false',
 
             TZ: timezone,

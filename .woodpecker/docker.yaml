@@ -6,12 +6,10 @@ matrix:
   image:
     - dns-controller
     - netshoot
-    - cliproxyapi-exporter
-    - affine
 
 steps:
   - name: publish-image
-    image: woodpeckerci/plugin-docker-buildx
+    image: plugins/kaniko
     settings:
       registry: forgejo
       repo: git.vpn.dzerv.art/${CI_REPO_OWNER}/homelab
