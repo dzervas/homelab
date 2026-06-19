@@ -23,9 +23,6 @@ local anubis = import './anubis.libsonnet';
         },
 
         api: { dashboard: false },
-        logs: {
-          access: { enabled: true },
-        },
         global: {
           checkNewVersion: false,
           sendAnonymousUsage: false,

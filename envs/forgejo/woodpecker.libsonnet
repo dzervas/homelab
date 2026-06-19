@@ -25,6 +25,11 @@ local helm = tk.helm.new(std.thisFile);
         server: {
           networkPolicy: {
             enabled: true,
+            ingress: {
+              http: [{
+                podSelector: { matchLabels: { app: 'forgejo' } },
+              }],
+            },
             egress: {
               extra: [{
                 ports: [{ port: 80, protocol: 'TCP' }],
@@ -47,8 +52,10 @@ local helm = tk.helm.new(std.thisFile);
 
             WOODPECKER_FORGEJO: 'true',
             WOODPECKER_FORGEJO_URL: 'http://forgejo',
-            WOODPECKER_EXPERT_FORGE_OAUTH_HOST: 'https://git.vpn.dzerv.art/',
+            // WOODPECKER_EXPERT_FORGE_OAUTH_HOST: 'https://git.vpn.dzerv.art/',
             WOODPECKER_FORCE_IGNORE_SERVICE_FAILURE: 'false',
+
+            WOODPECKER_EXPERT_WEBHOOK_HOST: 'http://woodpecker-server',
 
             TZ: timezone,
           },
