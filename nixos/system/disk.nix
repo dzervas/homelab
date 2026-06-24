@@ -83,6 +83,15 @@
         thinpool = {
           size = "99%";
           lvm_type = "thin-pool";
+          # Fail writes with ENOSPC when the pool fills instead of queueing them
+          # indefinitely. The default `queue_if_no_space` turns pool exhaustion
+          # into silent torn/zero-filled writes (\x00) that corrupt data on the
+          # Longhorn thinlv below; apps/filesystems can survive honest ENOSPC but
+          # not lying writes. See INCIDENT-2026-06-23 (envs/longhorn).
+          extraArgs = [
+            "--errorwhenfull"
+            "y"
+          ];
         };
 
         containerd = {
