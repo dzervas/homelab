@@ -59,19 +59,15 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
             {
               name: 'VictoriaLogs',
               type: 'victoriametrics-logs-datasource',
-              url: 'http://vlsingle-victorialogs-server.victorialogs.svc:9428',
+              url: 'http://vlsingle-victoriametrics.victoriametrics.svc:9428',
             },
           ],
         },
       },
 
-      nodeSelector: {
-        provider: 'oracle',
-      },
+      nodeSelector: { provider: 'oracle' },
 
-      rbac: {
-        useExistingClusterRole: 'grafana',
-      },
+      rbac: { useExistingClusterRole: 'grafana' },
 
       // Allow arbitrary services to create grafana resources through a configmap
       sidecar: {

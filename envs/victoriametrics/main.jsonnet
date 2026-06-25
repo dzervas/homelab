@@ -72,6 +72,15 @@ local namespace = 'victoriametrics';
             },
           },
         },
+
+        vlsingle: {
+        	enabled: true,
+          spec: {
+		        retentionPeriod: '1',  // Months
+          }
+        },
+
+        vlagent: { enabled: true }, // Log collector
       },
     }),
 
@@ -93,6 +102,23 @@ local namespace = 'victoriametrics';
       'app.kubernetes.io/name': 'vmsingle',
       'app.kubernetes.io/instance': 'victoriametrics',
       'app.kubernetes.io/component': 'monitoring',
+    })
+    + k.networking.v1.networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + k.networking.v1.networkPolicy.spec.withIngress([
+      {
+        from: [
+          { namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'grafana' } } },
+          { podSelector: { matchLabels: { 'app.kubernetes.io/name': 'grafana' } } },
+        ],
+      },
+    ]),
+
+  grafanaAccessNetworkPolicyLogs:
+    k.networking.v1.networkPolicy.new('allow-victoriametrics-grafana-logs')
+    + k.networking.v1.networkPolicy.metadata.withNamespace(namespace)
+    + k.networking.v1.networkPolicy.spec.podSelector.withMatchLabels({
+      'app.kubernetes.io/name': 'vlsingle',
+      'app.kubernetes.io/instance': 'victoriametrics',
     })
     + k.networking.v1.networkPolicy.spec.withPolicyTypes(['Ingress'])
     + k.networking.v1.networkPolicy.spec.withIngress([

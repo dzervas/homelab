@@ -42,13 +42,9 @@ requires:
   - chart: plane/plane-enterprise
     version: 2.2.2
   - chart: victoriametrics/victoria-metrics-k8s-stack
-    version: 0.84.0
+    version: 0.85.4
   - chart: prometheus/prometheus-operator-crds
     version: 30.0.0
-  - chart: victoriametrics/victoria-logs-collector
-    version: 0.3.6
-  - chart: victoriametrics/victoria-logs-single
-    version: 0.13.8
   - chart: bitnami/postgresql
     version: 12.1.5
   - chart: bitnami-oci/mariadb
@@ -62,9 +58,9 @@ requires:
   - chart: dzervas/magicentry
     version: 0.8.6
   - chart: grafana/grafana
-    version: 12.4.8
+    version: 12.7.1
   - chart: grafana/grafana-mcp
-    version: 0.17.0
+    version: 0.18.0
   - chart: jetstack/cert-manager
     version: v1.20.2
   - chart: external-secrets/external-secrets
