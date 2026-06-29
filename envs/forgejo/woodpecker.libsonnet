@@ -28,6 +28,9 @@ local helm = tk.helm.new(std.thisFile);
           extraSecretNamesForEnvFrom: ['woodpecker-agent-op'],
           env: {
             TZ: timezone,
+            // Scratch volumes for the pipeline pods the agent spawns: 1-replica
+            // v1 + Delete reclaim (longhorn-throwaway). RWX already on by default.
+            WOODPECKER_BACKEND_K8S_STORAGE_CLASS: 'longhorn-throwaway',
           },
         },
         server: {
