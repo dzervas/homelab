@@ -15,7 +15,7 @@ local domain = 'dzerv.art';
     + lab.withType('StatefulSet')
     + lab.withPV('/home/node/.n8n', { name: 'data', size: '10Gi' })
     + lab.withPV('/home/node/backups', { name: 'backups', size: '10Gi' })
-    + lab.withVpnHttp(5678, 'auto.dzerv.art')
+    + lab.withVpnHttp(5678, 'auto.vpn.dzerv.art')
     + lab.withPort({ port: 5679 })
     + lab.withSecretEnv({ N8N_RUNNERS_AUTH_TOKEN: { name: 'n8n-runners-auth-token', key: 'password' } })
     + lab.withOpEnvs({ N8N_ENCRYPTION_KEY: 'encryption-key' }, 'n8n')
@@ -26,7 +26,7 @@ local domain = 'dzerv.art';
       N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true',
       N8N_DEFAULT_BINARY_DATA_MODE: 'filesystem',
 
-      N8N_EDITOR_BASE_URL: 'https://auto.' + domain,
+      N8N_EDITOR_BASE_URL: 'https://auto.vpn.' + domain,
       WEBHOOK_URL: 'https://hook.' + domain,
       N8N_PROXY_HOPS: '1',
       N8N_PORT: '5678',
