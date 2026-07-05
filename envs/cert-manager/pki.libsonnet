@@ -16,7 +16,7 @@ local domains = [
 
 // Guest certificates with specific FQDNs
 local guests = {
-  psof: ['auto.' + domain],  // n8n fqdn
+  psof: ['auto.vpn.' + domain],  // n8n fqdn
 };
 
 // Private key settings for client certificates
