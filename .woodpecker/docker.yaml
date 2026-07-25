@@ -6,6 +6,7 @@ matrix:
   image:
     - dns-controller
     - netshoot
+    - netbird-dashboard
 
 steps:
   - name: publish-image
