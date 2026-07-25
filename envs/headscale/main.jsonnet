@@ -111,9 +111,13 @@ local sharedPV = { '/data': { name: 'shared', empty_dir: true } };
         },
       }),
       'policies.hujson': std.manifestJson({
+        hosts: {
+          tailnet: '100.100.50.0/24',
+        },
         acls: [
           { action: 'accept', src: ['dzervas@'], dst: ['*:*'] },
           { action: 'accept', src: ['hass@'], proto: 'tcp', dst: ['srv0@:10300'] },  // Whisper
+          { action: 'accept', src: ['harry@'], proto: 'tcp', dst: ['tailnet:443'] },  // ai.vpn.dzerv.art
         ],
       }),
     }),
