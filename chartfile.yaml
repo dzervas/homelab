@@ -20,6 +20,8 @@ repositories:
     url: oci://ghcr.io/woodpecker-ci/helm
   - name: dzervas
     url: oci://ghcr.io/dzervas/charts
+  - name: netbird
+    url: oci://ghcr.io/netbirdio/helm-charts
   - name: grafana
     url: https://grafana-community.github.io/helm-charts
   - name: retool
@@ -79,4 +81,6 @@ requires:
     version: 1.12.0
   - chart: descheduler/descheduler
     version: 0.36.0
+  - chart: netbird/netbird-operator
+    version: 0.8.0
 version: 1

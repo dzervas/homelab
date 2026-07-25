@@ -1,0 +1,16 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "envs/netbird"
+  },
+  "spec": {
+    "contextNames": [
+      "gr"
+    ],
+    "namespace": "netbird",
+    "injectLabels": true,
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}
