@@ -1,6 +1,6 @@
+local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
-local timezone = import 'helpers/timezone.libsonnet';
 
 local networkPolicy = k.networking.v1.networkPolicy;
 

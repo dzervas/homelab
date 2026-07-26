@@ -5,7 +5,15 @@
     metadata: { name: 'vpnonly' },
     spec: {
       ipAllowList: {
-        sourceRange: ['100.100.50.0/24'],
+        sourceRange: [
+          '100.100.50.0/24',  // headscale tailnet
+
+          // TODO: netbird routing peers - verify the real source in the traefik
+          // access log before trusting this. The router masquerades, so traefik
+          // sees the routing peer pod instead of the peer's 100.124.x.x address,
+          // and traefik is hostNetwork so cilium may SNAT it to the node IP.
+          // '10.200.0.0/16',
+        ],
       },
     },
   },
