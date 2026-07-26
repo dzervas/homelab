@@ -48,6 +48,29 @@ local server = import './server.libsonnet';
     },
   },
 
+  // Register Traefik's ClusterIP in the router's DNS zone. The operator creates
+  // traefik.traefik.vpn.dzerv.art -> the Service ClusterIP; the wildcard CNAME
+  // in the NetBird zone points every *.vpn.dzerv.art name at this record.
+  //
+  // This resource must live beside the referenced Service because serviceRef
+  // is namespace-local, even though the NetworkRouter is in netbird.
+  traefikServiceResource: {
+    apiVersion: 'netbird.io/v1alpha1',
+    kind: 'NetworkResource',
+    metadata: {
+      name: 'traefik',
+      namespace: 'traefik',
+    },
+    spec: {
+      networkRouterRef: {
+        name: 'internal',
+        namespace: 'netbird',
+      },
+      serviceRef: { name: 'traefik' },
+      groups: [{ name: 'kubernetes' }],
+    },
+  },
+
   // Route the whole *.vpn.dzerv.art wildcard through traefik so netbird peers
   // reach the same ingress as tailscale ones, TLS and middlewares included.
   // NetworkResource only takes a serviceRef, so the wildcard needs NBResource,
@@ -96,30 +119,30 @@ local server = import './server.libsonnet';
     },
   },
 
-  // The kube API, plain L4 - netbird routes it, rke2 terminates its own TLS.
-  // kube.vpn.dzerv.art is already in the API server's tls-san (nixos/rke2/config.nix)
-  // so the existing kubeconfig server URL keeps working over netbird.
+  // Track the actual default/kubernetes Service rather than one control-plane
+  // node or VIP. The operator follows Service.spec.clusterIP and creates:
+  //   kubernetes.default.vpn.dzerv.art -> <current ClusterIP>
+  // The stable kube.vpn.dzerv.art name should be an exact CNAME to that record;
+  // it then overrides the *.vpn.dzerv.art Traefik wildcard without hardcoding
+  // the Service IP. The API server certificate already includes kube.vpn.dzerv.art.
   //
-  // NOT covered by the traefik wildcard above: that only carries 443, and the API
-  // is on 6443 without traefik in front of it.
-  //
-  // Deliberately a host resource rather than a domain one - a domain resource is
-  // resolved by the routing peer, and in-cluster CoreDNS has no answer for
-  // kube.vpn.dzerv.art, which only resolves via the headscale dns-controller.
-  kubeApiResource: {
-    apiVersion: 'netbird.io/v1',
-    kind: 'NBResource',
+  // This resource joins the same destination group used by traefik-vpn. The
+  // policy's TCP/443 rule is kept alive by NBResource/traefik and therefore also
+  // grants access to this dynamically tracked host resource.
+  kubeApiServiceResource: {
+    apiVersion: 'netbird.io/v1alpha1',
+    kind: 'NetworkResource',
     metadata: {
       name: 'kube-api',
+      namespace: 'default',
     },
     spec: {
-      name: 'kube-api',
-      // the rke2 control plane VIP, same address cilium is pointed at
-      address: '10.20.30.100/32',
-      networkID: 'd9in4gice66g009e2it0',
-      groups: ['kubernetes'],
-      tcpPorts: [6443],
-      policyName: 'traefik-vpn',
+      networkRouterRef: {
+        name: 'internal',
+        namespace: 'netbird',
+      },
+      serviceRef: { name: 'kubernetes' },
+      groups: [{ name: 'kubernetes' }],
     },
   },
 } + server
