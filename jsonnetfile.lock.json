@@ -54,6 +54,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/cloudnative-pg-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "c35ddf17f2ea3cd302bcec0bb941471e2ee2a743",
+      "sum": "0p4CkDcwtUjbK+6J5wDiubd4ATYZD38TKVgLAlXLGIw="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/docsonnet.git",
           "subdir": "doc-util"
         }

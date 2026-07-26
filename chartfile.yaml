@@ -40,6 +40,8 @@ repositories:
     url: https://charts.longhorn.io
   - name: descheduler
     url: https://kubernetes-sigs.github.io/descheduler
+  - name: cloudnative-pg
+    url: https://cloudnative-pg.github.io/charts
 requires:
   - chart: plane/plane-enterprise
     version: 2.2.2
@@ -58,7 +60,7 @@ requires:
   - chart: dzervas/audiobookshelf
     version: 0.2.4
   - chart: dzervas/magicentry
-    version: 0.8.8
+    version: 0.8.9
   - chart: grafana/grafana
     version: 12.7.1
   - chart: grafana/grafana-mcp
@@ -83,4 +85,6 @@ requires:
     version: 0.36.0
   - chart: netbird/netbird-operator
     version: 0.8.0
+  - chart: cloudnative-pg/cloudnative-pg
+    version: 0.29.0
 version: 1

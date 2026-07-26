@@ -41,7 +41,7 @@ local gateway = import './gateway.libsonnet';
       extraConfig: {
         'enable-host-reachable-services': 'true',
       },
-      socketLB: { enabled: true },
+      socketLB: { enabled: true, hostNamespaceOnly: true },
       kubeProxyReplacement: 'true',
 
       // Direct API server access - avoids chicken-and-egg with kube-proxy disabled
