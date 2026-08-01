@@ -3,6 +3,7 @@ local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
 local networkPolicy = k.networking.v1.networkPolicy;
+local service = k.core.v1.service;
 
 {
   cliproxyapi:
@@ -42,4 +43,19 @@ local networkPolicy = k.networking.v1.networkPolicy;
       }],
       ports: [{ port: 8317, protocol: 'TCP' }],
     }]),
+
+  resource: {
+    apiVersion: 'netbird.io/v1alpha1',
+    kind: 'NetworkResource',
+    metadata: {
+      name: 'cliproxyapi',
+    },
+    spec: {
+      networkRouterRef: {
+        name: 'kubernetes',
+        namespace: 'netbird',
+      },
+      serviceRef: { name: 'cliproxyapi' },
+    },
+  },
 }
