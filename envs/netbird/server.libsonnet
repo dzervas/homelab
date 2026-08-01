@@ -7,6 +7,8 @@ local httpRoute = gatewayApi.gateway.v1.httpRoute;
 local service = k.core.v1.service;
 local servicePort = k.core.v1.servicePort;
 
+local proxyPort = 8443;
+
 local namespace = 'netbird';
 local domain = 'netbird.dzerv.art';
 local url = 'https://' + domain;
@@ -56,6 +58,45 @@ local grpcPaths = [
         }),
     },
 
+  proxy:
+    lab.new('netbird-proxy', 'netbirdio/reverse-proxy:0.75.0')
+    + lab.withNamespace(namespace)
+    + lab.withSecretMount('/certs', 'netbird-proxy-tls')
+    + lab.withPort({ port: proxyPort, name: 'tls' })
+    + lab.withSecretEnv({ NB_PROXY_TOKEN: { name: 'netbird-proxy', key: 'token' } })
+    + lab.withEnv({
+      NB_PROXY_DOMAIN: 'vpn.dzerv.art',
+      // Direct cluster-local gRPC connection; TLS is unnecessary inside the cluster.
+      NB_PROXY_MANAGEMENT_ADDRESS: 'http://netbird-server:%d' % serverPort,
+      NB_PROXY_ALLOW_INSECURE: 'true',
+      // Advertise the embedded/private capability required by NetBird-Only Access.
+      NB_PROXY_PRIVATE: 'true',
+      NB_PROXY_ADDRESS: ':%d' % proxyPort,
+      NB_PROXY_ACME_CERTIFICATES: 'false',
+      NB_PROXY_CERTIFICATE_DIRECTORY: '/certs',
+      NB_PROXY_LOG_LEVEL: 'info',
+    })
+    + lab.withAffinityAvoidHomelab(),
+
+  // cert-manager keeps tls.crt/tls.key updated in this Secret; the proxy
+  // watches static certificate files and reloads renewals automatically.
+  proxyCert: {
+    apiVersion: 'cert-manager.io/v1',
+    kind: 'Certificate',
+    metadata: {
+      name: 'netbird-proxy',
+      namespace: namespace,
+    },
+    spec: {
+      secretName: 'netbird-proxy-tls',
+      issuerRef: {
+        name: 'letsencrypt',
+        kind: 'ClusterIssuer',
+      },
+      dnsNames: ['*.vpn.dzerv.art'],
+    },
+  },
+
   // Traefik must speak HTTP/2 cleartext to the gRPC endpoints, which is selected
   // through appProtocol - hence a second service for the very same port.
   serverGrpcService:
@@ -84,6 +125,7 @@ local grpcPaths = [
       ]),
     ]),
 
+  // p run --rm -e NETBIRD_MGMT_API_ENDPOINT=https://netbird.dzerv.art -e NETBIRD_MGMT_GRPC_API_ENDPOINT=https://netbird.dzerv.art -e LETSENCRYPT_DOMAIN=none -e USE_AUTH0=false -e AUTH_AUTHORITY=https://netbird.dzerv.art/oauth2 -e AUTH_CLIENT_ID=netbird-dashboard -e AUTH_AUDIENCE=netbird-dashboard -e AUTH_SUPPORTED_SCOPES="openid profile email groups offline_access" -e AUTH_REDIRECT_URI=/nb-auth -e AUTH_SILENT_REDIRECT_URI=/nb-silent-auth -p 127.0.0.1:8080:8080 netbird-dashboard
   // Catch-all: anything that is not an API/gRPC path is the dashboard
   // dashboard:
   //   lab.new('netbird-dashboard', 'git.vpn.dzerv.art/dzervas/homelab/netbird-dashboard')
@@ -176,3 +218,9 @@ local grpcPaths = [
 //
 // The PAT for the operator (secret netbird-op, key api-key) is created in the
 // dashboard under Settings > Users > service user > Access Tokens.
+//
+// The reverse-proxy token is generated once and stored as `proxy_token` on the
+// same 1Password item. It cannot be regenerated from the server because only
+// its SHA-256 hash is retained:
+//
+// k create secret generic netbird-proxy --from-literal=token=(k -n netbird exec netbird-server-0 -- /go/bin/netbird-server --config /etc/netbird/config.yaml admin token create --name netbird-proxy | rg '^Token: ' | awk '{ print $2 }')
