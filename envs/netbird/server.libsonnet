@@ -3,11 +3,11 @@ local gatewayApi = import 'gateway-api-libsonnet/1.4-experimental/main.libsonnet
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
-local httpRoute = gatewayApi.gateway.v1.httpRoute;
+local grpcRoute = gatewayApi.gateway.v1.grpcRoute;
 local service = k.core.v1.service;
 local servicePort = k.core.v1.servicePort;
 
-local proxyPort = 8443;
+local proxyPort = 443;
 
 local namespace = 'netbird';
 local domain = 'netbird.dzerv.art';
@@ -18,20 +18,22 @@ local issuer = url + '/oauth2';
 // 8080 instead of the default 80 so the container can run unprivileged.
 local serverPort = 8080;
 local serverLabels = { app: 'netbird-server', 'app.kubernetes.io/name': 'netbird-server' };
+local version = '0.76.1';
 
 local pathPrefix(value) = { path: { type: 'PathPrefix', value: value } };
+local grpcPrefix(value) = { method: { type: 'Exact', service: value } };
 
 // Everything that is plain HTTP/WebSocket. gRPC is routed separately (h2c).
 local httpPaths = ['/api', '/oauth2', '/relay', '/ws-proxy/'];
 local grpcPaths = [
-  '/signalexchange.SignalExchange/',
-  '/management.ManagementService/',
-  '/management.ProxyService/',
+  'signalexchange.SignalExchange',
+  'management.ManagementService',
+  'management.ProxyService',
 ];
 
 {
   server:
-    lab.new('netbird-server', 'netbirdio/netbird-server:0.75.0')
+    lab.new('netbird-server', 'netbirdio/netbird-server:' + version)
     + lab.withNamespace(namespace)
     + lab.withType('StatefulSet')
     + lab.withPV('/var/lib/netbird', { name: 'data', size: '5Gi' })
@@ -59,9 +61,10 @@ local grpcPaths = [
     },
 
   proxy:
-    lab.new('netbird-proxy', 'netbirdio/reverse-proxy:0.75.0')
+    lab.new('netbird-proxy', 'netbirdio/reverse-proxy:' + version)
     + lab.withNamespace(namespace)
     + lab.withSecretMount('/certs', 'netbird-proxy-tls')
+    + lab.withAffinityAvoidHomelab()
     + lab.withPort({ port: proxyPort, name: 'tls' })
     + lab.withSecretEnv({ NB_PROXY_TOKEN: { name: 'netbird-proxy', key: 'token' } })
     + lab.withEnv({
@@ -76,7 +79,8 @@ local grpcPaths = [
       NB_PROXY_CERTIFICATE_DIRECTORY: '/certs',
       NB_PROXY_LOG_LEVEL: 'info',
     })
-    + lab.withAffinityAvoidHomelab(),
+  // + { service+: service.spec.withPorts([servicePort.newNamed('tls', 443, proxyPort)]) }
+  ,
 
   // cert-manager keeps tls.crt/tls.key updated in this Secret; the proxy
   // watches static certificate files and reloads renewals automatically.
@@ -108,20 +112,20 @@ local grpcPaths = [
     + service.metadata.withLabels(serverLabels),
 
   serverGrpcRoute:
-    httpRoute.new('netbird-server-grpc')
-    + httpRoute.metadata.withNamespace(namespace)
-    + httpRoute.metadata.withAnnotations({ 'cert-manager.io/cluster-issuer': 'letsencrypt' })
-    + httpRoute.spec.withHostnames([domain])
-    + httpRoute.spec.withParentRefs([
-      httpRoute.spec.parentRefs.withName('traefik-gateway')
-      + httpRoute.spec.parentRefs.withNamespace('traefik')
-      + httpRoute.spec.parentRefs.withSectionName('websecure'),
+    grpcRoute.new('netbird-server-grpc')
+    + grpcRoute.metadata.withNamespace(namespace)
+    + grpcRoute.metadata.withAnnotations({ 'cert-manager.io/cluster-issuer': 'letsencrypt' })
+    + grpcRoute.spec.withHostnames([domain])
+    + grpcRoute.spec.withParentRefs([
+      grpcRoute.spec.parentRefs.withName('traefik-gateway')
+      + grpcRoute.spec.parentRefs.withNamespace('traefik')
+      + grpcRoute.spec.parentRefs.withSectionName('websecure'),
     ])
-    + httpRoute.spec.withRules([
-      httpRoute.spec.rules.withMatches(std.map(pathPrefix, grpcPaths))
-      + httpRoute.spec.rules.withBackendRefs([
-        httpRoute.spec.rules.backendRefs.withName('netbird-server-h2c')
-        + httpRoute.spec.rules.backendRefs.withPort(serverPort),
+    + grpcRoute.spec.withRules([
+      grpcRoute.spec.rules.withMatches(std.map(grpcPrefix, grpcPaths))
+      + grpcRoute.spec.rules.withBackendRefs([
+        grpcRoute.spec.rules.backendRefs.withName('netbird-server-h2c')
+        + grpcRoute.spec.rules.backendRefs.withPort(serverPort),
       ]),
     ]),
 

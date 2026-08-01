@@ -93,6 +93,7 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
             'kube-system',
             'ingress',
             'victoriametrics',
+            'netbird',
           ]),
         ]),
       ]),
