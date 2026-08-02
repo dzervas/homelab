@@ -62,24 +62,6 @@ local helm = tk.helm.new(std.thisFile);
   // See INCIDENT-2026-06-2x reports. RWX is NOT v2-only — it rides on an NFSv4
   // share-manager pod over a regular v1/v2 volume, so v1 RWX works fine here.
 
-  // Super-stable: v1, 3 replicas, Retain, revision counter ON for best-replica
-  // auto-salvage. For critical data we don't want to lose.
-  storageClassStable:
-    k.storage.v1.storageClass.new('longhorn-stable')
-    + k.storage.v1.storageClass.withProvisioner('driver.longhorn.io')
-    + k.storage.v1.storageClass.withReclaimPolicy('Retain')
-    + k.storage.v1.storageClass.withAllowVolumeExpansion(true)
-    + k.storage.v1.storageClass.withVolumeBindingMode('Immediate')
-    + k.storage.v1.storageClass.withParameters({
-      dataEngine: 'v1',
-      numberOfReplicas: '3',
-      staleReplicaTimeout: '30',
-      dataLocality: 'best-effort',
-      disableRevisionCounter: 'false',
-      fromBackup: '',
-      fsType: 'ext4',
-    }),
-
   // Throwaway: v1, 1 replica, Delete (no Retain), RWX-capable. For ephemeral
   // scratch like woodpecker agent pods. Single replica = no rebuild churn;
   // losing it is fine. PVCs choose RWO or RWX per claim (accessModes), not here.
@@ -90,7 +72,7 @@ local helm = tk.helm.new(std.thisFile);
     + k.storage.v1.storageClass.withAllowVolumeExpansion(true)
     + k.storage.v1.storageClass.withVolumeBindingMode('Immediate')
     + k.storage.v1.storageClass.withParameters({
-      dataEngine: 'v1',
+      dataEngine: 'v2',
       numberOfReplicas: '1',
       staleReplicaTimeout: '30',
       dataLocality: 'best-effort',

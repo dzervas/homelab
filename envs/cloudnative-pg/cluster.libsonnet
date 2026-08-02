@@ -9,7 +9,6 @@ local cluster = cnpg.postgresql.v1.cluster;
     + cluster.metadata.withNamespace(namespace)
     + cluster.spec.withInstances(instances)
     + cluster.spec.storage.withSize(size)
-    + cluster.spec.storage.withStorageClass('longhorn-stable')
     + cluster.spec.bootstrap.initdb.withDatabase(name)
     + cluster.spec.bootstrap.initdb.withOwner(name)
     + cluster.spec.bootstrap.initdb.withDataChecksums(true)
