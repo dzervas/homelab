@@ -16,8 +16,5 @@ local namespace = 'postgres';
     // Add a `postgres-password` field to the existing `n8n` 1Password item.
     // The application Secret will be named `n8n-postgres` in its namespace.
     n8n: tenant.new('n8n'),
-    // Add a `postgres-password` field to the `netmaker` 1Password item.
-    // The application Secret is named `netmaker-postgres` in the netmaker namespace.
-    netmaker: tenant.new('netmaker'),
   },
 }
