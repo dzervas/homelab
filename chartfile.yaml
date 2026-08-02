@@ -42,6 +42,10 @@ repositories:
     url: https://kubernetes-sigs.github.io/descheduler
   - name: cloudnative-pg
     url: https://cloudnative-pg.github.io/charts
+  - name: netmaker
+    url: https://gravitl.github.io/netmaker-helm/
+  - name: netmaker-k8s-ops
+    url: https://downloads.netmaker.io/charts/
 requires:
   - chart: plane/plane-enterprise
     version: 2.2.2
@@ -87,4 +91,8 @@ requires:
     version: 0.8.0
   - chart: cloudnative-pg/cloudnative-pg
     version: 0.29.0
+  - chart: netmaker/netmaker
+    version: 1.6.0
+  - chart: netmaker-k8s-ops/netmaker-k8s-ops
+    version: 1.0.0
 version: 1
