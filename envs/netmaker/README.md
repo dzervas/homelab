@@ -1,8 +1,8 @@
 # Netmaker
 
-Netmaker OSS server, UI, and MQTT use the official Netmaker HA Helm chart. The
+Netmaker Pro server, UI, and MQTT use the official Netmaker HA Helm chart. The
 Kubernetes Operator uses its official chart. `labsonnet.libsonnet` is used only
-for the two custom Remote Access Gateway netclient workloads.
+for the single Remote Access Gateway netclient workload.
 
 ## Endpoints
 
@@ -10,8 +10,7 @@ for the two custom Remote Access Gateway netclient workloads.
 - Admin-only dashboard: `https://dashboard.vpn.dzerv.art`
 - Public MQTT-over-WebSocket broker: `wss://broker.vpn.dzerv.art`
 - Private applications: `*.vpn.dzerv.art`
-- Admin WireGuard gateway: public WAN address, UDP `51821`
-- Restricted WireGuard gateway: public WAN address, UDP `51822`
+- WireGuard gateway: public WAN address, UDP `51821`
 
 The server and UI each run two replicas with PodDisruptionBudgets and preferred
 cross-node spreading. MQTT remains single-replica because Netmaker's upstream HA
@@ -32,56 +31,122 @@ Create one item named `netmaker` with these fields:
 | --- | --- |
 | `master-key` | Long random Netmaker master key |
 | `mq-password` | Long random MQTT password |
-| `admin-token` | Enrollment token for the `admin` network |
-| `restricted-token` | Enrollment token for the `restricted` network |
+| `enrollment-token` | Enrollment token for the single network |
 
-The enrollment-token fields cannot be populated until the server is running and
-the networks have been created. The operator waits for `admin-token`; the server
-can start with `master-key` and `mq-password` first.
+`enrollment-token` cannot be populated until the server is running and the
+network exists. The gateway and every ingress proxy wait for it; the server can
+start with `master-key` and `mq-password` first.
 
-## OSS trust-tier bootstrap
+The token must be **unlimited-use and non-expiring**: the operator gives each
+ingress proxy pod an `emptyDir` for `/etc/netclient`. Container restarts keep
+that volume, so a crash-looping netclient reuses its identity, but any event that
+replaces the *pod* (eviction, node drain or upgrade, manual delete) enrols a
+brand new Netmaker host. Only the gateway StatefulSet has a PVC, so only it
+keeps a stable identity across rescheduling.
 
-Netmaker OSS has node ACLs but no Pro user-group/service ACLs. Isolation is
-implemented with two separate networks and operator ingress proxies:
+Stale hosts are not reaped automatically. Netmaker's zombie collector
+(`logic/zombie.go`, every 6h) only quarantines a host when a new record shares an
+existing `HostID` or `MacAddress`; a recreated pod has both a fresh host ID and a
+fresh CNI MAC, so it never matches. Prune `*-ingress-proxy` hosts by hand, or
+with `DELETE /api/v1/hosts/bulk` (body `{"ids": [...]}`).
 
-1. Port-forward `service/netmaker-ui` for initial setup and create networks named
-   `admin` and `restricted`. After the admin VPN works, use
-   `https://dashboard.vpn.dzerv.art` instead.
-2. Create an enrollment token for each network and store them as `admin-token`
-   and `restricted-token` on the `netmaker` 1Password item.
-3. Forward public UDP `51821` and `51822` to a Kubernetes node running Traefik.
-   Traefik's `netmaker-admin` and `netmaker-restricted` listeners route them to
-   the corresponding gateway Service.
-4. Once `netmaker-gateway-admin` and `netmaker-gateway-restricted` appear as
-   Netmaker hosts, set their public endpoints to the WAN address with ports
-   `51821` and `51822`, disable dynamic endpoint changes, and promote each host
-   to a Remote Access Gateway for its matching network.
-5. Give administrators Remote Access Client access only to `admin`. Give the
-   restricted user access only to `restricted`. Netmaker Desktop users enter
-   `https://vpn.dzerv.art`; it downloads the selected gateway endpoint for them.
-6. In `admin`, allow clients to reach `netmaker-admin-ingress` and
-   `netmaker-kube-api-ingress`. In `restricted`, allow clients to reach only
-   `netmaker-cliproxyapi-ingress`.
-7. Never add restricted clients or admin ingress proxies to the opposite network.
+## How access control works
 
-The restricted ingress asks the operator to register `ai.vpn.dzerv.art`. The
-Kubernetes API ingress similarly registers `kube.vpn.dzerv.art`. In the admin
-network, add split-DNS records for each required `*.vpn.dzerv.art` application,
-or a wildcard record if supported, pointing to the Netmaker address assigned to
-the admin Traefik ingress proxy.
+Netmaker Pro enforces access with user groups and resource policies, so this
+environment uses **one network** and controls per-service access in Netmaker
+itself. The earlier two-network split was an OSS workaround and is gone.
 
-Network separation, not DNS, is the security boundary. The cliproxyapi
-`NetworkPolicy` permits proxy traffic from the `netmaker` and `cliproxyapi`
-namespaces.
+The operator has **no CRDs for users, groups, services or ACLs**. Its only CRD,
+`NetmakerOps`, is an unmodified kubebuilder scaffold (`spec.foo`, empty
+reconciler) and is never instantiated. Everything below is manual server-side
+state that cannot be reproduced from this repo — treat the dashboard as the
+source of truth and keep this table in sync by hand.
+
+| Service | DNS name | Allowed groups |
+| --- | --- | --- |
+| `netmaker-admin-ingress` (Traefik) | `*.vpn.dzerv.art` | `admin` |
+| `netmaker-kube-api-ingress` | `kube.vpn.dzerv.art` | `admin` |
+| `netmaker-cliproxyapi-ingress` | `ai.vpn.dzerv.art` | `admin`, `guest` |
+
+`netmaker-admin-ingress` is only a name; it carries no privilege of its own.
+Access is decided entirely by the Netmaker resource policies above.
+
+## Bootstrap
+
+1. Port-forward `service/netmaker-ui` for initial setup and create a single
+   network. After the VPN works, use `https://dashboard.vpn.dzerv.art` instead.
+2. Create an unlimited-use enrollment token for that network and store it as
+   `enrollment-token` on the `netmaker` 1Password item.
+3. Forward public UDP `51821` to a Kubernetes node running Traefik. Traefik's
+   `netmaker` listener routes it to the `netmaker-gateway` Service.
+4. Once `netmaker-gateway` appears as a Netmaker host, set its public endpoint to
+   the WAN address with port `51821`, disable dynamic endpoint changes, and
+   promote it to a Remote Access Gateway. The operator never does this: it only
+   builds per-Service ingress proxy pods and never promotes a host to a gateway.
+5. Create the `admin` and `guest` user groups, and grant both Remote Access
+   Client access through `netmaker-gateway`.
+6. Add resource policies matching the table above, so `guest` reaches only
+   `ai.vpn.dzerv.art` while `admin` reaches every ingress.
+7. Add split-DNS records for each required `*.vpn.dzerv.art` application, or a
+   wildcard record if supported, pointing at the Netmaker address assigned to
+   `netmaker-admin-ingress`.
+
+Netmaker Desktop users enter `https://vpn.dzerv.art`; it downloads the gateway
+endpoint for them.
+
+Netmaker ACLs, not network separation, are now the security boundary. The
+cliproxyapi `NetworkPolicy` permits proxy traffic from the `netmaker` and
+`cliproxyapi` namespaces.
+
+## How the operator works
+
+The operator is annotation-driven, not CRD-driven. Both real controllers watch
+`Service` objects. For every Service annotated `netmaker.io/ingress: enabled` it
+creates a `<service>-ingress-proxy` pod **in that Service's own namespace**,
+owned by the Service, running `gravitl/netclient` plus an `alpine/socat`
+container that forwards the pod's WireGuard IP to the Service's ClusterIP.
+
+Ingress traffic therefore does **not** pass through the netclient sidecar in the
+operator Deployment. That sidecar exists for the operator's own API proxy on
+port `8085`, which overlaps with `netmaker-kube-api-ingress`; `proxyMode` is
+`noauth`, meaning it adds no impersonation headers and callers still present
+their own Kubernetes credentials.
+
+## Upstream defects patched in the overlay
+
+These are worked around in `main.jsonnet` rather than in the vendored charts:
+
+- **CoreDNS cannot read its Corefile.** The chart mounts the shared RWX volume
+  with no `fsGroup`, but `coredns/coredns` runs as UID 65532 while Netmaker
+  writes the Corefile as root, and a Longhorn RWX export root is
+  `drwx------ root root`. `fsGroup` cannot fix this because Longhorn's CSIDriver
+  uses the default `ReadWriteOnceWithFSType` policy, so Kubernetes skips
+  ownership management on RWX volumes. The container runs as root instead;
+  share-manager does not squash root.
+- **Operator ClusterRole omits Secrets.** The controllers read Secrets in
+  arbitrary namespaces, but upstream has no `kubebuilder:rbac` marker for
+  `secrets`, so the manager fails its Secret watch. The overlay appends
+  cluster-wide `get`/`list`/`watch`.
+- **`OPERATOR_NAMESPACE` is never set.** The binary defaults it to
+  `netmaker-k8s-ops-system`. Token lookup tries the Service's namespace first
+  and then `OPERATOR_NAMESPACE`; our proxy Services live in `traefik`,
+  `cliproxyapi` and `default` while `netmaker-op` lives in `netmaker`, so both
+  lookups missed and every proxy pod received `TOKEN=""`. The overlay sets it
+  from `metadata.namespace`. Because cross-namespace `secretKeyRef` is
+  impossible, the operator then inlines the token as a literal `value:` in each
+  proxy pod spec; mirror `netmaker-op` into those namespaces instead if that
+  exposure matters.
 
 ## Notes
 
 - The operator runs in `noauth` mode because API-backed user synchronisation
-  requires Netmaker Pro.
-- The single `netmaker-op` External Secret supplies server and operator credentials.
-- The gateway UDP routes do not create Netmaker Remote Access Gateways by
-  themselves; the two netclient hosts must be promoted in the dashboard.
+  requires a Netmaker Pro API token.
+- The single `netmaker-op` External Secret supplies server, gateway and operator
+  credentials.
+- The gateway UDP route does not create a Netmaker Remote Access Gateway by
+  itself; the `netmaker-gateway` host must be promoted in the dashboard.
 - The Kubernetes API ingress uses an `ExternalName` alias for
   `kubernetes.default.svc.cluster.local` instead of hard-coding a ClusterIP.
 - Server docs: <https://docs.netmaker.io/docs/server-installation/ha-installation-on-k8s>
 - Operator docs: <https://learn.netmaker.io/kubernetes-operator>
+- Operator source: <https://github.com/gravitl/netmaker-k8s-ops>

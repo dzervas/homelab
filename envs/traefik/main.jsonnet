@@ -49,13 +49,8 @@ local anubis = import './anubis.libsonnet';
               protocol: 'TCP',
               namespacePolicy: { from: 'All' },
             },
-            'netmaker-admin': {
+            netmaker: {
               port: 51821,
-              protocol: 'UDP',
-              namespacePolicy: { from: 'All' },
-            },
-            'netmaker-restricted': {
-              port: 51822,
               protocol: 'UDP',
               namespacePolicy: { from: 'All' },
             },
@@ -93,19 +88,11 @@ local anubis = import './anubis.libsonnet';
             protocol: 'TCP',
             expose: { default: true },
           },
-          'netmaker-admin': {
+          netmaker: {
             containerPort: 51821,
             exposedPort: 51821,
             hostPort: 51821,
             port: 51821,
-            protocol: 'UDP',
-            expose: { default: true },
-          },
-          'netmaker-restricted': {
-            containerPort: 51822,
-            exposedPort: 51822,
-            hostPort: 51822,
-            port: 51822,
             protocol: 'UDP',
             expose: { default: true },
           },
@@ -150,9 +137,6 @@ local anubis = import './anubis.libsonnet';
         protocol: 'TCP',
       }, {
         port: 51821,
-        protocol: 'UDP',
-      }, {
-        port: 51822,
         protocol: 'UDP',
       }],
     }]),

@@ -39,6 +39,26 @@ local helm = tk.helm.new(std.thisFile);
         defaultDataLocality: 'best-effort',
         // Maybe interrupt mode at some point (needs iommu): https://longhorn.io/docs/1.11.0/v2-data-engine/features/interrupt-mode/
 
+        // SPDK reactor cores for the v2 engine. Longhorn 1.12 ships 0x3 (2 cores)
+        // as the default, but settings persist across upgrades, so this cluster was
+        // still running the 1.11-era 0x1 (1 core).
+        //
+        // With a single core, one SPDK reactor serves BOTH I/O polling and
+        // management RPCs. Heavy I/O then starves teardown RPCs -- we observed
+        // `nvmf_get_subsystems` timing out after 60s in a loop, which leaves the
+        // engine stuck (desireState=stopped / currentState=running) and wedges
+        // every v2 volume on that node. 2+ cores put I/O and management on
+        // separate reactors.
+        //
+        // Refs: upstream longhorn#13237, INCIDENT-2026-06-2x, INCIDENT-2026-08-07.
+        // NOTE: docs say the mask should not exceed the guaranteed CPU for the v2
+        // instance-manager (guaranteedInstanceManagerCPU, a % of node allocatable,
+        // capped at 40). At the default 12% that is 960m on gr0 / 720m on srv0 /
+        // 480m on fra*, i.e. below the 2 cores this mask implies. See the CPU
+        // sizing note before raising it -- 4-core nodes cannot reach 2 cores
+        // globally and would need a per-node instanceManagerCPURequest override.
+        // dataEngineCPUMask: '{"v2":"0x3"}', // can't change after initial deployment
+
         // Disabled: on this cluster's flaky nodes it auto-attaches detached degraded
         // volumes to rebuild, causing attach/detach flapping during recovery
         // (see INCIDENT-2026-06-23-v2-stuck-detach-reactor-churn.md).
