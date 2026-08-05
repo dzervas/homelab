@@ -97,9 +97,14 @@ local netmaker = helm.template('netmaker', '../../charts/netmaker', {
     fullnameOverride: 'netmaker',
     server: {
       replicas: 2,
+      image: {
+        repository: 'ghcr.io/dzervas/netmaker',
+        tag: 'latest',
+      },
       masterKey: 'external-secret',
       frontendURL: 'https://' + dashboardDomain,
       ee: { licensekey: '', tenantId: '' },
+      RWX: { storageClassName: 'longhorn' },
     },
     ui: { replicas: 1 },
     mq: {
@@ -124,12 +129,11 @@ local netmaker = helm.template('netmaker', '../../charts/netmaker', {
         },
       },
     },
-    dns: { enabled: true },
-    certManager: {
+    dns: {
       enabled: true,
-      issuerName: 'letsencrypt',
-      email: 'dzervas@dzervas.gr',
+      RWX: { storageClassName: 'longhorn' },
     },
+    certManager: { enabled: false },
     ingress: {
       enabled: false,
       hostPrefix: { ui: 'dashboard', rest: 'api', broker: 'broker' },
@@ -179,7 +183,9 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
 });
 
 {
-  namespace: k.core.v1.namespace.new(namespace),
+  namespace:
+    k.core.v1.namespace.new(namespace)
+    + k.core.v1.namespace.metadata.withLabels({ ghcrCreds: 'enabled' }),
 
   // One 1Password item and one Kubernetes Secret hold all Netmaker credentials.
   opSecret:
@@ -200,7 +206,8 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
             secretEnv('MQ_PASSWORD', 'netmaker-op', 'mq-password'),
           ]),
           { app: 'netmaker' }
-        ),
+        )
+        + { spec+: { template+: { spec+: { imagePullSecrets: [{ name: 'ghcr-cluster-secret' }] } } } },
 
       deployment_netmaker_mqtt:
         withAffinity(
@@ -213,31 +220,6 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
           ),
           { app: 'netmaker-mqtt' }
         ),
-
-      deployment_netmaker_ui:
-        withAffinity(
-          setContainerEnv(
-            netmaker.deployment_netmaker_ui,
-            'netmaker-ui',
-            'BACKEND_URL',
-            'https://' + domain
-          ),
-          { app: 'netmaker-ui' }
-        ),
-
-      // The chart derives api.<baseDomain>; RAC users instead enter vpn.dzerv.art.
-      config_map_netmaker_env:
-        netmaker.config_map_netmaker_env {
-          data+: {
-            SERVER_API_CONN_STRING: domain + ':443',
-            SERVER_HTTP_HOST: domain,
-            FRONTEND_URL: 'https://' + dashboardDomain,
-          },
-        },
-      http_route_netmaker_api:
-        netmaker.http_route_netmaker_api {
-          spec+: { hostnames: [domain] },
-        },
 
       // Dashboard is reachable through the public listener only from VPN sources.
       http_route_netmaker_dashboard:
