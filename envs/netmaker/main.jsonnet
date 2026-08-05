@@ -209,6 +209,18 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
         )
         + { spec+: { template+: { spec+: { imagePullSecrets: [{ name: 'ghcr-cluster-secret' }] } } } },
 
+      // The chart mounts the shared RWX DNS volume into coredns, whose distroless
+      // image runs as UID 65532, but Netmaker writes the Corefile as root and a
+      // Longhorn RWX export root is `drwx------ root root`. `fsGroup` cannot fix
+      // this: Longhorn's CSIDriver uses the default `ReadWriteOnceWithFSType`
+      // fsGroupPolicy, so Kubernetes skips ownership management on RWX volumes.
+      // share-manager does not squash root, so root in the pod can read it.
+      deployment_netmaker_coredns:
+        patchContainer(
+          netmaker.deployment_netmaker_coredns,
+          'netmaker-dns',
+          function(_) { securityContext+: { runAsUser: 0, runAsGroup: 0 } }
+        ),
       deployment_netmaker_mqtt:
         withAffinity(
           redirectContainerEnv(
@@ -256,17 +268,42 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
   operator:
     operator
     {
+      // OPERATOR_NAMESPACE has no chart value and the binary defaults it to
+      // `netmaker-k8s-ops-system`. The ingress controller resolves a Service's
+      // `netmaker.io/secret-name` in the Service's own namespace first, then
+      // falls back to OPERATOR_NAMESPACE; our proxy Services live in traefik,
+      // cliproxyapi and default while `netmaker-op` lives here, so without this
+      // both lookups miss and every proxy pod gets TOKEN="" and fails to enroll.
       deployment_netmaker_k_8s_ops:
         withAffinity(
-          redirectContainerEnv(
-            operator.deployment_netmaker_k_8s_ops,
-            'netclient',
-            'TOKEN',
-            'netmaker-op',
-            'admin-token'
+          appendContainerEnv(
+            redirectContainerEnv(
+              operator.deployment_netmaker_k_8s_ops,
+              'netclient',
+              'TOKEN',
+              'netmaker-op',
+              'enrollment-token'
+            ),
+            'manager',
+            [{
+              name: 'OPERATOR_NAMESPACE',
+              valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
+            }]
           ),
           { 'app.kubernetes.io/name': operatorName }
         ),
+
+      // The chart's minimal ClusterRole omits Secrets, but the operator watches
+      // them cluster-wide to resolve the `netmaker.io/secret-name` annotation on
+      // ingress proxy Services. Without this it crash-loops on a Secret watch.
+      cluster_role_netmaker_k_8s_ops_role:
+        operator.cluster_role_netmaker_k_8s_ops_role {
+          rules+: [{
+            apiGroups: [''],
+            resources: ['secrets'],
+            verbs: ['get', 'list', 'watch'],
+          }],
+        },
       secret_netclient_token:: operator.secret_netclient_token,
       pod_netmaker_k_8s_ops_test_connection:: operator.pod_netmaker_k_8s_ops_test_connection,
     },
@@ -281,7 +318,7 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
       { 'app.kubernetes.io/name': 'traefik' },
       443,
       'websecure',
-      'admin-token'
+      'enrollment-token'
     ),
 
   restrictedIngress:
@@ -291,7 +328,7 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
       { 'app.kubernetes.io/name': 'cliproxyapi' },
       8317,
       8317,
-      'restricted-token',
+      'enrollment-token',
       'ai.' + domain,
       'http'
     ),
@@ -299,7 +336,7 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
   kubeApiIngress:
     service.new('netmaker-kube-api-ingress', {}, [servicePort.newNamed('https', 443, 443)])
     + service.metadata.withNamespace('default')
-    + service.metadata.withAnnotations(ingressAnnotations('admin-token', 'kube.' + domain))
+    + service.metadata.withAnnotations(ingressAnnotations('enrollment-token', 'kube.' + domain))
     + service.spec.withType('ExternalName')
     + {
       spec+: {
@@ -310,5 +347,5 @@ local operator = helm.template(operatorName, '../../charts/netmaker-k8s-ops', {
 
   // CNPG creates the `netmaker-db` database and owner, plus a `netmaker-db-app`
   // Secret containing connection details for the application.
-  netmakerCluster: postgres.new('netmaker-db', 'netmaker', '512Mi'),
-} + gateways
+  netmakerCluster: postgres.new('netmaker-db', 'netmaker', '2Gi'),
+}  //+ gateways
