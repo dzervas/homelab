@@ -62,4 +62,9 @@
     CLIPROXYAPI_TOKEN = "op://k8s-secrets/cliproxyapi/password";
     CLIPROXYAPI_URL = "https://ai.vpn.dzerv.art";
   };
+
+  enterShell = ''
+    echo "Changing context to gr"
+    kubectx gr
+  '';
 }

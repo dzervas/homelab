@@ -10,6 +10,14 @@ local lab = import 'labsonnet.libsonnet';
     + lab.withPV('/var/lib/gitea', { name: 'data', size: '10Gi', storageClassName: 'longhorn' })
     + lab.withPV('/etc/gitea', { name: 'config', size: '128Mi', storageClassName: 'longhorn' })
     + lab.withVpnHttp(80, 'git.vpn.dzerv.art')
+    + {
+      'middleware-vpn-80'+: {
+        spec: { ipAllowList: { sourceRange: [
+          '100.100.50.0/24',  // headscale tailnet
+          '10.200.0.0/16',  // Cilium cluster-pool Pod CIDR
+        ] } },
+      },
+    }
     + lab.withPublicTCP(2222, 'ssh')
     + lab.withEnv({
       FORGEJO__server__HTTP_PORT: '80',
