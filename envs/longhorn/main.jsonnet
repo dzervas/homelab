@@ -81,6 +81,20 @@ local helm = tk.helm.new(std.thisFile);
   // process per node => a single stuck teardown starves all storage on it).
   // See INCIDENT-2026-06-2x reports. RWX is NOT v2-only — it rides on an NFSv4
   // share-manager pod over a regular v1/v2 volume, so v1 RWX works fine here.
+  storageClassV1:
+    k.storage.v1.storageClass.new('longhorn-v1')
+    + k.storage.v1.storageClass.withProvisioner('driver.longhorn.io')
+    + k.storage.v1.storageClass.withReclaimPolicy('Retain')
+    + k.storage.v1.storageClass.withAllowVolumeExpansion(true)
+    + k.storage.v1.storageClass.withVolumeBindingMode('Immediate')
+    + k.storage.v1.storageClass.withParameters({
+      dataEngine: 'v1',
+      numberOfReplicas: '2',
+      staleReplicaTimeout: '30',
+      dataLocality: 'best-effort',
+      disableRevisionCounter: 'false',
+      fsType: 'ext4',
+    }),
 
   // Throwaway: v1, 1 replica, Delete (no Retain), RWX-capable. For ephemeral
   // scratch like woodpecker agent pods. Single replica = no rebuild churn;
@@ -92,7 +106,7 @@ local helm = tk.helm.new(std.thisFile);
     + k.storage.v1.storageClass.withAllowVolumeExpansion(true)
     + k.storage.v1.storageClass.withVolumeBindingMode('Immediate')
     + k.storage.v1.storageClass.withParameters({
-      dataEngine: 'v2',
+      dataEngine: 'v1',
       numberOfReplicas: '1',
       staleReplicaTimeout: '30',
       dataLocality: 'best-effort',

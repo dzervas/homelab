@@ -1,9 +1,16 @@
-{ pkgs, ... }:
-{
+{ inputs, pkgs, ... }:
+let
+  pkgs-stable = import inputs.nixpkgs-stable { system = pkgs.stdenv.system; };
+in {
   languages = {
     jsonnet.enable = true;
     rust.enable = true;
-    helm.enable = true;
+    helm = {
+      enable = true;
+      # Required workaround since helm v4 is not supported:
+      # https://github.com/grafana/tanka/issues/1749
+      package = pkgs-stable.kubernetes-helm;
+    };
     python = {
       enable = true;
 
@@ -24,7 +31,7 @@
     jsonnet-bundler
     deploy-rs
 
-    # pv-migrate
+    pv-migrate
     yq-go
     pv-migrate
   ];
