@@ -116,6 +116,24 @@
           size = "100%";
           lvm_type = "thinlv";
           pool = "thinpool";
+          content = {
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/var/lib/longhorn-mainpool";
+            extraArgs = [
+              "-m"
+              "0"
+              "-L"
+              "longhorn-v1"
+            ];
+            mountOptions = [
+              "discard"
+              "noatime"
+              "nodev"
+              "nosuid"
+              "errors=remount-ro"
+            ];
+          };
         };
       };
     };

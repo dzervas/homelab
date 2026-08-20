@@ -115,3 +115,8 @@ local helm = tk.helm.new(std.thisFile);
       fsType: 'ext4',
     }),
 }
+
+// v1 migration:
+// mkfs.ext4 -m 0 -F -L longhorn-v1 /dev/mapper/mainpool-longhorn
+// mkdir -p /var/lib/longhorn-mainpool
+// mount /dev/mapper/mainpool-longhorn /var/lib/longhorn-mainpool
