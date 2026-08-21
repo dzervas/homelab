@@ -29,8 +29,9 @@ local helm = tk.helm.new(std.thisFile);
           env: {
             TZ: timezone,
             // Scratch volumes for the pipeline pods the agent spawns: 1-replica
-            // v1 + Delete reclaim (longhorn-throwaway). RWX already on by default.
+            // v1 + Delete reclaim (longhorn-throwaway)
             WOODPECKER_BACKEND_K8S_STORAGE_CLASS: 'longhorn-throwaway',
+            WOODPECKER_BACKEND_K8S_STORAGE_RWX: 'false',
           },
         },
         server: {
@@ -72,6 +73,7 @@ local helm = tk.helm.new(std.thisFile);
             WOODPECKER_HOST: 'https://ci.vpn.dzerv.art',
             WOODPECKER_OPEN: 'false',
             WOODPECKER_ADMIN: 'dzervas',
+            WOODPECKER_AUTHENTICATE_PUBLIC_REPOS: 'true',
 
             WOODPECKER_FORGEJO: 'true',
             WOODPECKER_FORGEJO_URL: 'http://forgejo',

@@ -1,19 +1,23 @@
 when:
   - event: push
     branch: main
+    path:
+      include:
+        - .woodpecker/docker.yaml
+        - docker/${image}/**
+      on_empty: false
 
 matrix:
   image:
     - dns-controller
     - netshoot
-    - netbird-dashboard
 
 steps:
   - name: publish-image
     image: plugins/kaniko
     settings:
-      registry: forgejo
-      repo: git.vpn.dzerv.art/${CI_REPO}
+      registry: git.vpn.dzerv.art
+      repo: git.vpn.dzerv.art/${CI_REPO}/${image}
       username: ${CI_REPO_OWNER}
       password:
         from_secret: forgejo_token

@@ -9,8 +9,8 @@ yq --version | grep mikefarah || { echo "yq version is not compatible. Please in
 
 namespace=$1
 pvc_name=$2
-new_storage_class=${NEW_SC:-"longhorn"}
-old_storage_class=${OLD_SC:-"linstor"}
+new_storage_class=${NEW_SC:-"longhorn-v1"}
+old_storage_class=${OLD_SC:-"longhorn"}
 
 if [ -z "$namespace" ] || [ -z "$pvc_name" ]; then
   echo "Usage: $0 <namespace> <pvc_name>"
@@ -96,6 +96,7 @@ restore_workloads() {
 # Print recovery instructions on failure
 print_recovery_instructions() {
   local ns=$1 backup_file=$2
+  set +x
   echo ""
   echo "============================================"
   echo "MIGRATION FAILED - Manual recovery required"
@@ -211,7 +212,7 @@ sleep 10
 echo "Migrating the data between the PVCs with pv-migrate"
 echo "namespace=$namespace pvc_name=$pvc_name"
 set -x
-pv-migrate --strategies mnt2 --source-namespace "$namespace" --dest-namespace "$namespace" --source "$pvc_name-old" --dest "$pvc_name" # --helm-set rsync.nodeSelector.provider=oracle
+pv-migrate --strategies mount --source-namespace "$namespace" --dest-namespace "$namespace" --source "$pvc_name-old" --dest "$pvc_name" --helm-set "rsync.nodeSelector.kubernetes\.io/hostname=fra0"
 set +x
 
 # Restore workloads after successful migration
