@@ -42,12 +42,24 @@ local helm = tk.helm.new(std.thisFile);
               }],
             },
             egress: {
-              extra: [{
-                ports: [{ port: 80, protocol: 'TCP' }],
-                to: [{
-                  podSelector: { matchLabels: { app: 'forgejo' } },
-                }],
-              }],
+              extra: [
+                {
+                  ports: [{ port: 80, protocol: 'TCP' }],
+                  to: [{
+                    podSelector: { matchLabels: { app: 'forgejo' } },
+                  }],
+                },
+                {
+                  ports: [{ port: 8443, protocol: 'TCP' }],
+                  to: [{
+                    namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'traefik' } },
+                    podSelector: { matchLabels: {
+                      'app.kubernetes.io/instance': 'traefik-traefik',
+                      'app.kubernetes.io/name': 'traefik',
+                    } },
+                  }],
+                },
+              ],
             },
           },
           ingress: ingress.hostObj('ci.vpn.dzerv.art'),
@@ -63,7 +75,7 @@ local helm = tk.helm.new(std.thisFile);
 
             WOODPECKER_FORGEJO: 'true',
             WOODPECKER_FORGEJO_URL: 'http://forgejo',
-            WOODPECKER_EXPERT_FORGE_OAUTH_HOST: 'https://git.vpn.dzerv.art/',
+            WOODPECKER_EXPERT_FORGE_OAUTH_HOST: 'https://git.vpn.dzerv.art',
             WOODPECKER_FORCE_IGNORE_SERVICE_FAILURE: 'false',
 
             WOODPECKER_EXPERT_WEBHOOK_HOST: 'http://woodpecker-server',
