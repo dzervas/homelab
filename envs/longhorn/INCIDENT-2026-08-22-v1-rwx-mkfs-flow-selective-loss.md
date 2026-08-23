@@ -26,6 +26,14 @@ the post-capture vNIC/hypervisor path remains in scope (see exclusions).
 element) in the GRNET ↔ DE-CIX ↔ Oracle transit. Alternative host/middlebox causes and
 how to discriminate them are in "If the provider is not at fault" below.
 
+> **UPDATE 2026-08-23 — the follow-up section at the end of this file supersedes several
+> statements above.** The drop element is now localized *inside GRNET*, four hops from
+> gr0, at/behind `62.217.100.62`; gr0's guest, vhost and hypervisor vSwitch are excluded
+> by measurement, DPI is excluded by a same-5-tuple payload test, physical bit errors are
+> excluded by a packet-size test, and policers/congestion are excluded by a
+> rate-independence test. See
+> "Follow-up 2026-08-23: same-5-tuple discriminators + in-provider localization".
+
 This is the same "connectivity between nodes is not rock-solid" caveat noted in the two
 v2 incidents — now quantified. **Do not attach a v1 volume whose only active replica is
 across this WAN path.**
@@ -301,3 +309,324 @@ kubectl expose pod <iperf-server-pod> --type=NodePort --port=5201 -n <ns>
 iperf3 -c <peer-PUBLIC-ip> -p <nodeport> -t 10
 kubectl -n <ns> delete svc <svc>                                          # cleanup!
 ```
+
+---
+
+# Follow-up 2026-08-23: same-5-tuple discriminators + in-provider localization
+
+All numbers below are **measured today**, read-only (crafted probe packets only; no
+config, node, WireGuard, Cilium or Longhorn change). Method: two privileged
+`hostNetwork` netshoot pods per node pair (`netdiag-gr0/gr1/fra0/fra1`, deleted
+afterwards) + a raw-socket sender (`IP_HDRINCL`) so the outer 5-tuple could be held
+**exactly** equal to the live WireGuard flow (`83.212.173.226:51820 ->
+130.162.36.16:51820`) while a single variable was changed. Receiver-side counting used
+`tcpdump` filters on magic markers in the payload
+(`udp[12:4]=0xdeadbeef` / `0xcafebabe`), so probes are never confused with real WG
+traffic (real WG data packets carry a random receiver index).
+
+## Capture-filter trap that invalidated part of the earlier pcap comparison
+`fra1`'s `eth0` address is **10.0.1.41** \u2014 Oracle 1:1-NATs the public IP
+`130.162.36.16` at the VCN edge. A receiver-side filter containing
+`dst host 130.162.36.16` therefore matches **nothing** on fra1 and looks like 100% loss.
+Source port *is* preserved by that NAT (verified: fra1-sourced probes with sport 51820
+arrive at gr0 with sport 51820). Always filter on `10.0.1.41` (or omit the dst) at fra1.
+
+## New measured facts
+
+### 1. DPI on WireGuard's wire format: EXCLUDED
+Interleaved in one run, same 5-tuple, same size (1312 B payload), same rate (50 pps each):
+
+| flow shape | tx @ gr0 eth0 | rx @ fra1 eth0 | loss |
+|---|---|---|---|
+| WireGuard-shaped (`type=4`, `reserved_zero[3]=0`, receiver index, counter) | 3000 | 2902 | 3.27% |
+| non-WG (first byte `0x77`, non-zero reserved, random) | 3000 | 2906 | 3.13% |
+
+Delta = 4 packets, vs binomial sigma ~= 9.6. A DPI classifier keying on WireGuard's
+fixed cleartext fingerprint (https://www.wireguard.com/protocol/) cannot produce this.
+This is the controlled test the previous report listed as missing.
+
+### 2. Physical-layer bit errors / dirty optics: EXCLUDED
+Interleaved, same 5-tuple, same pps, only payload size differing:
+
+| payload | tx | rx | loss |
+|---|---|---|---|
+| 1312 B | 4500 | 4337 | 3.62% |
+| 64 B | 4500 | 4344 | 3.47% |
+
+Frame-corruption loss scales with frame size (~20x here). Loss is flat => not CRC/FEC.
+
+### 3. Loss is Bernoulli, not congestion or a periodic policer
+From the 90 s capture pair: 96 loss events, **93 of them single packets** (3 of length 2),
+inter-loss gaps geometric (min 2, median 21, max 108), and loss spread evenly over every
+5 s bin (1.6%-6.0%). No bursts => no queue overflow; no fixed period => no round-robin
+drop.
+
+### 4. Rate dependence: EXCLUDED (not a policer, not congestion)
+Same 5-tuple at ~17 kbit/s aggregate (2 flows x 5 pps x 120 s):
+
+| sport | rx | loss |
+|---|---|---|
+| 51820 | 577/600 | **3.83%** |
+| 49000 | 598/600 | 0.33% |
+
+sport 51820 loses 3.3-5.0% at 17 kbit/s, 0.5 Mbit/s and 1 Mbit/s alike, while a
+*different source port over the same wire at the same instant* is essentially clean.
+
+### 5. Localization: the drop is INSIDE GRNET, and gr0's host/hypervisor is EXCLUDED
+Paris-traceroute-style sweep: fixed 5-tuple per flow class, original TTL encoded in the
+IP ID (quoted back in the ICMP time-exceeded), all classes interleaved in randomized
+order in one run at identical rate, so ICMP generation rate-limiting affects them
+equally.
+
+gr0 -> fra1, 300 probes per cell:
+
+| TTL | responder | sport 40001 (clean bucket) | sport 51820 (live WG bucket) |
+|---|---|---|---|
+| 2 | 83.212.173.3 (`vlan100-gw2.knossos.grnet.gr`) | 300/300 | **300/300** |
+| 3 | 62.217.100.60 | 300/300 | **300/300** |
+| 4 | 62.217.100.62 | 300/300 | **289/300 (3.7%)** |
+| 6 | 80.81.192.173 (`fra-ix.geant.net`) | 300/300 | 288/300 |
+| 8 | 140.91.198.17 (Oracle) | 300/300 | 292/300 |
+
+Consequences (each is now a measured exclusion, not an inference):
+- **gr0 guest TX path, vhost, and hypervisor vSwitch: EXCLUDED.** 600 consecutive
+  packets of the *lossy* 5-tuple left gr0 and cleared GRNET hops 2 and 3 with zero
+  drops. Anything on gr0's host would have dropped ~3.5% of those too. This retires
+  hypothesis #1 ("post-capture guest/hypervisor TX path") from the previous report.
+- **DE-CIX/GEANT and Oracle VCN ingress / fra1 host: EXCLUDED for this direction.**
+  Loss is already present at hop 4, upstream of both.
+- **ICMP rate limiting as an artifact: EXCLUDED.** Clean-bucket controls to the *same*
+  responder at the same rate in the same run returned 300/300.
+
+### 6. It is NOT the visible ECMP topology, and NOT host-side ECMP
+gr0 has a single default route (`default via 83.212.173.1 dev eth0 proto dhcp`), next-hop
+MAC `cc:47:52:4e:45:54` = ASCII **"GRNET"** (a platform-provided virtual gateway), and
+`fib_multipath_hash_policy=0`. So the per-source-port path split is entirely GRNET's.
+GRNET hashes the 5-tuple across two access routers (`83.212.173.2`/`.3`) and >=4 core
+next-hops (`62.217.100.54/.58/.60/.76`), but **loss does not follow that split**:
+
+| sport | hop2 | hop3 | hop4 | end-to-end loss |
+|---|---|---|---|---|
+| 51820 | .173.3 | 62.217.100.60 | 62.217.100.62 | 4.5-5.0% |
+| 40009 | .173.3 | 62.217.100.60 | 62.217.100.62 | 5.0% |
+| 40001 | .173.3 | 62.217.100.60 | 62.217.100.62 | ~1% |
+| 40005 | .173.3 | 62.217.100.60 | 62.217.100.62 | ~1% |
+| 40007 | .173.3 | 62.217.100.60 | 62.217.100.62 | ~1% |
+
+Identical router-level path, order-of-magnitude different loss => the faulty element is
+**below traceroute resolution**: one member of a link bundle (LAG), or a per-hash
+forwarding/inspection element, inside GRNET.
+
+### 7. Destination-independent, and not gr0-specific
+- Same probe pattern toward `152.70.165.139` (fra0, different Oracle tenancy) and
+  `8.8.8.8` produces the same picture: several buckets lose 2-6% at
+  `62.217.100.62`/`.58`/`.76` while interleaved controls are 200/200. The fault is
+  therefore GRNET-internal, not tied to the Oracle prefix or the DE-CIX peering.
+- **gr1** (83.212.175.41, different GRNET subnet, different hop 2/3:
+  `83.212.175.2` -> `62.217.100.100`) also loses **192/200 (4%)** for its lossy bucket
+  (sport 40001) at the *same* `62.217.100.62`, with 200/200 for a clean bucket. Two
+  independent VMs on different access segments converge on the same device.
+
+### 8. Both directions are affected, on different buckets
+fra1 -> gr0, 300 probes each: sport 51820 = **300/300 (clean)**, sport 49000 =
+**286/300 (4.7% loss)**. The direction asymmetry in the original report is a
+*per-bucket* artifact, not a property of a direction: each direction hashes differently,
+and the live WG flow happens to sit in a bad bucket outbound and a good one inbound.
+
+### 9. No single WireGuard listen port is safe for all peers
+End-to-end scan, 18 candidate source ports x 300 packets, toward both Oracle peers:
+
+| sport | loss -> fra1 | loss -> fra0 |
+|---|---|---|
+| 49000 | 0.3% | 1.3% |
+| 41000 | 0.7% | 1.7% |
+| 55000 | 2.3% | 1.3% |
+| 51000 | 2.0% | 1.7% |
+| **51820 (current)** | **5.0%** | 2.0% |
+| 51821 | 9.3% | 0.3% |
+| 40005 | 2.0% | 9.7% |
+
+No scanned port was clean toward both, and the bad-bucket set was not identical between
+scan runs hours apart (only 51820's badness was stable across all 5 runs today). This
+confirms the earlier warning: **do not blindly re-point gr0's global WireGuard port.**
+
+## Revised conclusion (what is now proven vs inferred)
+**Proven:** a persistent, flow-hash-selective, ~4% Bernoulli packet drop that is
+independent of packet size, payload shape and offered rate, located inside GRNET within
+4 hops of gr0 (first observable at `62.217.100.62`), affecting both gr0 and gr1, in both
+directions on different hash buckets. Host, hypervisor, WireGuard, Cilium, MTU, DPI,
+bit errors, policers/congestion, Oracle VCN and fra1 are excluded.
+
+**Inferred (best fit, not proven):** one faulty member of a link bundle / per-hash
+forwarding path in GRNET's core around `62.217.100.62`. Size- and rate-independence
+argue against a lossy physical link (which would show size-dependent CRC loss) and
+against a policer, and favour a forwarding-plane or inspection-plane element that drops a
+fixed fraction of the packets steered onto it.
+
+## Provider-side data (goal 3): status
+- **Oracle**: no VCN flow logs exist in `infra/` (no `oci_logging` resources), and the
+  local `oci` CLI session returns HTTP 401 (expired). Not refreshed: it needs interactive
+  / 1Password credentials, and Oracle is already excluded for the failing direction.
+  If wanted later, VCN flow logs are only informative for the fra1 -> gr0 direction.
+- **GRNET**: no API/telemetry access from here. This is where the evidence points, so the
+  ticket below is the only route to their queue/LAG-member counters.
+
+## Updated GRNET ticket text (supersedes the earlier evidence pack)
+```
+Source VM 83.212.173.226 (and 83.212.175.41) -> any external destination.
+~4% packet loss on SPECIFIC 5-tuples, while other 5-tuples over the same
+routers at the same instant are clean.
+
+Measured, with interleaved clean/lossy controls in every run:
+- Loss first appears at TTL 4, responder 62.217.100.62, for both VMs, which
+  reach it via different hop-3 routers (62.217.100.60 and 62.217.100.100).
+  TTL 2 (83.212.173.3 / 83.212.175.2) and TTL 3: 300/300 and 200/200 clean for
+  the SAME lossy 5-tuple => loss is not on our VM/host, and not on the access hop.
+- Independent of destination: reproduces toward 130.162.36.16, 152.70.165.139
+  and 8.8.8.8.
+- Independent of packet size (3.62% @1312B vs 3.47% @64B, interleaved).
+- Independent of offered rate (3.8% at 17 kbit/s; 3.3% at 1 Mbit/s).
+- Independent of payload (WireGuard-shaped vs random bytes: 3.27% vs 3.13%).
+- Bernoulli single-packet drops (93 of 96 events = 1 packet), not bursty.
+- ICMP echo is clean; only per-5-tuple UDP/TCP flows are affected, so
+  ping-based monitoring shows green.
+Please check for a degraded member in the link bundle(s) terminating on
+62.217.100.62 (per-member error/discard counters), and any per-hash
+inspection/scrubbing element in that path.
+```
+
+## Placement guidance stands (unchanged, not applied)
+The volume `pvc-92ddd557-...` is currently **detached**, with a single stopped replica on
+fra1, `numberOfReplicas=2`, cluster `replica-soft-anti-affinity=false`, and
+`engine-replica-timeout={"v1":"8","v2":"8"}` (the log's 16 s is the doubled value). gr0's
+`mainpool` v1 filesystem disk is now **schedulable with 428 GiB free**, so the earlier
+`LocalReplicaSchedulingFailure` no longer applies and an engine-local replica on gr0 is
+schedulable. Nothing was changed; recommendation unchanged from the main report: format /
+migrate with engine and its only RW replica on the SAME node, then scale replicas up.
+
+## Reproduction assets
+Probe scripts used (raw-socket senders, ~60 lines each, no dependencies) are described
+inline above: (a) same-5-tuple interleaved payload/size discriminator, (b) IP-ID-encoded
+TTL sweep with interleaved source-port classes, (c) multi-source-port loss scan. All
+diagnostic pods (`netdiag-gr0/gr1/fra0/fra1`) and the temporary flattened kubeconfig were
+removed after the run.
+
+## Addendum 2026-08-23b: which node pairs are actually affected, and reconciliation
+### with the original TCP numbers
+
+### Full tunnel matrix (this is the number Longhorn actually feels)
+UDP probes **inside `wg0`** (so each cell is that pair's real WireGuard 5-tuple),
+2000 packets @400 pps @200 B per ordered pair, receiver-side counted with `tcpdump -i wg0`.
+Rows = sender:
+
+|        | ->gr0 | ->gr1 | ->srv0 | ->fra0 | ->fra1 |
+|--------|------|------|-------|-------|-------|
+| **gr0**  | -    | 0.0% | **3.9%** | 0.0% | **4.5%** |
+| **gr1**  | 0.0% | -    | 0.0%  | 0.0% | 0.0%  |
+| **srv0** | 0.0% | 0.0% | -     | 0.0% | 0.0%  |
+| **fra0** | 0.0% | 0.3% | 0.0%  | -    | 0.0%  |
+| **fra1** | 0.0% | 0.2% | 0.0%  | 0.0% | -     |
+
+Conclusions:
+- **srv0 and the Oracle nodes are NOT affected as senders.** fra0 <-> fra1 is 0/2000 in
+  both directions; every srv0 path is clean. Oracle-to-Oracle replication is healthy.
+- The damage is confined to **gr0's egress, on 2 of its 4 peer tunnels** (fra1 and srv0).
+  **gr0 -> gr1 and gr0 -> fra0 are clean**, and everything *inbound to gr0* is clean.
+- This is the bucket model confirmed operationally: gr0 uses one WireGuard source port
+  (51820) for every peer, so its four tunnels differ only in destination IP, and two of
+  them landed in bad hash buckets.
+- Note the refinement vs the section above: gr1 has lossy *probe* buckets on the public
+  underlay, but its four real tunnel 5-tuples are all currently clean. Bucket badness is
+  per-5-tuple luck; only gr0 drew bad ones for real tunnels.
+
+### The original TCP numbers and today's loss numbers are the same fault
+A single TCP stream under random loss is loss-limited, not bandwidth-limited:
+`BW ~= MSS/RTT * sqrt(1.5/p)`. On wg0, MSS = 1420-40 = 1380 B and measured RTT
+gr0->fra1 = **52.9 ms**. At p = 0.045 this predicts **1.20 Mbit/s**. Measured today:
+
+```
+gr0 -> fra1 over wg0:  1.15 Mbit/s, 37 retransmits in 10 s   (original report: 1.25 Mbit/s, 35 retx)
+gr0 -> fra0 over wg0: 47.80 Mbit/s, 9051 retransmits in 10 s
+```
+
+So the original "1.25 Mbit/s / 35 retx" and today's "4.5% UDP loss" are two views of one
+fault, and the original retransmit counts were already a loss measurement:
+4 MiB ~= 3473 segments, so 130-145 retx = **3.7-4.2%**, matching today's 3.3-5.0%.
+The 4 MiB / 35-40 s that broke `mke2fs` follows directly.
+
+The fra0 comparison is instructive and rules out a shared bottleneck: that path reaches
+47.8 Mbit/s and only sheds packets when pushed hard (rate-dependent = ordinary
+congestion), whereas fra1 collapses to ~1 Mbit/s because its loss is a fixed ~4.5%
+probability present even at 17 kbit/s. Different mechanisms; only the latter breaks
+Longhorn.
+
+The single unexplained legacy datapoint remains the early "373 Mbit/s with 1542 retx"
+sample, which is inconsistent with every later measurement and stays flagged as anomalous.
+
+### Practical consequence for placement (still not applied)
+Only **gr0** is degraded, and only as a sender toward **fra1** and **srv0**. Therefore:
+- Any engine/replica pair among {gr1, srv0, fra0, fra1} is currently on a clean path.
+- gr0 as engine with its replica on **fra0** is currently clean too (0/2000, 47.8 Mbit/s),
+  though it is one hash-bucket reroll away from degrading, so engine-local replicas remain
+  the durable answer.
+- The combinations to avoid are exactly gr0-engine + sole replica on **fra1** or **srv0**,
+  which is precisely what this incident hit.
+
+## Addendum 2026-08-23c: why attach fails for *these* PVs specifically
+
+Three conditions must coincide. Only one volume in the cluster meets all three.
+
+### 1. Engine node -> sole-RW-replica node must be one of gr0's two broken tunnels
+All five RWX volumes, checked against the measured matrix:
+
+| volume | claim | engine (sm ownerID) | replicas | measured path loss | outcome |
+|---|---|---|---|---|---|
+| pvc-92ddd557 | netmaker/netmaker-dns-pvc | **gr0** | **fra1** | **4.5%** | **fails** |
+| pvc-f0f2e998 | netmaker/netmaker-dns-pvc-old | gr0 | fra0 | 0.0% | fine |
+| pvc-d4c3a848 | netmaker/netmaker-k8s-ops-netclient-pvc | fra1 | srv0, fra1 | 0.0% | fine |
+| pvc-089994af | netmaker/...netclient-pvc-old | fra1 | fra0 | 0.0% | fine |
+| pvc-c8dd916d | netmaker/netmaker-shared-data-pvc | srv0 | fra0 | 0.0% | fine |
+
+5/5 correlation, and the Woodpecker throwaway PVCs fit as well (consumer on gr0, sole
+replica on **srv0** = the other 3.9% path). Note gr0 itself is not cursed: gr0 + fra0
+is currently a clean path.
+
+### 2. RWX turns a data-path fault into an *attach* failure
+For RWX, Longhorn must format the volume and start NFS-Ganesha **inside the
+share-manager** before the share exists. So a synchronous-write failure surfaces as
+`Waiting for volume share to be available` during attach, not as an I/O error. The same
+underlying fault on an RWO volume would appear *after* a successful mount as `EIO`.
+That is why the failure class looks like "attach is broken" rather than "the network is
+lossy".
+
+### 3. The volume cannot self-heal out of it (the actual deadlock)
+- `spec.numberOfReplicas=2` but only **one** replica has ever existed
+  (`r-cc7843a2`, fra1, created 2026-08-22T01:14:56Z, i.e. 2 s after the volume).
+- The volume's condition is `Scheduled=True`, message *"Reset schedulable due to allow
+  volume creation with degraded availability"*, and
+  `allow-volume-creation-with-degraded-availability=true` -> it was **created 1-of-2**
+  because gr0's disk was unavailable at that moment (the `LocalReplicaSchedulingFailure`
+  in the main report).
+- A missing replica is replenished by an engine-driven rebuild, which requires the volume
+  to be **attached and healthy**. Attaching requires mkfs to succeed. mkfs requires a
+  backend that answers within the replica timeout. The only backend is across the 4.5%
+  path. => circular.
+- Nothing breaks that circle in the background: `offline-replica-rebuilding=false`
+  (volume-level: `ignored`) and `replica-auto-balance=disabled`, so while the volume is
+  detached the second replica will never be created.
+- gr0's `mainpool` v1 disk is **now** schedulable with 428 GiB free and all
+  node/disk conditions are healthy, so the deadlock is breakable on demand - it just
+  never breaks itself.
+
+### Timeout arithmetic, for completeness
+`engine-replica-timeout={"v1":"8"}` (the engine log's "No response received in 16s" is
+the doubled value). A 4 MiB journal write at the loss-limited ~1.15 Mbit/s takes ~29-40 s,
+so it exceeds even the 30 s maximum setting. Raising the timeout cannot fix this volume;
+only replica placement or a fixed network path can.
+
+### Not determined
+What put this volume's share-manager on gr0. The ShareManager CR carries no node field
+(`spec` holds only `image`; `status.ownerID=gr0`), `rwx-volume-fast-failover=true`, and no
+share-manager pod exists right now to inspect its scheduling constraints. So "engine lands
+on gr0" is currently an observed outcome, not an understood mechanism - worth pinning down
+before relying on placement as the mitigation.

@@ -104,7 +104,7 @@ local netmaker = helm.template('netmaker', '../../charts/netmaker', {
       masterKey: 'external-secret',
       frontendURL: 'https://' + dashboardDomain,
       ee: { licensekey: '', tenantId: '' },
-      RWX: { storageClassName: 'longhorn' },
+      RWX: { storageClassName: 'longhorn-v1' },
     },
     ui: { replicas: 1 },
     mq: {
@@ -131,7 +131,7 @@ local netmaker = helm.template('netmaker', '../../charts/netmaker', {
     },
     dns: {
       enabled: true,
-      RWX: { storageClassName: 'longhorn' },
+      RWX: { storageClassName: 'longhorn-v1' },
     },
     certManager: { enabled: false },
     ingress: {
