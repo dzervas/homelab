@@ -73,6 +73,33 @@ local namespace = 'external-secrets';
       { extract: { key: 'external-secrets' } },
     ]),
 
+  // ClusterExternalSecret for cluster-wide Forgejo package access
+  forgejoClusterSecret:
+    clusterExternalSecret.new('forgejo-cluster-secret')
+    + clusterExternalSecret.spec.withExternalSecretName('forgejo-cluster-secret')
+    + clusterExternalSecret.spec.withNamespaceSelectors([
+      { matchLabels: { forgejoCreds: 'enabled' } },
+    ])
+    + clusterExternalSecret.spec.externalSecretSpec.withRefreshInterval('1h')
+    + clusterExternalSecret.spec.externalSecretSpec.secretStoreRef.withName('1password')
+    + clusterExternalSecret.spec.externalSecretSpec.secretStoreRef.withKind('ClusterSecretStore')
+    + clusterExternalSecret.spec.externalSecretSpec.target.withName('forgejo-cluster-secret')
+    + clusterExternalSecret.spec.externalSecretSpec.target.withCreationPolicy('Owner')
+    + clusterExternalSecret.spec.externalSecretSpec.target.template.withType('kubernetes.io/dockerconfigjson')
+    + clusterExternalSecret.spec.externalSecretSpec.target.template.withData({
+      '.dockerconfigjson': std.manifestJsonEx({
+        auths: {
+          'git.vpn.dzerv.art': {
+            username: '{{ .forgejo_username }}',
+            password: '{{ .forgejo_token }}',
+          },
+        },
+      }, '', ''),
+    })
+    + clusterExternalSecret.spec.externalSecretSpec.withDataFrom([
+      { extract: { key: 'external-secrets' } },
+    ]),
+
   // NetworkPolicy to allow access to external-secrets webhook from tf/kubectl/etc.
   webhookNetworkPolicy:
     k.networking.v1.networkPolicy.new('allow-external-secrets-webhook')

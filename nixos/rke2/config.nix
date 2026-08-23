@@ -19,7 +19,10 @@ in
     {
       node-name = config.networking.hostName;
       node-taint = config.setup.taints;
-      node-label = [ "provider=${config.setup.provider}" ];
+      node-label = [
+        "provider=${config.setup.provider}"
+        "topology.kubernetes.io/zone=${config.setup.provider}"
+      ];
 
       node-external-ip = hostIP;
 
