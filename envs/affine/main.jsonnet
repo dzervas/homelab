@@ -1,7 +1,4 @@
-local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
-local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
-local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 {
   affine:
@@ -25,7 +22,7 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
     })
     // TODO: Install Stakater Reloader before automating database password rotation.
     + lab.withSecretEnv({
-      DATABASE_URL: { name: 'affine-postgres', key: 'postgres_url' },
+      DATABASE_URL: { name: 'affine-postgres', key: 'uri' },
     })
   ,
 
@@ -34,22 +31,4 @@ local externalSecret = externalSecrets.nogroup.v1.externalSecret;
     + lab.withNamespace('affine')
     + lab.withPort({ port: 6379 })
     + lab.withEmptyDir('/data'),
-
-  passwords:
-    externalSecret.new('affine-postgres')
-    // Regenerate only when this ExternalSecret is deliberately changed.
-    + externalSecret.spec.withRefreshPolicy('OnChange')
-    + externalSecret.spec.withDataFrom([{
-      sourceRef: {
-        generatorRef: {
-          apiVersion: 'generators.external-secrets.io/v1alpha1',
-          kind: 'ClusterGenerator',
-          name: 'password',
-        },
-      },
-    }])
-    + externalSecret.spec.target.template.withData({
-      password: '{{ .password }}',
-      postgres_url: 'postgresql://affine:{{ .password | urlquery }}@shared-rw.postgres.svc:5432/affine',
-    }),
 }

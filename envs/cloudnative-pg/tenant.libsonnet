@@ -33,6 +33,39 @@ local credentials(name, namespace, credentialsKey, passwordProperty, host, basic
     + externalSecret.spec.target.template.metadata.withLabels({ 'cnpg.io/reload': 'true' })
   else {};
 
+local generatedCredentials(name, namespace, host) =
+  externalSecret.new(name + '-postgres')
+  + externalSecret.metadata.withNamespace(namespace)
+  // Rotate only when this ExternalSecret is deliberately changed.
+  + externalSecret.spec.withRefreshPolicy('OnChange')
+  + externalSecret.spec.withDataFrom([{
+    sourceRef: {
+      generatorRef: {
+        apiVersion: 'generators.external-secrets.io/v1alpha1',
+        kind: 'ClusterGenerator',
+        name: 'password',
+      },
+    },
+  }])
+  + externalSecret.spec.target.template.withType('kubernetes.io/basic-auth')
+  + externalSecret.spec.target.template.metadata.withLabels({ 'cnpg.io/reload': 'true' })
+  + externalSecret.spec.target.template.withData(connectionData(name, host));
+
+local replicatedCredentials(name, namespace, sourceSecret, secretStore, host) =
+  externalSecret.new(name + '-postgres')
+  + externalSecret.metadata.withNamespace(namespace)
+  + externalSecret.spec.withRefreshInterval('1m')
+  + externalSecret.spec.secretStoreRef.withKind('ClusterSecretStore')
+  + externalSecret.spec.secretStoreRef.withName(secretStore)
+  + externalSecret.spec.withData([{
+    secretKey: 'password',
+    remoteRef: {
+      key: sourceSecret,
+      property: 'password',
+    },
+  }])
+  + externalSecret.spec.target.template.withData(connectionData(name, host));
+
 {
   new(
     name,
@@ -40,7 +73,9 @@ local credentials(name, namespace, credentialsKey, passwordProperty, host, basic
     credentialsKey=name,
     passwordProperty='postgres-password',
     clusterName='shared',
-    clusterNamespace='postgres'
+    clusterNamespace='postgres',
+    generatePassword=false,
+    replicationSecretStore='postgres-tenants'
   )::
     local resourceName = clusterName + '-' + name;
     local secretName = name + '-postgres';
@@ -72,10 +107,13 @@ local credentials(name, namespace, credentialsKey, passwordProperty, host, basic
         + database.spec.withDatabaseReclaimPolicy('retain'),
 
       roleCredentials:
-        credentials(name, clusterNamespace, credentialsKey, passwordProperty, host, true),
+        if generatePassword then generatedCredentials(name, clusterNamespace, host)
+        else credentials(name, clusterNamespace, credentialsKey, passwordProperty, host, true),
     }
     + if appNamespace == clusterNamespace then {} else {
       applicationCredentials:
-        credentials(name, appNamespace, credentialsKey, passwordProperty, host),
+        if generatePassword then
+          replicatedCredentials(name, appNamespace, secretName, replicationSecretStore, host)
+        else credentials(name, appNamespace, credentialsKey, passwordProperty, host),
     },
 }

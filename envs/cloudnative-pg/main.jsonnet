@@ -4,7 +4,6 @@ local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 local shared = import './shared.libsonnet';
-local netmaker = import './netmaker.libsonnet';
 
 local namespace = 'cnpg-system';
 
@@ -28,4 +27,4 @@ local namespace = 'cnpg-system';
         },
       },
     }),
-}  // + shared
+} + shared

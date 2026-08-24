@@ -1,5 +1,7 @@
+-- Manual fallback: Database/shared-affine normally creates and owns this database.
 -- Run as a superuser against the shared cluster after affine-01-role.sql.
--- The shared PostgreSQL image must provide pgvector's `vector` extension.
+-- Apply this file manually to ensure Affine's required `vector` extension exists.
+-- The shared PostgreSQL image must provide pgvector.
 \set ON_ERROR_STOP on
 
 SELECT 'CREATE DATABASE affine OWNER affine'
