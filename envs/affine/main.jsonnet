@@ -8,12 +8,15 @@ local lab = import 'labsonnet.libsonnet';
     + lab.withImagePullSecrets(['forgejo-cluster-secret'])
     + lab.withType('StatefulSet')
     + lab.withPublicHttp(3010, fqdn='plan.dzerv.art')
+    + lab.withPodLabels({ 'ai/enable': 'true' })
     + lab.withPV('/home/node/.affine/storage', { name: 'affine-storage', size: '10Gi' })
     + lab.withPV('/home/node/.affine/config', { name: 'affine-config', size: '1Gi' })
     + lab.withEnv({
+      // Needs `CREATE EXTENSION IF NOT EXISTS vector;` once
       AFFINE_INDEXER_ENABLED: 'true',
       AFFINE_SERVER_EXTERNAL_URL: 'https://plan.dzerv.art',
       REDIS_SERVER_HOST: 'redis',
+      DEPLOYMENT_TYPE: 'selfhosted',
     })
     + lab.withInitContainer({
       name: 'migrations',

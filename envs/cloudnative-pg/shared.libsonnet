@@ -7,7 +7,7 @@ local tenant = import './tenant.libsonnet';
 
 local namespace = 'postgres';
 local externalSecretsNamespace = 'external-secrets';
-local tenantNamespaces = ['affine', 'n8n'];
+local tenantNamespaces = ['affine'];
 local tenantSecretStoreName = 'postgres-tenants';
 
 {
@@ -87,7 +87,7 @@ local tenantSecretStoreName = 'postgres-tenants';
   tenants: {
     // Add a `postgres-password` field to the existing `n8n` 1Password item.
     // The application Secret will be named `n8n-postgres` in its namespace.
-    n8n: tenant.new('n8n'),
+    // n8n: tenant.new('n8n'),
 
     // Password generation is OnChange; restart Affine manually after rotation.
     affine: tenant.new('affine', generatePassword=true),

@@ -1,7 +1,8 @@
 { inputs, pkgs, ... }:
 let
   pkgs-stable = import inputs.nixpkgs-stable { system = pkgs.stdenv.system; };
-in {
+in
+{
   languages = {
     jsonnet.enable = true;
     rust.enable = true;
@@ -54,6 +55,12 @@ in {
     '';
 
     tk-ns.exec = "exec tk --ext-code namespaces=$(kubectl get ns -o json | jq -c '[.items[].metadata.name]') $@";
+
+    cnpg.exec = ''
+      PRIMARY="$(kubectl -n postgres get pods -l 'cnpg.io/cluster=shared,cnpg.io/instanceRole=primary' -o jsonpath='{.items[0].metadata.name}')"
+      echo "PRIMARY=$PRIMARY"
+      kubectl -n postgres exec -i "$PRIMARY" -c postgres -- psql -U postgres -d postgres
+    '';
   };
 
   env = {

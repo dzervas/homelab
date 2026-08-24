@@ -15,6 +15,7 @@ local lab = import 'labsonnet.libsonnet';
         spec: { ipAllowList: { sourceRange: [
           '100.100.50.0/24',  // headscale tailnet
           '10.200.0.0/16',  // Cilium cluster-pool Pod CIDR
+          '10.20.30.0/24',
         ] } },
       },
     }

@@ -20,6 +20,8 @@ in {
     useDHCP = lib.mkDefault true;
     domain = "dzerv.art";
 
+    hosts."${node-vpn-prefix}.${hostIndex}" = [ "git.vpn.dzerv.art" ];
+
     dhcpcd.denyInterfaces = [ "lo" home-vpn-iface node-vpn-iface "cali*" "podman*" "veth*" ];
 
     firewall = {

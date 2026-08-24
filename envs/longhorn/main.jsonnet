@@ -19,7 +19,7 @@ local helm = tk.helm.new(std.thisFile);
       },
 
       persistence: {
-        defaultClass: true,
+        defaultClass: false,
         reclaimPolicy: 'Retain',
         defaultClassReplicaCount: 2,
         defaultDataLocality: 'best-effort',
@@ -83,6 +83,9 @@ local helm = tk.helm.new(std.thisFile);
   // share-manager pod over a regular v1/v2 volume, so v1 RWX works fine here.
   storageClassV1:
     k.storage.v1.storageClass.new('longhorn-v1')
+    + k.storage.v1.storageClass.metadata.withAnnotations({
+      'storageclass.kubernetes.io/is-default-class': 'true',
+    })
     + k.storage.v1.storageClass.withProvisioner('driver.longhorn.io')
     + k.storage.v1.storageClass.withReclaimPolicy('Retain')
     + k.storage.v1.storageClass.withAllowVolumeExpansion(true)
