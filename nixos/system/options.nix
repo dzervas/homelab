@@ -15,5 +15,10 @@
       default = [];
       description = "Taints to apply to the node, e.g., ['noSchedule', 'noExecute']";
     };
+    noBootloader = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Disable bootloader configuration completely";
+    };
   };
 }

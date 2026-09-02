@@ -10,10 +10,6 @@
   ];
 
   boot = {
-    # Use newer version of the module
-    extraModulePackages = with config.boot.kernelPackages; [ drbd ];
-    extraModprobeConfig = "options drbd usermode_helper=disabled";
-
     # Required by longhorn RWX volumes, which are NFS-backed via
     # share-manager. Loads the nfs/nfs4 kernel modules and installs the
     # nfs-utils mount.nfs helper, without which kubelet's mount fails with

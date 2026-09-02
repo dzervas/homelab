@@ -1,5 +1,5 @@
-{ config, ... }: {
-  boot.loader = {
+{ config, lib, ... }: {
+  boot.loader = lib.mkIf (!config.setup.noBootloader) {
     timeout = 0;
 
     grub.configurationLimit = 5;

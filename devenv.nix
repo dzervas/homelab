@@ -35,6 +35,8 @@ in
     pv-migrate
     yq-go
     pv-migrate
+
+    nixos-generators
   ];
 
   scripts = {

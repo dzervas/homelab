@@ -11,3 +11,4 @@ alertmanager.yaml
 *.tar.bz2
 vendor
 charts
+*.sd

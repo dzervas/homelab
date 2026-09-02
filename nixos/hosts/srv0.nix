@@ -1,6 +1,5 @@
 {
   config,
-  home-vpn-iface,
   lib,
   modulesPath,
   ...
