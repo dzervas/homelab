@@ -9,9 +9,11 @@
   node-vpn-iface,
   machines,
   ...
-}: let
+}:
+let
   wireguard-port = 51820;
-in {
+in
+{
   # Use predictable interface names starting with eth0
   boot.kernelParams = [ "net.ifnames=0" ];
 
@@ -22,7 +24,14 @@ in {
 
     hosts."${node-vpn-prefix}.${hostIndex}" = [ "git.vpn.dzerv.art" ];
 
-    dhcpcd.denyInterfaces = [ "lo" home-vpn-iface node-vpn-iface "cali*" "podman*" "veth*" ];
+    dhcpcd.denyInterfaces = [
+      "lo"
+      home-vpn-iface
+      node-vpn-iface
+      "cali*"
+      "podman*"
+      "veth*"
+    ];
 
     firewall = {
       enable = true;
@@ -36,7 +45,12 @@ in {
 
     # Tailscale by default uses fwmarks n shit to route traffic, which canal removes
     # Adding the route manually fixes it
-    interfaces.${home-vpn-iface}.ipv4.routes = [{ address = "${home-vpn-prefix}.0"; prefixLength = 24; }];
+    interfaces.${home-vpn-iface}.ipv4.routes = [
+      {
+        address = "${home-vpn-prefix}.0";
+        prefixLength = 24;
+      }
+    ];
 
     # Cilium is NOT compatible with nftables!
     nftables.enable = true;
@@ -58,26 +72,29 @@ in {
       mtu = 1420;
 
       # Generate the peers based on the `machines` attribute, defined in the flake
-      peers = builtins.filter
-        (peer: peer != null)
-        (lib.attrsets.mapAttrsToList (name: machine:
-          if name != hostName && builtins.hasAttr "publicKey" machine then {
-            inherit name;
-	          inherit (machine) publicKey;
-            # NOTE: For some reason I had to manually add the allowed IPs for SOME nodes
-            # wg set wg0 peer <publicKey> allowed-ips +10.42.101.0/24
-            # allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32" "10.42.${machine.hostIndex}.0/24"];
-            allowedIPs = ["${node-vpn-prefix}.${machine.hostIndex}/32"];
+      peers = builtins.filter (peer: peer != null) (
+        lib.attrsets.mapAttrsToList (
+          name: machine:
+          if name != hostName && builtins.hasAttr "publicKey" machine then
+            {
+              inherit name;
+              inherit (machine) publicKey;
 
-            # Use it as an endpoint only if it's a k3s server
-            # TODO: Filter based on provider
-            # endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
-            endpoint = if name != "srv0" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
-            # persistentKeepalive = if builtins.hasAttr "role" machine && machine.role == "server" then null else 25;
-            persistentKeepalive = if name != "srv0" && hostName != "srv0" then null else 25;
-            dynamicEndpointRefreshSeconds = if name != "srv0" then null else 5;
-          } else null)
-          machines);
+              allowedIPs = [ "${node-vpn-prefix}.${machine.hostIndex}/32" ];
+
+              # Use it as an endpoint only if it's a k3s server
+              # TODO: Filter based on provider
+              # endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
+              endpoint =
+                if name != "srv0" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
+              # persistentKeepalive = if builtins.hasAttr "role" machine && machine.role == "server" then null else 25;
+              persistentKeepalive = if name != "srv0" && hostName != "srv0" then null else 25;
+              dynamicEndpointRefreshSeconds = if name != "srv0" then null else 5;
+            }
+          else
+            null
+        ) machines
+      );
     };
   };
 

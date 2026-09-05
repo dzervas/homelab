@@ -1,0 +1,14 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/wireguard"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "wireguard",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}

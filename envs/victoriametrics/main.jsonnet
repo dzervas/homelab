@@ -74,13 +74,13 @@ local namespace = 'victoriametrics';
         },
 
         vlsingle: {
-        	enabled: true,
+          enabled: false,
           spec: {
-		        retentionPeriod: '1',  // Months
-          }
+            retentionPeriod: '1',  // Months
+          },
         },
 
-        vlagent: { enabled: true }, // Log collector
+        vlagent: { enabled: false },  // Log collector
       },
     }),
 

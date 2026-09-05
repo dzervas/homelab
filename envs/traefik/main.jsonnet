@@ -13,7 +13,13 @@ local anubis = import './anubis.libsonnet';
       namespace: $.namespace.metadata.name,
       values: {
         deployment: { kind: 'DaemonSet' },
-        service: { spec: { type: 'ClusterIP' } },
+        service: {
+          spec: { type: 'ClusterIP' },
+          additionalServices: {
+            // Static vpn clusterIP to be able to filter it in wireguard egress networkpolicy
+            vpn: { spec: { clusterIP: '10.43.0.50' } },
+          },
+        },
         updateStrategy: {
           // Required due to hostNetwork
           rollingUpdate: {
@@ -44,14 +50,19 @@ local anubis = import './anubis.libsonnet';
                 kind: 'Secret',
               }],
             },
+            'websecure-vpn': {
+              port: 10443,
+              protocol: 'HTTPS',
+              namespacePolicy: { from: 'All' },
+              certificateRefs: [{
+                name: 'gateway-tls',
+                kind: 'Secret',
+              }],
+            },
             ssh: {
               port: 2222,
               protocol: 'TCP',
-              namespacePolicy: { from: 'All' },
-            },
-            netmaker: {
-              port: 51821,
-              protocol: 'UDP',
+              // TODO: Populate this?
               namespacePolicy: { from: 'All' },
             },
           },
@@ -67,8 +78,7 @@ local anubis = import './anubis.libsonnet';
             experimentalChannel: true,  // Enables TCPRoute
           },
         },
-        // TODO: Enable this
-        // ocsp: { enabled: true },
+        ocsp: { enabled: true },
 
         ports: {
           web: {
@@ -80,6 +90,19 @@ local anubis = import './anubis.libsonnet';
             } } },
           },
           websecure: { hostPort: 443 },
+          'websecure-vpn': {
+            containerPort: 10443,
+            exposedPort: 443,
+            port: 10443,
+
+            protocol: 'TCP',
+            expose: {
+              default: false,
+              // Expose the port over a different service with static IP
+              vpn: true,
+            },
+          },
+
           ssh: {
             containerPort: 2222,
             exposedPort: 2222,
@@ -88,7 +111,7 @@ local anubis = import './anubis.libsonnet';
             protocol: 'TCP',
             expose: { default: true },
           },
-          netmaker: {
+          wireguard: {
             containerPort: 51821,
             exposedPort: 51821,
             hostPort: 51821,
