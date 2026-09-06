@@ -65,7 +65,7 @@ local userPeer(name, ip) = {
 
       mtu: '1380',
       peerCIDR: cidrPrefix + '0/24',
-      dnsSearchDomain: 'vpn.dzerv.art',
+      // dnsSearchDomain: 'vpn.dzerv.art',
       dns: '10.43.0.10',
 
       // tunnel: {

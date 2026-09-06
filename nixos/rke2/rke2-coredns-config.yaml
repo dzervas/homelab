@@ -16,6 +16,33 @@ spec:
             use_tcp: true
         port: 53
         plugins:
+          - name: view
+            parameters: vpn-clients
+            configBlock: |-
+              expr incidr(client_ip(), '10.50.50.0/24')
+          - name: template
+            parameters: IN A kube.vpn.dzerv.art
+            configBlock: |-
+              match ^kube\.vpn\.dzerv\.art\.$
+              answer "{{ .Name }} 60 IN A 10.43.0.1"
+              fallthrough
+          - name: template
+            parameters: IN A vpn.dzerv.art
+            configBlock: |-
+              match ^.+\.vpn\.dzerv\.art\.$
+              answer "{{ .Name }} 60 IN A 10.43.0.50"
+              fallthrough
+          - name: forward
+            # AdGuard public DNS
+            parameters: . https://dns.adguard-dns.com
+            configBlock: |-
+                 tls_servername dns.adguard-dns.com
+
+      - zones:
+          - zone: .
+            use_tcp: true
+        port: 53
+        plugins:
           - name: errors
           - name: health
             configBlock: lameduck 10s
