@@ -31,6 +31,7 @@ in
     tanka
     jsonnet-bundler
     deploy-rs
+    hubble
 
     pv-migrate
     yq-go

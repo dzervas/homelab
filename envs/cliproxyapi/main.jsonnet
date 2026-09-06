@@ -37,30 +37,12 @@ local service = k.core.v1.service;
     + networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/name': 'cliproxyapi' })
     + networkPolicy.spec.withPolicyTypes(['Ingress'])
     + networkPolicy.spec.withIngress([{
-      from: [{
+      from: [
+        {
           namespaceSelector: {},
           podSelector: { matchLabels: { 'ai/enable': 'true' } },
         },
-        // Netmaker's operator may run the ingress proxy either beside the
-        // operator or beside this Service, depending on operator version.
-        { namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'netmaker' } } },
-        { namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'cliproxyapi' } } },
       ],
       ports: [{ port: 8317, protocol: 'TCP' }],
     }]),
-
-  resource: {
-    apiVersion: 'netbird.io/v1alpha1',
-    kind: 'NetworkResource',
-    metadata: {
-      name: 'cliproxyapi',
-    },
-    spec: {
-      networkRouterRef: {
-        name: 'kubernetes',
-        namespace: 'netbird',
-      },
-      serviceRef: { name: 'cliproxyapi' },
-    },
-  },
 }

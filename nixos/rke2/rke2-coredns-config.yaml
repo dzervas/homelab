@@ -14,12 +14,8 @@ spec:
       - zones:
           - zone: .
             use_tcp: true
-        port: 53
+        port: 5353
         plugins:
-          - name: view
-            parameters: vpn-clients
-            configBlock: |-
-              expr incidr(client_ip(), '10.50.50.0/24')
           - name: template
             parameters: IN A kube.vpn.dzerv.art
             configBlock: |-
@@ -34,9 +30,9 @@ spec:
               fallthrough
           - name: forward
             # AdGuard public DNS
-            parameters: . https://dns.adguard-dns.com
+            parameters: . tls://94.140.14.14 tls://94.140.15.15
             configBlock: |-
-                 tls_servername dns.adguard-dns.com
+              tls_servername dns.adguard-dns.com
 
       - zones:
           - zone: .
@@ -70,3 +66,24 @@ spec:
         enabled: true
       monitor:
         enabled: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vpn-dns
+  namespace: kube-system
+spec:
+  clusterIP: 10.43.0.53
+  selector:
+    app.kubernetes.io/instance: rke2-coredns
+    app.kubernetes.io/name: rke2-coredns
+    k8s-app: kube-dns
+  ports:
+    - name: udp-53
+      port: 53
+      protocol: UDP
+      targetPort: 5353
+    - name: tcp-53
+      port: 53
+      protocol: TCP
+      targetPort: 5353

@@ -58,6 +58,7 @@ in
     wireguard.interfaces.${node-vpn-iface} = {
       ips = [ "${node-vpn-prefix}.${hostIndex}/32" ];
       listenPort = wireguard-port;
+      dynamicEndpointRefreshSeconds = 60; # Allows to pick up homelab's dynamic ip change
       # Needs to be generated with:
       # touch /etc/wireguard-privkey && chmod 400 /etc/wireguard-privkey && wg genkey > /etc/wireguard-privkey
       privateKeyFile = "/etc/wireguard-privkey";

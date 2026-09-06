@@ -4,30 +4,27 @@ local lab = import 'labsonnet/main.libsonnet';
 
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
-local traefik = {
+local traefik(sectionName='websecure') = {
   name: 'traefik-gateway',
   namespace: 'traefik',
-  sectionName: 'websecure',
+  sectionName: sectionName,
 };
 
 local routeNameFor(name, prefix, port) =
   if name != null then name else '%s-%d' % [prefix, port];
 
-local localChain(name, middleware) = {
+local ipFilteringMiddleware(name, cidrs=null) = {
   apiVersion: 'traefik.io/v1alpha1',
   kind: 'Middleware',
   metadata: { name: name },
   spec: {
-    chain: {
-      middlewares: std.map(
-        function(m) { name: m, namespace: 'traefik' },
-        middleware,
-      ),
+    ipAllowList: {
+      sourceRange: if cidrs != null then cidrs else ['10.50.50.0/24'],
     },
   },
 };
 
-local commonHttpOptions(port, fqdn, name=null, matches=null, prefix='common', middleware=[]) =
+local commonHttpOptions(port, fqdn, name=null, matches=null, prefix='common', middleware=[], sectionName='websecure') =
   local routeName = routeNameFor(name, prefix, port);
   {
     port: port,
@@ -35,7 +32,7 @@ local commonHttpOptions(port, fqdn, name=null, matches=null, prefix='common', mi
     httpRoute: {
       [if fqdn != null then 'fqdn']: fqdn,
 
-      gateway: traefik,
+      gateway: traefik(sectionName),
       annotations: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
 
       // https://doc.traefik.io/traefik/reference/routing-configuration/kubernetes/gateway-api/#using-traefik-middleware-as-httproute-filter
@@ -66,24 +63,19 @@ lab {
   // TODO: This is shitty
   withPublicHttp(port, fqdn, name=null, matches=null)::
     lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'http', [])),
-  withAnubisHttp(port, fqdn, name=null, matches=null)::
-    local rn = routeNameFor(name, 'anubis', port);
-    lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'anubis', ['anubis']))
-    + { ['middleware-' + rn]: localChain(rn, ['anubis']) },
-  withMagicEntryHttp(port, fqdn, name=null, matches=null)::
-    local rn = routeNameFor(name, 'magicentry', port);
-    lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'magicentry', ['magicentry']))
-    + { ['middleware-' + rn]: localChain(rn, ['magicentry']) },
-  withVpnHttp(port, fqdn, name=null, matches=null)::
-    local rn = routeNameFor(name, 'vpn', port);
-    lab.withPort(commonHttpOptions(port, fqdn, name, matches, 'vpn', ['vpnonly']))
-    + { ['middleware-' + rn]: localChain(rn, ['vpnonly']) },
   withPublicTCP(port, sectionName, name=null)::
     lab.withPort({
       port: port,
       name: if name != null then name else '%s-%d' % ['tcp', port],
-      tcpRoute: { gateway: traefik { sectionName: sectionName } },
+      tcpRoute: { gateway: traefik(sectionName) },
     }),
+
+  withVpnHttp(port, fqdn, cidrs=null, name=null)::
+    local rn = routeNameFor(name, 'vpn', port);
+    lab.withPort(
+      commonHttpOptions(port, fqdn, name, null, 'vpn', if cidrs != null then ['ipfilter-' + rn] else [], 'websecure-vpn')
+    )
+    + if cidrs != null then { ['ipfilter-' + rn]: ipFilteringMiddleware(rn, cidrs) } else {},
 
   withOpEnvs(envs, name=null)::
     local secName = if name != null then name else $._name;

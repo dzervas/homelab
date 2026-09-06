@@ -15,6 +15,7 @@ local userPeer(name, ip) = {
     allowedIPs: $.spec.address + '/32',
 
     egressNetworkPolicies: [
+      // Traefik
       {
         action: 'ACCEPT',
         protocol: 'TCP',
@@ -23,11 +24,12 @@ local userPeer(name, ip) = {
           port: 443,
         },
       },
+      // CoreDNS
       {
         action: 'ACCEPT',
         protocol: 'UDP',
         to: {
-          ip: '10.43.0.10',
+          ip: '10.43.0.53',
           port: 53,
         },
       },
@@ -35,11 +37,32 @@ local userPeer(name, ip) = {
         action: 'ACCEPT',
         protocol: 'TCP',
         to: {
-          ip: '10.43.0.10',
+          ip: '10.43.0.53',
           port: 53,
         },
       },
-    ],
+    ] + (
+      if std.startsWith(name, 'dzervas-') then [
+        {
+          // kube-api
+          action: 'ACCEPT',
+          protocol: 'TCP',
+          to: {
+            ip: '10.43.0.1',
+            port: 443,
+          },
+        },
+        // SSH
+        {
+          action: 'ACCEPT',
+          protocol: 'TCP',
+          to: {
+            ip: '10.43.0.50',
+            port: 2222,
+          },
+        },
+      ] else []
+    ),
   },
 };
 
@@ -63,10 +86,10 @@ local userPeer(name, ip) = {
         'topology.kubernetes.io/zone': 'oracle',
       },
 
-      mtu: '1380',
       peerCIDR: cidrPrefix + '0/24',
+      // TODO: Fix the search domain
       // dnsSearchDomain: 'vpn.dzerv.art',
-      dns: '10.43.0.10',
+      dns: '10.43.0.53',
 
       // tunnel: {
       //   enabled: true,

@@ -109,7 +109,11 @@ local anubis = import './anubis.libsonnet';
             hostPort: 2222,
             port: 2222,
             protocol: 'TCP',
-            expose: { default: true },
+            expose: {
+              default: false,
+              // Expose the port over a different service with static IP
+              vpn: true,
+            },
           },
           wireguard: {
             containerPort: 51821,
