@@ -36,7 +36,7 @@ local anubis = import './anubis.libsonnet';
 
         ingressClass: {
           enabled: true,
-          isDefaultClass: false,
+          isDefaultClass: true,
         },
         gateway: {
           listeners: {
@@ -96,6 +96,7 @@ local anubis = import './anubis.libsonnet';
             port: 10443,
 
             protocol: 'TCP',
+            http: { tls: { enabled: true } },
             expose: {
               default: false,
               // Expose the port over a different service with static IP

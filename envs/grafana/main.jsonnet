@@ -18,7 +18,7 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
     values: {
       testFramework: { enabled: false },
       useStatefulSet: true,  // OpenEBS doesn't support RWX
-      podLabels: { 'ai/enable': 'true', },
+      podLabels: { 'ai/enable': 'true' },
 
       persistence: {
         enabled: true,
@@ -56,11 +56,11 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
         'datasources.yaml': {
           apiVersion: 1,
           datasources: [
-            {
-              name: 'VictoriaLogs',
-              type: 'victoriametrics-logs-datasource',
-              url: 'http://vlsingle-victoriametrics.victoriametrics.svc:9428',
-            },
+            // {
+            //   name: 'VictoriaLogs',
+            //   type: 'victoriametrics-logs-datasource',
+            //   url: 'http://vlsingle-victoriametrics.victoriametrics.svc:9428',
+            // },
           ],
         },
       },
@@ -112,16 +112,6 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
         userKey: 'username',
         passwordKey: 'password',
       },
-
-      extraVolumeMounts: [{
-        name: 'tmp',
-        mountPath: '/tmp',
-        readOnly: false,
-      }],
-      extraVolumes: [{
-        name: 'tmp',
-        emptyDir: {},
-      }],
     },
   }),
   grafanaOp: opsecretLib.new('grafana'),
@@ -146,7 +136,10 @@ local mcpFqdn = 'mcp.' + grafanaFqdn;
     namespace: namespace,
     values: {
       extraArgs: ['--transport', 'streamable-http'],
-      ingress: ingress.hostObj(mcpFqdn),
+      ingress: ingress.hostObj(mcpFqdn, ingress.vpnAnnotations(namespace) {
+        'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-magicentry@kubernetescrd',
+        'nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream': 'true',
+      }),
       grafana: {
         url: 'http://grafana',
         apiKeySecret: {

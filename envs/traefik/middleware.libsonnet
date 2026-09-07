@@ -27,6 +27,10 @@
         address: 'http://magicentry.magicentry.svc.cluster.local:8080/auth-url/status',
         addAuthCookiesToResponse: ['magicentry_session_id'],
         maxResponseBodySize: 1048576,  // 1MB
+
+        authRequestHeaders: ['X-Original-URL'],
+        // authResponseHeaders: ['Remote-User', 'Remote-Groups']
+        trustForwardHeader: true,
       },
     },
   },

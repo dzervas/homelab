@@ -26,8 +26,6 @@ repositories:
     url: https://helm.cilium.io/
   - name: traefik
     url: https://traefik.github.io/charts
-  - name: coredns
-    url: https://coredns.github.io/helm
   - name: longhorn
     url: https://charts.longhorn.io
   - name: descheduler
@@ -46,33 +44,29 @@ requires:
   - chart: bitnami-oci/mariadb
     version: 21.0.8
   - chart: gemini/gemini
-    version: 2.1.3
+    version: 2.2.0
   - chart: woodpecker/woodpecker
     version: 3.7.1
   - chart: dzervas/magicentry
-    version: 0.8.9
+    version: 0.8.12
   - chart: grafana/grafana
-    version: 12.7.1
+    version: 13.2.2
   - chart: grafana/grafana-mcp
-    version: 0.18.0
+    version: 0.22.0
   - chart: jetstack/cert-manager
-    version: v1.20.2
+    version: v1.21.1
   - chart: external-secrets/external-secrets
-    version: 2.6.0
+    version: 2.10.0
   - chart: cilium/cilium
-    version: 1.19.5
+    version: 1.20.1
   - chart: traefik/traefik
     version: 41.0.0
-  - chart: coredns/coredns
-    version: 1.46.0
   - chart: longhorn/longhorn
     version: 1.12.0
   - chart: descheduler/descheduler
     version: 0.36.0
   - chart: cloudnative-pg/cloudnative-pg
     version: 0.29.0
-  - chart: couchdb/couchdb
-    version: 4.6.3
   - chart: nccloud/wireguard-operator
     version: 0.3.0
 version: 1

@@ -8,7 +8,7 @@ metadata:
 spec:
   valuesContent: |-
     nodelocal:
-      enabled: true
+      enabled: false
 
     servers:
       - zones:

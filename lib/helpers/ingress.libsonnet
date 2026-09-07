@@ -4,7 +4,7 @@ local className = 'traefik';
   certAnnotations:: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
   authAnnotation(auth='mtls')::
     if auth == 'vpn' then
-      { 'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-vpnonly@kubernetescrd' }
+      { 'traefik.ingress.kubernetes.io/router.entrypoints': 'websecure-vpn' }
     else if auth == 'magicentry' then
       { 'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-magicentry@kubernetescrd' }
     else if auth == 'mtls' then

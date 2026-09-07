@@ -31,7 +31,20 @@ local helm = tk.helm.new(std.thisFile);
         disableRevisionCounter: '{"v1":"false"}',
       },
       longhornUI: { replicas: 1 },
-      ingress: ingress.hostString('storage.vpn.dzerv.art'),
+      ingress: ingress.hostString('storage.vpn.dzerv.art', {
+        'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-magicentry@kubernetescrd',
+      }),
+
+      service: {
+        ui: {
+          annotations: {
+            'magicentry.rs/name': 'LongHorn',
+            'magicentry.rs/url': 'https://storage.vpn.dzerv.art',
+            'magicentry.rs/realms': 'admin',
+            'magicentry.rs/auth_url_origins': 'https://storage.vpn.dzerv.art',
+          }
+        },
+      },
 
       defaultSettings: {
         // v2DataEngine: true,
