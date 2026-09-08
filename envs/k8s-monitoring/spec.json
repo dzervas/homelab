@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/k8s-monitoring"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "k8s-monitoring",
+		"injectLabels": true,
+		"applyStrategy": "server",
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}

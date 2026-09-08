@@ -20,6 +20,8 @@ repositories:
     url: oci://ghcr.io/dzervas/charts
   - name: grafana
     url: https://grafana-community.github.io/helm-charts
+  - name: grafana-official
+    url: https://grafana.github.io/helm-charts
   - name: jetstack
     url: https://charts.jetstack.io
   - name: cilium
@@ -51,6 +53,8 @@ requires:
     version: 0.8.12
   - chart: grafana/grafana
     version: 13.2.2
+  - chart: grafana-official/k8s-monitoring
+    version: 4.5.0
   - chart: grafana/grafana-mcp
     version: 0.22.0
   - chart: jetstack/cert-manager
