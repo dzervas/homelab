@@ -6,7 +6,7 @@ local lab = import 'labsonnet.libsonnet';
     + lab.withNamespace('traefik')
     + lab.withPort({ name: 'metrics', port: 9090 })
     + lab.withPublicHttp(8080, fqdn='anubis.dzerv.art')
-    + lab.withServiceMonitor('metrics', '/')
+    // + lab.withServiceMonitor('metrics', '/')
     + lab.withEnv({
       BIND: ':8080',
       TARGET: ' ',  // There's no backend, it's just forwardAuth

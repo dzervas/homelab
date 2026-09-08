@@ -1,6 +1,7 @@
 local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
+local metricsFilter = import 'metrics-filter.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
@@ -10,7 +11,9 @@ local helm = tk.helm.new(std.thisFile);
 {
   namespace: k.core.v1.namespace.new('longhorn-system'),
 
-  longhorn: helm.template('longhorn', '../../charts/longhorn', {
+  // longhorn-manager exports ~2300 series per node. Keep only what the Longhorn
+  // dashboards actually read.
+  longhorn: metricsFilter.allowList(helm.template('longhorn', '../../charts/longhorn', {
     namespace: $.namespace.metadata.name,
     values: {
       networkPolicies: {
@@ -88,7 +91,7 @@ local helm = tk.helm.new(std.thisFile);
 
       metrics: { serviceMonitor: { enabled: true } },
     },
-  }),
+  }), 'up|scrape_samples_scraped|longhorn_volume_actual_size_bytes|longhorn_volume_capacity_bytes|longhorn_volume_robustness|longhorn_volume_state|longhorn_volume_read_throughput|longhorn_volume_write_throughput|longhorn_node_status|longhorn_node_count_total|longhorn_node_storage_capacity_bytes|longhorn_node_storage_usage_bytes|longhorn_node_storage_reservation_bytes|longhorn_disk_capacity_bytes|longhorn_disk_usage_bytes|longhorn_disk_reservation_bytes|longhorn_instance_manager_cpu_usage_millicpu|longhorn_instance_manager_memory_usage_bytes'),
 
   // Extra StorageClasses. Both pinned to the v1 data engine on purpose: the v2
   // (SPDK) engine has repeatedly wedged this cluster's flaky nodes (one SPDK

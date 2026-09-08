@@ -2,6 +2,7 @@ local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 local externalSecrets = import 'external-secrets-libsonnet/1.1/main.libsonnet';
+local metricsFilter = import 'metrics-filter.libsonnet';
 
 local clusterSecretStore = externalSecrets.nogroup.v1.clusterSecretStore;
 local clusterExternalSecret = externalSecrets.nogroup.v1.clusterExternalSecret;
@@ -13,15 +14,19 @@ local namespace = 'external-secrets';
 {
   // Helm release for external-secrets operator
   // For updates: https://github.com/external-secrets/external-secrets/releases
-  externalSecrets: helm.template('external-secrets', '../../charts/external-secrets', {
+  // Keep only the ExternalSecret/SecretStore state. controller-runtime, workqueue
+  // and Go runtime metrics are ~80% of the ~1600 series these three pods emit.
+  externalSecrets: metricsFilter.allowList(helm.template('external-secrets', '../../charts/external-secrets', {
     namespace: namespace,
     values: {
-      serviceMonitor: { enabled: true },
+      // skipIfMissing (the default) checks .Capabilities for the ServiceMonitor CRD,
+      // which `helm template` cannot see, so nothing was ever rendered here.
+      serviceMonitor: { enabled: true, renderMode: 'alwaysRender' },
       grafanaDashboard: { enabled: true },
       // Limit concurrent reconciliations to reduce API pressure
       concurrent: 1,
     },
-  }),
+  }), 'up|scrape_samples_scraped|externalsecret_status_condition|externalsecret_sync_calls_total|externalsecret_sync_calls_error|clusterexternalsecret_status_condition|clustersecretstore_status_condition|secretstore_status_condition'),
 
   // ClusterGenerator for password generation
   passwordGenerator:

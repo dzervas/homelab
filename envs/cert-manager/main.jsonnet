@@ -4,6 +4,7 @@ local k = import 'k.libsonnet';
 local cm = import 'cert-manager-libsonnet/1.19/main.libsonnet';
 local certificate = cm.nogroup.v1.certificate;
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
+local metricsFilter = import 'metrics-filter.libsonnet';
 
 local issuers = import './issuers.libsonnet';
 local pki = import './pki.libsonnet';
@@ -14,7 +15,9 @@ local domain = 'dzerv.art';
 
 {
   // Helm chart for cert-manager
-  certManager: helm.template('cert-manager', '../../charts/cert-manager', {
+  // Only the certificate/issuer state is worth shipping; the rest of the ~1000
+  // series is Go runtime and ACME HTTP client internals.
+  certManager: metricsFilter.allowList(helm.template('cert-manager', '../../charts/cert-manager', {
     namespace: namespace,
     values: {
       crds: { enabled: true },
@@ -37,7 +40,7 @@ local domain = 'dzerv.art';
         defaultIssuerName: 'letsencrypt',
       },
     },
-  }),
+  }), 'up|scrape_samples_scraped|certmanager_certificate_expiration_timestamp_seconds|certmanager_certificate_renewal_timestamp_seconds|certmanager_certificate_ready_status|certmanager_issuer_ready_status|certmanager_clusterissuer_ready_status|certmanager_controller_sync_error_total'),
 
   // 1Password external secret for Cloudflare API token
   certManagerOp: opsecretLib.new('cert-manager'),
