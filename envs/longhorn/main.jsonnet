@@ -37,6 +37,7 @@ local helm = tk.helm.new(std.thisFile);
 
       service: {
         ui: {
+          labels: { 'magicentry.rs/enable': 'true' },
           annotations: {
             'magicentry.rs/name': 'LongHorn',
             'magicentry.rs/url': 'https://storage.vpn.dzerv.art',

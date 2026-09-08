@@ -28,8 +28,9 @@
         addAuthCookiesToResponse: ['magicentry_session_id'],
         maxResponseBodySize: 1048576,  // 1MB
 
-        authRequestHeaders: ['X-Original-URL'],
-        // authResponseHeaders: ['Remote-User', 'Remote-Groups']
+        authRequestHeaders: ['Cookie'],
+        authResponseHeaders: ['X-Remote-User', 'X-Remote-Groups'],
+        preserveLocationHeader: true,
         trustForwardHeader: true,
       },
     },
