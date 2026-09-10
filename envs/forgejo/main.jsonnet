@@ -1,6 +1,9 @@
+local k = import 'k.libsonnet';
 local woodpecker = import './woodpecker.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local lab = import 'labsonnet.libsonnet';
+
+local statefulSet = k.apps.v1.statefulSet;
 
 {
   forgejo:
@@ -24,5 +27,6 @@ local lab = import 'labsonnet.libsonnet';
 
       FORGEJO__webhook__ALLOWED_HOST_LIST: 'woodpecker-server',
       TZ: timezone,
-    }),
+    })
+    + { workload+: statefulSet.mapContainers(function(c) c { imagePullPolicy: 'Always' }) },
 } + woodpecker
