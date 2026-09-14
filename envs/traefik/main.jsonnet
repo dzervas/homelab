@@ -125,6 +125,17 @@ local anubis = import './anubis.libsonnet';
             expose: { default: true },
           },
         },
+
+        metrics: {
+          prometheus: {
+            service: { enabled: true },
+            disableAPICheck: true,
+            serviceMonitor: {
+              enabled: true,
+              interval: '60s',
+            },
+          },
+        },
       },
     }),
 

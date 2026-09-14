@@ -53,17 +53,6 @@ local cloudSecret = 'k8s-monitoring-op';
         // A DaemonSet is required to read each node's container log files.
         'alloy-logs': {
           presets: ['small', 'filesystem-log-reader', 'daemonset'],
-          // The 'daemonset' preset sets a keyless `effect: NoSchedule, operator: Exists`
-          // toleration, which swallows the storage-only taint on gr1. Narrow it to the
-          // standard DaemonSet taints so tainted nodes are actually respected.
-          controller: {
-            tolerations: [
-              { key: 'node.kubernetes.io/disk-pressure', operator: 'Exists', effect: 'NoSchedule' },
-              { key: 'node.kubernetes.io/memory-pressure', operator: 'Exists', effect: 'NoSchedule' },
-              { key: 'node.kubernetes.io/pid-pressure', operator: 'Exists', effect: 'NoSchedule' },
-              { key: 'node.kubernetes.io/unschedulable', operator: 'Exists', effect: 'NoSchedule' },
-            ],
-          },
           alloy: {
             resources: {
               requests: { cpu: '20m', memory: '64Mi' },
