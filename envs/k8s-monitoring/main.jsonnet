@@ -86,7 +86,7 @@ local cloudSecret = 'k8s-monitoring-op';
       'alloy-operator': {
         resources: {
           requests: { cpu: '10m', memory: '64Mi' },
-          limits: { cpu: '200m', memory: '128Mi' },
+          limits: { cpu: '500m', memory: '128Mi' },
         },
         // Helm hooks only; Tanka applies them as plain manifests, so the
         // pre-delete Job would tear down the Alloy CRs on every apply.
