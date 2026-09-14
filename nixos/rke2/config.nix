@@ -138,4 +138,9 @@ in
       }
     '';
   };
+
+  # Resolve forgejo to traefik-vpn service
+  networking.hosts."10.43.0.50" = [
+    "git.vpn.${config.networking.domain}"
+  ];
 }

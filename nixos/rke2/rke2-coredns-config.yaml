@@ -44,7 +44,7 @@ spec:
             configBlock: lameduck 10s
           - name: ready
           - name: rewrite
-            parameters: name exact git.vpn.dzerv.art traefik.traefik.svc.cluster.local answer auto
+            parameters: name exact git.vpn.dzerv.art traefik-vpn.traefik.svc.cluster.local answer auto
           - name: kubernetes
             parameters: in-addr.arpa ip6.arpa
             configBlock: |-

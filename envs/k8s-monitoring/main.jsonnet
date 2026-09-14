@@ -27,6 +27,7 @@ local cloudEnv = [
     namespace: namespace,
     values: {
       cluster: { name: 'homelab' },
+      // prometheusOperatorObjects: { enabled: true },
 
       collectorCommon: {
         alloy: {
@@ -100,5 +101,10 @@ local cloudEnv = [
         waitForAlloyRemoval: { enabled: false },
       },
     },
+  }),
+
+  // Prometheus CRDs (needed for ServiceMonitor scraping compatibility)
+  prometheusCrds: helm.template('prometheus-crds', '../../charts/prometheus-operator-crds', {
+    namespace: namespace,
   }),
 }

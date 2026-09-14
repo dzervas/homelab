@@ -4,8 +4,6 @@ repositories:
     url: https://charts.helm.sh/stable
   - name: external-secrets
     url: https://charts.external-secrets.io
-  - name: victoriametrics
-    url: https://victoriametrics.github.io/helm-charts/
   - name: prometheus
     url: https://prometheus-community.github.io/helm-charts
   - name: bitnami-oci
@@ -37,8 +35,6 @@ repositories:
   - name: nccloud
     url: https://nccloud.github.io/charts
 requires:
-  - chart: victoriametrics/victoria-metrics-k8s-stack
-    version: 0.85.4
   - chart: prometheus/prometheus-operator-crds
     version: 30.0.0
   - chart: bitnami/postgresql
