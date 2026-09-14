@@ -5,16 +5,6 @@ local helm = tk.helm.new(std.thisFile);
 
 local namespace = 'k8s-monitoring';
 local cloudSecret = 'k8s-monitoring-op';
-local cloudEnv = [
-  {
-    name: 'GCLOUD_FM_USERNAME',
-    valueFrom: { secretKeyRef: { name: cloudSecret, key: 'grafana_cloud_policy_username' } },
-  },
-  {
-    name: 'GCLOUD_RW_API_KEY',
-    valueFrom: { secretKeyRef: { name: cloudSecret, key: 'grafana_cloud_policy_token' } },
-  },
-];
 
 {
   namespace: k.core.v1.namespace.new(namespace),
@@ -34,10 +24,14 @@ local cloudEnv = [
           remoteConfig: {
             enabled: true,
             url: 'https://fleet-management-prod-011.grafana.net',
+            secret: {
+              create: false,
+              name: cloudSecret,
+            },
             auth: {
               type: 'basic',
-              usernameFrom: 'sys.env("GCLOUD_FM_USERNAME")',
-              passwordFrom: 'sys.env("GCLOUD_RW_API_KEY")',
+              usernameKey: 'grafana_cloud_policy_username',
+              passwordKey: 'grafana_cloud_policy_token',
             },
           },
         },
@@ -48,7 +42,6 @@ local cloudEnv = [
           presets: ['small', 'deployment', 'clustered', 'service-discovery'],
           // presets: ['large', 'root', 'host-network', 'host-storage', 'host-cgroup', 'clustered', 'service-discovery', 'filesystem-log-reader', 'deployment'],
           alloy: {
-            extraEnv: cloudEnv,
             resources: {
               requests: { cpu: '50m', memory: '128Mi' },
               limits: { cpu: '300m', memory: '384Mi' },
@@ -72,7 +65,6 @@ local cloudEnv = [
             ],
           },
           alloy: {
-            extraEnv: cloudEnv,
             resources: {
               requests: { cpu: '20m', memory: '64Mi' },
               limits: { cpu: '200m', memory: '256Mi' },
