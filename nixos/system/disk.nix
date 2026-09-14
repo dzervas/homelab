@@ -88,9 +88,11 @@
           # into silent torn/zero-filled writes (\x00) that corrupt data on the
           # Longhorn thinlv below; apps/filesystems can survive honest ENOSPC but
           # not lying writes. See INCIDENT-2026-06-23 (envs/longhorn).
+          # lvcreate rejects --errorwhenfull for thin pools; set the creation
+          # default instead. Disko interpolates extraArgs as shell text.
           extraArgs = [
-            "--errorwhenfull"
-            "y"
+            "--config"
+            (lib.escapeShellArg "activation { error_when_full = 1 }")
           ];
         };
 

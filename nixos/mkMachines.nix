@@ -21,6 +21,7 @@
     };
 
     modules = [
+      { nixpkgs.overlays = [ (import ./overlays) ]; }
       disko.nixosModules.disko
 
       ./rke2
