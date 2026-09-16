@@ -1,10 +1,8 @@
 {
-  version = "0.7.1";
-
   source = {
     owner = "nestybox";
     repo = "sysbox";
-    rev = "82881aaaf2ce22ad0ff81487f458162908cb933f";
+    tag = "v0.7.1";
     hash = "sha256-eB/UYUyWsr0X57YJe/8llStKcDqIz26QynqP+ypGhso=";
     fetchSubmodules = true;
   };

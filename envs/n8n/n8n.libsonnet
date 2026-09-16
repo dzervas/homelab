@@ -27,12 +27,14 @@ local domain = 'dzerv.art';
       N8N_DEFAULT_BINARY_DATA_MODE: 'filesystem',
 
       N8N_EDITOR_BASE_URL: 'https://auto.vpn.' + domain,
-      WEBHOOK_URL: 'https://hook.' + domain,
+      N8N_WEBHOOK_URL: 'https://hook.' + domain,
       N8N_PROXY_HOPS: '1',
       N8N_PORT: '5678',
 
       N8N_RUNNERS_MODE: 'external',
       N8N_RUNNERS_BROKER_LISTEN_ADDRESS: '0.0.0.0',
+
+      N8N_UNVERIFIED_PACKAGES_ENABLED: 'false',
 
       EXECUTIONS_TIMEOUT: '600',
       EXECUTIONS_DATA_PRUNE: 'true',

@@ -21,6 +21,11 @@
     # deploy-rs stuff
     deploy.nodes = builtins.mapAttrs (name: machine: mkNode self nixpkgs deploy-rs name machine) machines;
     checks = builtins.mapAttrs (_system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+
+    packages."x86_64-linux" = let
+      overlay = import ./overlays;
+      pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    in overlay pkgs pkgs;
   };
 
   inputs = {
