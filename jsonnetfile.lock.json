@@ -8,7 +8,7 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "4092ea8bb3420ca87a369810343dd0eee07657cc",
+      "version": "29105ceda225ca384834445a5b84a813aac7de00",
       "sum": "0y3AFX9LQSpfWTxWKSwoLgbt0Wc9nnCwhMH2szKzHv0="
     },
     {
@@ -18,7 +18,7 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "4092ea8bb3420ca87a369810343dd0eee07657cc",
+      "version": "29105ceda225ca384834445a5b84a813aac7de00",
       "sum": "ShSIissXdvCy1izTCDZX6tY7qxCoepE5L+WJ52Hw7ZQ="
     },
     {
@@ -38,8 +38,8 @@
           "subdir": ""
         }
       },
-      "version": "ae8dca53562a92f87ed183b9d4b02bff69b51c39",
-      "sum": "xKPlvWS71dRnVPDBfejmOwLDB/FV7APNe974PQy+6/8="
+      "version": "564e14d00bcbeb3ca797ff158fb96b09def8314d",
+      "sum": "GkIZ3Jhqk2onUDWO7dkXLngZke1LssqC7xcagqXR7K8="
     },
     {
       "source": {
@@ -68,7 +68,7 @@
           "subdir": "doc-util"
         }
       },
-      "version": "6ac6c69685b8c29c54515448eaca583da2d88150",
+      "version": "bf6f08ae02a51c48bdcec4629b1c1a5a62c6f803",
       "sum": "BrAL/k23jq+xy9oA7TWIhUx07dsA/QLm3g7ktCwe//U="
     },
     {
@@ -78,8 +78,8 @@
           "subdir": ""
         }
       },
-      "version": "ddce992764944c4e8e93de79a593a4c8a9768ed2",
-      "sum": "WSLTwihG8gFYVJYKhORLGE7KeONIAaUgf8R2Njgd33o="
+      "version": "446bfb10ac037ee94bdfd8e44c62fa9d736a9d9e",
+      "sum": "uHkCTKHacoQmrPslZx1ox7JpkL0BHA1IQDiFqfgTU3g="
     },
     {
       "source": {
@@ -98,8 +98,8 @@
           "subdir": "1.33"
         }
       },
-      "version": "55380470fb7979e6ce0c4316cb9c27a266caf298",
-      "sum": "FTic3KWLxPcO/DpkwJ6AgvWmbxouYiAVrflXtbAiIhY="
+      "version": "18e7a26f0699cb8b006494f40b93ddd06d33b299",
+      "sum": "sVMXNOcDlHvd1mNvDP3VCV1+5JzExEIlyWuzfpenFRw="
     },
     {
       "source": {

@@ -1,1 +1,1 @@
-import 'external-secrets-libsonnet/0.19/main.libsonnet'
+import 'external-secrets-libsonnet/2.5/main.libsonnet'

@@ -28,6 +28,7 @@ local namespace = 'n8n';
   secretKey:
     externalSecret.new('n8n-runners-auth-token')
     + externalSecret.spec.target.template.withData({ password: '{{ .password }}' })
+    + externalSecret.spec.withRefreshPolicy('OnChange')
     + externalSecret.spec.withDataFrom([{
       sourceRef: {
         generatorRef: {
