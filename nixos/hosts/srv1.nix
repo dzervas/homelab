@@ -18,6 +18,8 @@ let
   '';
 in
 {
+  imports = [ ../rke2/sysbox.nix ];
+
   nixpkgs.hostPlatform = "aarch64-linux";
 
   boot.initrd.availableKernelModules = [

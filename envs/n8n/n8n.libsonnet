@@ -17,7 +17,10 @@ local domain = 'dzerv.art';
     + lab.withPV('/home/node/backups', { name: 'backups', size: '10Gi' })
     + lab.withVpnHttp(5678, 'auto.vpn.dzerv.art')
     + lab.withPort({ port: 5679 })
-    + lab.withSecretEnv({ N8N_RUNNERS_AUTH_TOKEN: { name: 'n8n-runners-auth-token', key: 'password' } })
+    + lab.withSecretEnv({
+      N8N_RUNNERS_AUTH_TOKEN: { name: 'n8n-runners-auth-token', key: 'password' },
+      N8N_SANDBOX_SERVICE_API_KEY: { name: 'n8n-sandbox-auth', key: 'api-keys' },
+    })
     + lab.withOpEnvs({ N8N_ENCRYPTION_KEY: 'encryption-key' }, 'n8n')
     + lab.withEnv({
       TZ: timezone,
@@ -33,6 +36,10 @@ local domain = 'dzerv.art';
 
       N8N_RUNNERS_MODE: 'external',
       N8N_RUNNERS_BROKER_LISTEN_ADDRESS: '0.0.0.0',
+
+      N8N_INSTANCE_AI_SANDBOX_ENABLED: 'true',
+      N8N_INSTANCE_AI_SANDBOX_PROVIDER: 'n8n-sandbox',
+      N8N_SANDBOX_SERVICE_URL: 'http://sandbox-n8n-sandbox-service-api.n8n-sandbox.svc.cluster.local:8080',
 
       N8N_UNVERIFIED_PACKAGES_ENABLED: 'false',
 

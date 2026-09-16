@@ -1,0 +1,15 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/n8n-sandbox"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "n8n-sandbox",
+		"injectLabels": true,
+		"applyStrategy": "server",
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}

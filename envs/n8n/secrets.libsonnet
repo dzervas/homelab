@@ -33,4 +33,19 @@ local namespace = 'n8n';
         },
       },
     }]),
+
+  n8nSandboxAuth:
+    externalSecret.new('n8n-sandbox-auth')
+    + externalSecret.spec.withRefreshInterval('1h')
+    + externalSecret.spec.secretStoreRef.withKind('ClusterSecretStore')
+    + externalSecret.spec.secretStoreRef.withName('n8n-sandbox-auth')
+    + externalSecret.spec.target.withName('n8n-sandbox-auth')
+    + externalSecret.spec.target.withCreationPolicy('Owner')
+    + externalSecret.spec.withData([{
+      secretKey: 'api-keys',
+      remoteRef: {
+        key: 'n8n-sandbox-auth',
+        property: 'api-keys',
+      },
+    }]),
 }
