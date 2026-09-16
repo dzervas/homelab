@@ -54,6 +54,7 @@ local helm = tk.helm.new(std.thisFile);
         // v2DataEngine: true,
         defaultDataPath: '/dev/mapper/mainpool-longhorn',
         defaultDataLocality: 'best-effort',
+        nodeDownPodDeletionPolicy: 'delete-both-statefulset-and-deployment-pod',
         // Maybe interrupt mode at some point (needs iommu): https://longhorn.io/docs/1.11.0/v2-data-engine/features/interrupt-mode/
 
         // SPDK reactor cores for the v2 engine. Longhorn 1.12 ships 0x3 (2 cores)

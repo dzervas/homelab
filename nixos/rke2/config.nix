@@ -52,6 +52,7 @@ in
           disable = [ "rke2-ingress-nginx" ];
 
           tls-san = [
+            "127.0.0.1"
             "${home-vpn-prefix}.${hostIndex}"
             node-ip
             config.networking.fqdn

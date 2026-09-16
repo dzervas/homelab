@@ -9,6 +9,7 @@
 {
   imports = [
     ./config.nix
+    ./registration-load-balancer.nix
     ./etcd.nix
     ./firewall.nix
     ./kernel.nix
@@ -31,7 +32,7 @@
       # TODO: Define external ip
       # NixOS modules bug doesn't like the default configFile
       tokenFile = if is-master then null else "/etc/k3s-token";
-      serverAddr = if is-master then "" else "https://${node-vpn-prefix}.100:9345";
+      serverAddr = if is-master then "" else "https://127.0.0.1:9346";
 
       # TODO: Requires https://docs.rke2.io/security/hardening_guide/
       # cisHardening = true;

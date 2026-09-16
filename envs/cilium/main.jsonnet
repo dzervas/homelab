@@ -44,9 +44,9 @@ local gateway = import './gateway.libsonnet';
       socketLB: { enabled: true, hostNamespaceOnly: true },
       kubeProxyReplacement: 'true',
 
-      // Direct API server access - avoids chicken-and-egg with kube-proxy disabled
-      // TODO: If gr0 is down the cluster might get stuck during a cold start
-      k8sServiceHost: '10.20.30.100',
+      // RKE2 exposes its built-in API client load balancer on agents at this
+      // address; server nodes expose their local API server at the same address.
+      k8sServiceHost: '127.0.0.1',
       k8sServicePort: '6443',
 
       // hubble: { tls: { auto: {
