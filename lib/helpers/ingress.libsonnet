@@ -42,6 +42,7 @@ local className = 'traefik';
   },
   hostList(domain, annotations={}):: $.common(domain) {
     ingressClassName: className,
+    className: className,
     hosts: [domain],
     annotations+: annotations,
   },

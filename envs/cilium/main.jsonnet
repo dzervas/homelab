@@ -2,6 +2,7 @@ local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 local affinity = import 'helpers/affinity.libsonnet';
+local ingress = import 'helpers/ingress.libsonnet';
 
 local gateway = import './gateway.libsonnet';
 
@@ -12,7 +13,19 @@ local gateway = import './gateway.libsonnet';
       rollOutCiliumPods: true,
       hubble: {
         relay: { enabled: true },
-        ui: { enabled: true },
+        ui: {
+          enabled: true,
+          ingress: ingress.hostList('network.vpn.dzerv.art', ingress.magicentryAnnotations('Cilium Hubble', 'admin')),
+          service: {
+            labels: { 'magicentry.rs/enable': 'true' },
+            annotations: {
+              'magicentry.rs/name': 'Cilium Hubble',
+              'magicentry.rs/url': 'https://network.vpn.dzerv.art',
+              'magicentry.rs/realms': 'admin',
+              'magicentry.rs/auth_url_origins': 'https://network.vpn.dzerv.art',
+            },
+          },
+        },
       },
 
       // No encapsulation mode:
