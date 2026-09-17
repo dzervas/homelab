@@ -57,6 +57,7 @@ in
             node-ip
             config.networking.fqdn
             "kube.vpn.${config.networking.domain}"
+            "rke2-registration.${config.networking.domain}"
             "${hostName}.ts.${config.networking.domain}"
           ];
 

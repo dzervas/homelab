@@ -1,19 +1,25 @@
 {
   config,
+  lib,
   hostIndex,
+  machines,
   node-vpn-prefix,
   pkgs,
   role,
   ...
 }:
+let
+  registrationAddress = "rke2-registration.${config.networking.domain}";
+  serverMachines = lib.filterAttrs (_: machine: (machine.role or "agent") == "server") machines;
+in
 {
   imports = [
     ./config.nix
-    ./registration-load-balancer.nix
     ./etcd.nix
     ./firewall.nix
     ./kernel.nix
     ./metrics.nix
+    ./sysbox.nix
   ];
 
   # TODO: Add graceful shutdown like the k3s module
@@ -29,10 +35,10 @@
 
       # Could be in the config but they need to be here
       nodeIP = "${node-vpn-prefix}.${hostIndex}"; # RKE2 bug recreates the cluster
-      # TODO: Define external ip
       # NixOS modules bug doesn't like the default configFile
       tokenFile = if is-master then null else "/etc/k3s-token";
-      serverAddr = if is-master then "" else "https://127.0.0.1:9346";
+      # Use a hosts-defined address that resolves to the 3 defined servers
+      serverAddr = if is-master then "" else "https://rke2-registration.${config.networking.domain}:9345";
 
       # TODO: Requires https://docs.rke2.io/security/hardening_guide/
       # cisHardening = true;
@@ -68,4 +74,11 @@
   services.cron.systemCronJobs = [
     "@daily /var/lib/rancher/rke2/bin/crictl rmi --prune --config ${config.environment.sessionVariables.CRI_CONFIG_FILE}"
   ];
+
+  # RKE2 preserves the registration URL's port when it adds discovered server
+  # addresses to its local load balancer. Keep the seed on the real supervisor
+  # port and let the resolver provide all control-plane addresses.
+  networking.hosts = lib.mapAttrs' (
+    _: machine: lib.nameValuePair "${node-vpn-prefix}.${machine.hostIndex}" [ registrationAddress ]
+  ) serverMachines;
 }

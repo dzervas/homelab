@@ -99,6 +99,15 @@ local userPeer(name, ip) = {
     },
   },
 
+  // Prevent the descheduler from repeatedly evicting the single VPN gateway.
+  pdb:
+    k.policy.v1.podDisruptionBudget.new('users')
+    + k.policy.v1.podDisruptionBudget.spec.withMinAvailable(1)
+    + k.policy.v1.podDisruptionBudget.spec.selector.withMatchLabels({
+      app: 'wireguard',
+      instance: 'users',
+    }),
+
   users:
     std.map(function(ui) userPeer(ui.name, ui.ip), [
       // CIDRs: .0/30 is for internal services
