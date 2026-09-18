@@ -1,9 +1,9 @@
-local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
-local metricsFilter = import 'metrics-filter.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
+local metricsFilter = import 'metrics-filter.libsonnet';
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
 local helm = tk.helm.new(std.thisFile);
@@ -46,7 +46,7 @@ local helm = tk.helm.new(std.thisFile);
             'magicentry.rs/url': 'https://storage.vpn.dzerv.art',
             'magicentry.rs/realms': 'admin',
             'magicentry.rs/auth_url_origins': 'https://storage.vpn.dzerv.art',
-          }
+          },
         },
       },
 

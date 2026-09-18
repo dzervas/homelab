@@ -1,7 +1,7 @@
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
-local externalSecrets = import 'external-secrets-libsonnet/1.1/main.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
 local metricsFilter = import 'metrics-filter.libsonnet';
 
 local clusterSecretStore = externalSecrets.nogroup.v1.clusterSecretStore;

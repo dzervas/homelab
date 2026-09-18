@@ -1,7 +1,7 @@
-local k = import 'k.libsonnet';
-local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
-local lab = import 'labsonnet.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
+local k = import 'k.libsonnet';
+local lab = import 'labsonnet.libsonnet';
 
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 local networkPolicy = k.networking.v1.networkPolicy;
@@ -26,6 +26,7 @@ local namespace = 'rclone';
     + lab.withNamespace(namespace)
     + lab.withCreateNamespace()
     + lab.withType('StatefulSet')
+    + lab.withPodAnnotations({ 'descheduler.alpha.kubernetes.io/prefer-no-eviction': 'true' })
     + lab.withVpnHttp(8080, 'webdav.vpn.dzerv.art')
     + lab.withCommand(['sh', '-c'])
     + lab.withEmptyDir('/runtime')
@@ -55,7 +56,7 @@ local namespace = 'rclone';
     |||])
     + lab.withInitContainer(
       container.new('token-sync', 'bitnami/kubectl')
-      + container.withRestartPolicy('Always') # Makes it a sidecar
+      + container.withRestartPolicy('Always')  // Makes it a sidecar
       + container.withCommand(['sh', '-c'])
       + container.withArgs([|||
         set -eu
@@ -133,7 +134,7 @@ local namespace = 'rclone';
         apiGroups: [''],
         resources: ['secrets'],
         verbs: ['get', 'patch'],
-        resourceNames: ['rclone-onedrive-token']
+        resourceNames: ['rclone-onedrive-token'],
       },
       {
         apiGroups: [''],

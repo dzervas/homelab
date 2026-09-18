@@ -1,4 +1,4 @@
-local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';

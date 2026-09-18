@@ -1,5 +1,5 @@
 local cnpg = import 'cloudnative-pg-libsonnet/1.27.0/main.libsonnet';
-local externalSecrets = import 'external-secrets-libsonnet/1.1/main.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
 
 local database = cnpg.postgresql.v1.database;
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;

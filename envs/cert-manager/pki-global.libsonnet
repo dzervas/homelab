@@ -1,5 +1,5 @@
+local externalSecrets = import 'external-secrets.libsonnet';
 local k = import 'k.libsonnet';
-local externalSecrets = import 'external-secrets-libsonnet/0.19/main.libsonnet';
 local clusterSecretStore = externalSecrets.nogroup.v1.clusterSecretStore;
 local clusterExternalSecret = externalSecrets.nogroup.v1.clusterExternalSecret;
 
