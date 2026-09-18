@@ -1,70 +1,9 @@
+local cidr = import 'cidr.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local k = import 'k.libsonnet';
+local users = import 'users.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
-local cidrPrefix = '10.50.50.';
-local userPeer(name, ip) = {
-  apiVersion: 'vpn.wireguard-operator.io/v1alpha1',
-  kind: 'WireguardPeer',
-  metadata: {
-    name: 'users-' + name,
-  },
-  spec: {
-    wireguardRef: 'users',
-    address: cidrPrefix + ip,
-    allowedIPs: $.spec.address + '/32',
-
-    egressNetworkPolicies: [
-      // Traefik
-      {
-        action: 'ACCEPT',
-        protocol: 'TCP',
-        to: {
-          ip: '10.43.0.50',
-          port: 443,
-        },
-      },
-      // CoreDNS
-      {
-        action: 'ACCEPT',
-        protocol: 'UDP',
-        to: {
-          ip: '10.43.0.53',
-          port: 53,
-        },
-      },
-      {
-        action: 'ACCEPT',
-        protocol: 'TCP',
-        to: {
-          ip: '10.43.0.53',
-          port: 53,
-        },
-      },
-    ] + (
-      if std.startsWith(name, 'dzervas-') then [
-        {
-          // kube-api
-          action: 'ACCEPT',
-          protocol: 'TCP',
-          to: {
-            ip: '10.43.0.1',
-            port: 443,
-          },
-        },
-        // SSH
-        {
-          action: 'ACCEPT',
-          protocol: 'TCP',
-          to: {
-            ip: '10.43.0.50',
-            port: 2222,
-          },
-        },
-      ] else []
-    ),
-  },
-};
 
 {
   namespace: k.core.v1.namespace.new('wireguard'),
@@ -86,7 +25,7 @@ local userPeer(name, ip) = {
         'topology.kubernetes.io/zone': 'oracle',
       },
 
-      peerCIDR: cidrPrefix + '0/24',
+      peerCIDR: cidr.cidr,
       // TODO: Fix the search domain
       // dnsSearchDomain: 'vpn.dzerv.art',
       dns: '10.43.0.53',
@@ -108,18 +47,7 @@ local userPeer(name, ip) = {
       instance: 'users',
     }),
 
-  users:
-    std.map(function(ui) userPeer(ui.name, ui.ip), [
-      // CIDRs: .0/30 is for internal services
-      // .0/28 is the admin subnet (0-15)
-      { name: 'dzervas-desktop', ip: 4 },
-      { name: 'dzervas-laptop', ip: 5 },
-      { name: 'dzervas-pixel', ip: 6 },
-
-      // .128/25 is for other users (128-255)
-      { name: 'shed', ip: 128 },
-      { name: 'haris', ip: 129 },
-    ]),
+  users: users,
 
   udpRoute: {
     apiVersion: 'traefik.io/v1alpha1',
