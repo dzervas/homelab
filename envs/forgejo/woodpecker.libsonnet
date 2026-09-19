@@ -51,7 +51,7 @@ local helm = tk.helm.new(std.thisFile);
                   }],
                 },
                 {
-                  ports: [{ port: 8443, protocol: 'TCP' }],
+                  ports: [{ port: 10443, protocol: 'TCP' }],
                   to: [{
                     namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'traefik' } },
                     podSelector: { matchLabels: {

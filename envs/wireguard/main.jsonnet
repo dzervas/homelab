@@ -47,8 +47,6 @@ local helm = tk.helm.new(std.thisFile);
       instance: 'users',
     }),
 
-  users: users,
-
   udpRoute: {
     apiVersion: 'traefik.io/v1alpha1',
     kind: 'IngressRouteUDP',
@@ -63,4 +61,4 @@ local helm = tk.helm.new(std.thisFile);
       }],
     },
   },
-}
+} + users

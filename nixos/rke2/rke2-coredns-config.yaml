@@ -18,10 +18,17 @@ spec:
         plugins:
           - name: hosts
             configBlock: |-
-              10.43.0.1 kube.vpn.dzerv.art
               10.50.50.4 desktop.vpn.dzerv.art
               10.50.50.5 laptop.vpn.dzerv.art
               10.50.50.6 pixel.vpn.dzerv.art
+              10.50.50.16 router.dzerv.art
+              10.50.50.17 hass.dzerv.art
+              fallthrough
+          - name: template
+            parameters: IN A kube.vpn.dzerv.art
+            configBlock: |-
+              match ^kube\.vpn\.dzerv\.art\.$
+              answer "{{ .Name }} 60 IN A 10.43.0.1"
               fallthrough
           - name: template
             parameters: IN A vpn.dzerv.art
