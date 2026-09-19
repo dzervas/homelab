@@ -12,3 +12,4 @@ alertmanager.yaml
 vendor
 charts
 *.sd
+/docs
