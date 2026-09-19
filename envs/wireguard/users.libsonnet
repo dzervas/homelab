@@ -1,4 +1,4 @@
-local cidrPrefix = (import 'cidr.libsonnet').prefix;
+local cidr = import 'cidr.libsonnet';
 
 local userPolicy(ip, port, proto='TCP') = {
   action: 'ACCEPT',
@@ -13,28 +13,31 @@ local userPeerAdminPolicies = [
   userPolicy('10.43.0.50', 2222),
 ];
 
-local userPeerPolicies(name, ip, admin=false, additionalIPs=[]) = [
-  // Traefik
-  userPolicy('10.43.0.50', 443),
-  // CoreDNS
-  userPolicy('10.43.0.53', 53, 'UDP'),
-  userPolicy('10.43.0.53', 53, 'TCP'),
-] + (
-  if admin then userPeerAdminPolicies else []
-);
+local userPeerPolicies(name, ip, admin=false, additionalPolicies=[]) =
+  [
+    // Traefik
+    userPolicy('10.43.0.50', 443),
+    // CoreDNS
+    userPolicy('10.43.0.53', 53, 'UDP'),
+    userPolicy('10.43.0.53', 53, 'TCP'),
+  ] + additionalPolicies + (
+    if admin then userPeerAdminPolicies else []
+  );
 
-local userPeer(name, ip, admin=false, additionalIPs=[]) = {
-  apiVersion: 'vpn.wireguard-operator.io/v1alpha1',
-  kind: 'WireguardPeer',
-  metadata: {
-    name: 'users-' + name,
-  },
-  spec: {
-    wireguardRef: 'users',
-    address: cidrPrefix + ip,
-    allowedIPs: $.spec.address + '/32',
+local userPeer(name, ip, admin=false, additionalPolicies=[], disablePolicies=false) = {
+  ['peer-' + name]: {
+    apiVersion: 'vpn.wireguard-operator.io/v1alpha1',
+    kind: 'WireguardPeer',
+    metadata: {
+      name: 'users-' + name,
+    },
+    spec: {
+      wireguardRef: 'users',
+      address: cidr.prefix + ip,
+      allowedIPs: cidr.prefix + ip + '/32',
 
-    egressNetworkPolicies: userPeerPolicies(name, ip, admin, additionalIPs),
+      egressNetworkPolicies: if disablePolicies then [] else userPeerPolicies(name, ip, admin, additionalPolicies),
+    },
   },
 };
 
@@ -43,6 +46,10 @@ local userPeer(name, ip, admin=false, additionalIPs=[]) = {
 userPeer('dzervas-desktop', 4, true)
 + userPeer('dzervas-laptop', 5, true)
 + userPeer('dzervas-pixel', 6, true)
+
+// .16/28 is the network devices subnet (16-31)
++ userPeer('router', 16, disablePolicies=true)
++ userPeer('hass', 17)  // CLIProxyAPI access
 
 // .128/25 is for other users (128-255)
 + userPeer('shed', 128)
