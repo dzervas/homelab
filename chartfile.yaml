@@ -34,6 +34,8 @@ repositories:
     url: https://nccloud.github.io/charts
   - name: n8n-sandbox
     url: oci://ghcr.io/n8n-io/n8n-sandbox-service
+  - name: external-dns
+    url: https://kubernetes-sigs.github.io/external-dns/
 requires:
   - chart: prometheus/prometheus-operator-crds
     version: 30.0.0
@@ -67,4 +69,6 @@ requires:
     version: 0.3.0
   - chart: n8n-sandbox/n8n-sandbox-service
     version: 0.7.0
+  - chart: external-dns/external-dns
+    version: 1.22.0
 version: 1

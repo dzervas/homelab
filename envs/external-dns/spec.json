@@ -1,0 +1,14 @@
+{
+	"apiVersion": "tanka.dev/v1alpha1",
+	"kind": "Environment",
+	"metadata": {
+		"name": "envs/external-dns"
+	},
+	"spec": {
+		"contextNames": ["gr"],
+		"namespace": "external-dns",
+		"injectLabels": true,
+		"resourceDefaults": {},
+		"expectVersions": {}
+	}
+}
