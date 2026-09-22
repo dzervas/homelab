@@ -21,7 +21,7 @@ spec:
               10.50.50.4 desktop.vpn.dzerv.art
               10.50.50.5 laptop.vpn.dzerv.art
               10.50.50.6 pixel.vpn.dzerv.art
-              10.50.50.16 router.dzerv.art
+              10.50.50.16 modem.dzerv.art
               10.50.50.17 hass.dzerv.art
               fallthrough
           - name: template
