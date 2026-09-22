@@ -72,8 +72,6 @@ in
     OUTPUT_PATH = "/tmp/dns.json";
     INGRESS_CLASS = "vpn";
     DOMAIN_SUFFIX = ".ts.dzerv.art";
-    HEADSCALE_URL = "http://localhost:8080";
-    HEADSCALE_API_KEY = "op://k8s-secrets/dns-controller/HEADSCALE_API_KEY";
     PYTHONUNBUFFERED = "1";
 
     CLIPROXYAPI_TOKEN = "op://k8s-secrets/cliproxyapi/password";

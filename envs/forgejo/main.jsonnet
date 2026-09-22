@@ -13,9 +13,8 @@ local statefulSet = k.apps.v1.statefulSet;
     + lab.withPV('/var/lib/gitea', { name: 'data', size: '10Gi', storageClassName: 'longhorn' })
     + lab.withPV('/etc/gitea', { name: 'config', size: '128Mi', storageClassName: 'longhorn' })
     + lab.withVpnHttp(80, 'git.vpn.dzerv.art', [
-      '100.100.50.0/24',  // headscale tailnet
       '10.200.0.0/16',  // Cilium cluster-pool Pod CIDR
-      '10.20.30.0/24',
+      '10.20.30.0/24',  // The nodes to be able to download images
     ])
     + lab.withPublicTCP(2222, 'ssh')
     + lab.withEnv({

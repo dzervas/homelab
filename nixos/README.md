@@ -109,12 +109,3 @@ Just whip up a kexec nixos system:
 nixos-anywhere --target-host <host> --flake ./nixos --phases kexec
 ```
 
-## Enable all headscale exit nodes
-
-```bash
-headscale routes list -o json-line | \
-    jq '.[] | select(.prefix == "0.0.0.0/0" and .advertised) | .id' | \
-    xargs -rL1 headscale r enable -r
-```
-
-

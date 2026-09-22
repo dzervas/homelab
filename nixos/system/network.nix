@@ -4,7 +4,6 @@
   hostIndex,
   lib,
   home-vpn-prefix,
-  home-vpn-iface,
   node-vpn-prefix,
   node-vpn-iface,
   machines,
@@ -24,7 +23,6 @@ in
 
     dhcpcd.denyInterfaces = [
       "lo"
-      home-vpn-iface
       node-vpn-iface
       "cali*"
       "podman*"
@@ -34,21 +32,7 @@ in
     firewall = {
       enable = true;
       allowedUDPPorts = [ wireguard-port ]; # WireGuard
-
-      extraForwardRules = ''
-        # VPN exit node
-        iifname ${home-vpn-iface} oifname eth0 accept
-      '';
     };
-
-    # Tailscale by default uses fwmarks n shit to route traffic, which canal removes
-    # Adding the route manually fixes it
-    interfaces.${home-vpn-iface}.ipv4.routes = [
-      {
-        address = "${home-vpn-prefix}.0";
-        prefixLength = 24;
-      }
-    ];
 
     # Cilium is NOT compatible with nftables!
     nftables.enable = true;
@@ -97,32 +81,13 @@ in
     };
   };
 
-  services = {
-    # Needs to be manually initialized with:
-    # tailscale up --login-server https://vpn.dzerv.art
-    tailscale = {
-      enable = true;
-      openFirewall = true;
-
-      extraSetFlags = [
-        # Disable DNS takeover as it fucks up the cluster DNS too
-        "--accept-dns=false"
-        "--accept-routes=false"
-
-        "--advertise-exit-node"
-      ];
-
-      # Needed to advertise exit nodes
-      useRoutingFeatures = "server";
-    };
-
-    fail2ban = {
-      enable = true;
-      ignoreIP = [
-        "127.0.0.1/8"
-        "${home-vpn-prefix}.0/24"
-        "${node-vpn-prefix}.0/24"
-      ];
-    };
+  services.fail2ban = {
+    enable = true;
+    ignoreIP = [
+      "127.0.0.1/8"
+      "${home-vpn-prefix}.0/24"
+      "${node-vpn-prefix}.0/24"
+    ];
   };
+
 }

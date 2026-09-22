@@ -49,15 +49,6 @@ local domain = 'dzerv.art';
   selfSignedIssuer: issuers.selfSigned,
   letsencryptIssuer: issuers.letsencrypt,
 
-  // Headscale VPN certificate (stored in cert-manager namespace for shared access)
-  headscaleVpnCert:
-    certificate.new('headscale-vpn')
-    + certificate.metadata.withNamespace(namespace)
-    + certificate.spec.withSecretName('headscale-vpn-certificate')
-    + certificate.spec.withDnsNames(['vpn.' + domain])
-    + certificate.spec.issuerRef.withName('letsencrypt')
-    + certificate.spec.issuerRef.withKind('ClusterIssuer'),
-
   // CiliumNetworkPolicy to allow webhook egress to kube-apiserver.
   // Standard NetworkPolicy ipBlock CIDR rules don't match Cilium's
   // reserved kube-apiserver identity, so we need an explicit entity allow.

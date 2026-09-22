@@ -17,7 +17,6 @@
       node-vpn-iface = "wg0";
 
       home-vpn-prefix = "100.100.50";
-      home-vpn-iface = "tailscale0";
     };
 
     modules = [

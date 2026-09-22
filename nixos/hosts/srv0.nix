@@ -84,29 +84,4 @@
       };
     };
   };
-
-  # Home Assistant whisper server
-  # virtualisation.oci-containers.containers = {
-  #   faster-whisper = {
-  #     image = "docker.io/rhasspy/wyoming-whisper";
-  #     pull = "always";
-  #     autoRemoveOnStop = false;
-
-  #     cmd = [
-  #       "--model"
-  #       "base.en"
-  #       "--language"
-  #       "en"
-  #     ];
-
-  #     volumes = [ "/builder/whisper:/data" ];
-  #     ports = [ "10300:10300" ];
-  #   };
-  # };
-  # virtualisation.podman = {
-  #   autoPrune.enable = true;
-  #   defaultNetwork.settings.dns_enabled = true;
-  # };
-  # networking.firewall.interfaces.${home-vpn-iface}.allowedTCPPorts = [ 10300 ];
-  # networking.firewall.interfaces.podman0.allowedTCPPorts = [ 10300 ];
 }
