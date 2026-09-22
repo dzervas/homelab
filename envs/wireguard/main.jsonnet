@@ -4,7 +4,6 @@ local k = import 'k.libsonnet';
 local users = import 'users.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
-
 {
   namespace: k.core.v1.namespace.new('wireguard'),
 
@@ -62,3 +61,9 @@ local helm = tk.helm.new(std.thisFile);
     },
   },
 } + users
+
+// To have IP survive up to traefik:
+// - In the wg server (needs a fork of the operator, it doesn't allow for additional iptables rules since it runs iptables-restore without --noflush):
+//   `-t nat -A PREROUTING -i wg0 -s 10.50.50.4/32 -d 10.43.0.50/32 -p tcp --dport 443 -j REDIRECT --to-port 8443`
+// - HAProxy sidecar to the wg server that listens on 10.50.50.1 and forwards to traefik-vpn svc
+// - Traefik `proxyProtocol: { trustedIPs: ['10.200.0.0/16'] }` (TBD if the service dns works too)

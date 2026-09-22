@@ -80,6 +80,11 @@ local anubis = import './anubis.libsonnet';
         },
         ocsp: { enabled: true },
 
+        // The chart doesn't template udp.timeout. Without it Traefik drops the
+        // UDP session after 3s idle, which invalidates the wireguard peer
+        // endpoint and black-holes server->client packets (breaks idle websockets).
+        additionalArguments: ['--entryPoints.wireguard.udp.timeout=180s'],
+
         ports: {
           web: {
             hostPort: 80,
