@@ -41,7 +41,7 @@ local userPeer(name, ip, admin=false, additionalPolicies=[], disablePolicies=fal
       address: cidr.prefix + ip,
       allowedIPs: cidr.prefix + ip + '/32',
 
-      egressNetworkPolicies: if disablePolicies then [{}] else userPeerPolicies(name, ip, admin, additionalPolicies),
+      egressNetworkPolicies: if disablePolicies then [{ to: {} }] else userPeerPolicies(name, ip, admin, additionalPolicies),
     },
   },
 };

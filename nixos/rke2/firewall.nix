@@ -7,9 +7,11 @@ in
     trustedInterfaces = [ node-vpn-iface ];
 
     allowedTCPPorts = [
+      # HTTP/S access to the cluster
       80
       443
-    ]; # HTTP/S access to the cluster
+    ];
+    allowedUDPPorts = [ 25820 ]; # users wireguard within-cluster (nodeport)
 
     # Allow pod & service traffic
     extraInputRules = ''

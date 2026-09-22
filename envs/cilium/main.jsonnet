@@ -35,6 +35,7 @@ local gateway = import './gateway.libsonnet';
       // MTU: 1392,
       // autoDirectNodeRoutes: true,  // Let cilium handle pod routes in nodes
       // Probably also needs IPAM kubernetes and custom podCIDR per node and wireguard acceptips
+      // Cilium auto-detects MTU correctly
 
       ipv4NativeRoutingCIDR: '10.200.0.0/16',
 

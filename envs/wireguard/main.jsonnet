@@ -4,6 +4,14 @@ local k = import 'k.libsonnet';
 local users = import 'users.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
+local service = k.core.v1.service;
+local servicePort = k.core.v1.servicePort;
+
+// What the wireguard server listens on inside the pod
+local wireguardPort = 51820;
+// Inside RKE2's service-node-port-range (25000-32767), see nixos/rke2/config.nix
+local wireguardNodePort = 25820;
+
 {
   namespace: k.core.v1.namespace.new('wireguard'),
 
@@ -18,16 +26,21 @@ local helm = tk.helm.new(std.thisFile);
     kind: 'Wireguard',
     metadata: { name: 'users' },
     spec: {
-      serviceType: 'ClusterIP',
-      externalAddress: 'dzerv.art',
-      nodeSelector: {
-        'topology.kubernetes.io/zone': 'oracle',
-      },
+      serviceType: 'NodePort',
+      port: 25820,
+      serviceAnnotations: { 'external-dns.kubernetes.io/hostname': 'wg.dzerv.art' },
+      externalAddress: 'wg.dzerv.art',
+      nodeSelector: { 'topology.kubernetes.io/zone': 'oracle' },
 
       peerCIDR: cidr.cidr,
       // TODO: Fix the search domain
       // dnsSearchDomain: 'vpn.dzerv.art',
       dns: '10.43.0.53',
+
+      // A peer packet costs 60 bytes of overhead (32 wireguard + 28 IP/UDP) by
+      // the time it reaches the server pod. The veth is 1420 and cross-node pod
+      // routes are 1370, so the default 1420 fragments every full-size packet.
+      mtu: '1300',
 
       // tunnel: {
       //   enabled: true,
@@ -45,21 +58,6 @@ local helm = tk.helm.new(std.thisFile);
       app: 'wireguard',
       instance: 'users',
     }),
-
-  udpRoute: {
-    apiVersion: 'traefik.io/v1alpha1',
-    kind: 'IngressRouteUDP',
-    metadata: { name: 'wireguard' },
-    spec: {
-      entryPoints: ['wireguard'],
-      routes: [{
-        services: [{
-          name: 'users-svc',
-          port: 51820,
-        }],
-      }],
-    },
-  },
 } + users
 
 // To have IP survive up to traefik:
