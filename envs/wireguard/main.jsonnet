@@ -26,9 +26,7 @@ local wireguardNodePort = 25820;
     kind: 'Wireguard',
     metadata: { name: 'users' },
     spec: {
-      serviceType: 'NodePort',
-      port: 25820,
-      serviceAnnotations: { 'external-dns.kubernetes.io/hostname': 'wg.dzerv.art' },
+      serviceType: 'ClusterIP',
       externalAddress: 'wg.dzerv.art',
       nodeSelector: { 'topology.kubernetes.io/zone': 'oracle' },
 
@@ -58,6 +56,22 @@ local wireguardNodePort = 25820;
       app: 'wireguard',
       instance: 'users',
     }),
+
+    // Direct ingress, bypassing traefik's userspace UDP proxy. externalTrafficPolicy
+    // Local means only the node actually running the server pod accepts traffic,
+    // which is also what makes external-dns publish just that node's external IP -
+    // peers then never take the cross-node vxlan hop.
+    // The operator's service supports NodePort but not externalTrafficPolicy which localizes
+    // external-dns's record
+    nodePortService:
+      service.new('users-nodeport', { app: 'wireguard', instance: 'users' }, [
+        servicePort.new(wireguardPort, wireguardPort)
+        + servicePort.withProtocol('UDP')
+        + servicePort.withNodePort(wireguardNodePort),
+      ])
+      + service.metadata.withAnnotations({ 'external-dns.kubernetes.io/hostname': 'wg.dzerv.art' })
+      + service.spec.withType('NodePort')
+      + service.spec.withExternalTrafficPolicy('Local'),
 } + users
 
 // To have IP survive up to traefik:
