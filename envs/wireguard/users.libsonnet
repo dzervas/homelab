@@ -1,4 +1,6 @@
 local cidr = import 'cidr.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
+local esPushSecret = externalSecrets.nogroup.v1alpha1.pushSecret;
 
 local userPolicy(ip, port, proto='TCP') = {
   action: 'ACCEPT',
@@ -29,7 +31,7 @@ local userPeerPolicies(name, ip, admin=false, additionalPolicies=[]) =
     if admin then userPeerAdminPolicies else []
   );
 
-local userPeer(name, ip, admin=false, additionalPolicies=[], disablePolicies=false) = {
+local userPeer(name, ip, admin=false, additionalPolicies=[], disablePolicies=false, pushSecret=false) = {
   ['peer-' + name]: {
     apiVersion: 'vpn.wireguard-operator.io/v1alpha1',
     kind: 'WireguardPeer',
@@ -44,6 +46,21 @@ local userPeer(name, ip, admin=false, additionalPolicies=[], disablePolicies=fal
       egressNetworkPolicies: if disablePolicies then [{ to: {} }] else userPeerPolicies(name, ip, admin, additionalPolicies),
     },
   },
+  ['peer-' + name + '-push']: if !pushSecret then null else
+    esPushSecret.new('peer-' + name + '-push')
+    + esPushSecret.spec.withDeletionPolicy('Delete')
+    + esPushSecret.spec.withSecretStoreRefs([
+      esPushSecret.spec.secretStoreRefs.withKind('ClusterSecretStore')
+      + esPushSecret.spec.secretStoreRefs.withName('1password')
+    ])
+    + esPushSecret.spec.selector.secret.withName('users-peer-configs')
+    + esPushSecret.spec.withData([
+      esPushSecret.spec.data.match.withSecretKey('config')
+      + esPushSecret.spec.data.match.remoteRef.withRemoteKey('zzz-%s-users-wireguard-config' % name)
+    ])
+    + esPushSecret.spec.template.withData({
+      config: '{{ mustRegexReplaceAll "10.50.50.[0-9]+/32" (index . "users-%s" | replace "51820" "25820") "10.50.50.0/24, 10.43.0.0/24" }}\nPersistentKeepalive = 25' % name,
+    })
 };
 
 // CIDRs: .0/30 is for internal services
@@ -57,5 +74,5 @@ userPeer('dzervas-desktop', 4, true)
 + userPeer('hass', 17)  // CLIProxyAPI access
 
 // .128/25 is for other users (128-255)
-+ userPeer('shed', 128)
++ userPeer('shed', 128, pushSecret=true)
 + userPeer('haris', 129)
