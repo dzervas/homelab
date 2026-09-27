@@ -36,13 +36,13 @@ repositories:
     url: oci://ghcr.io/n8n-io/n8n-sandbox-service
   - name: external-dns
     url: https://kubernetes-sigs.github.io/external-dns/
+  - name: hermeum
+    url: oci://ghcr.io/hermeum/charts
 requires:
   - chart: prometheus/prometheus-operator-crds
     version: 30.0.0
   - chart: bitnami/postgresql
     version: 12.1.5
-  - chart: bitnami-oci/mariadb
-    version: 21.0.8
   - chart: gemini/gemini
     version: 2.2.0
   - chart: woodpecker/woodpecker
@@ -71,4 +71,6 @@ requires:
     version: 0.7.0
   - chart: external-dns/external-dns
     version: 1.22.0
+  - chart: hermeum/hermes-agent-operator
+    version: 0.5.3
 version: 1

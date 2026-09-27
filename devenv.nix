@@ -42,7 +42,7 @@ in
 
   scripts = {
     tk-diff-all.exec = "tk env list --names | xargs -n1 --verbose tk diff -s";
-    tk-chart-add.exec = ''test "$#" -eq 4 || echo "Usage: tk-chart-add <repo-url> <repo-name> <chart-name> <chart-version>" && tk tool charts add-repo $3 $1 && tk tool charts add $3/$2@$4'';
+    tk-chart-add.exec = ''test "$#" -eq 4 || echo "Usage: tk-chart-add <repo-url> <repo-name> <chart-name> <chart-version>" && tk tool charts add-repo $2 $1 && tk tool charts add $2/$3@$4'';
     tk-update-check.exec = ''
       echo "This is going to take some time..."
       echo

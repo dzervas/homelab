@@ -42,6 +42,11 @@ local service = k.core.v1.service;
           namespaceSelector: {},
           podSelector: { matchLabels: { 'ai/enable': 'true' } },
         },
+        // hermes-agent-operator 0.10.0 can't set pod labels (spec.podLabels is unreleased)
+        {
+          namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'hermes-agent' } },
+          podSelector: { matchLabels: { 'app.kubernetes.io/name': 'hermes-agent' } },
+        },
       ],
       ports: [{ port: 8317, protocol: 'TCP' }],
     }]),
