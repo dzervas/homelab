@@ -51,8 +51,12 @@ spec:
           - name: health
             configBlock: lameduck 10s
           - name: ready
-          - name: rewrite
-            parameters: name exact git.vpn.dzerv.art traefik-vpn.traefik.svc.cluster.local answer auto
+          - name: template
+            parameters: IN A vpn.dzerv.art
+            configBlock: |-
+              match ^.+\.vpn\.dzerv\.art\.$
+              answer "{{ .Name }} 60 IN A 10.43.0.50"
+              fallthrough
           - name: kubernetes
             parameters: in-addr.arpa ip6.arpa
             configBlock: |-

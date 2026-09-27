@@ -1,21 +1,7 @@
-{
-  magicentry: {
-    apiVersion: 'traefik.io/v1alpha1',
-    kind: 'Middleware',
-    metadata: { name: 'magicentry' },
-    spec: {
-      forwardAuth: {
-        address: 'http://magicentry.magicentry.svc.cluster.local:8080/auth-url/status',
-        addAuthCookiesToResponse: ['magicentry_session_id'],
-        maxResponseBodySize: 1048576,  // 1MB
+local magicentry = import 'helpers/magicentry.libsonnet';
 
-        authRequestHeaders: ['Cookie'],
-        authResponseHeaders: ['X-Remote-User', 'X-Remote-Groups'],
-        preserveLocationHeader: true,
-        trustForwardHeader: true,
-      },
-    },
-  },
+{
+  magicentry: magicentry.middleware('magicentry'),
 
   mtls: {
     apiVersion: 'traefik.io/v1alpha1',

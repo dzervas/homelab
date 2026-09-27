@@ -27,6 +27,7 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
       FORGEJO__server__SSH_DOMAIN: 'git.vpn.dzerv.art',
 
       FORGEJO__actions__ENABLED: 'true',
+      FORGEJO__service__REQUIRE_SIGNIN_VIEW: 'false',
 
       FORGEJO__webhook__ALLOWED_HOST_LIST: 'woodpecker-server',
       TZ: timezone,

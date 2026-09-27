@@ -1,5 +1,6 @@
 local externalSecrets = import 'external-secrets.libsonnet';
 local affinity = import 'helpers/affinity.libsonnet';
+local magicentryHelper = import 'helpers/magicentry.libsonnet';
 local lab = import 'labsonnet/main.libsonnet';
 
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
@@ -36,14 +37,13 @@ local commonHttpOptions(port, fqdn, name=null, matches=null, prefix='common', mi
       annotations: { 'cert-manager.io/cluster-issuer': 'letsencrypt' },
 
       // https://doc.traefik.io/traefik/reference/routing-configuration/kubernetes/gateway-api/#using-traefik-middleware-as-httproute-filter
-      // TODO: Since a chain is used, there's no reason to map
       filters: std.map(
         function(m) {
           type: 'ExtensionRef',
           extensionRef: {
             group: 'traefik.io',
             kind: 'Middleware',
-            name: routeName,
+            name: m,
           },
         },
         middleware
@@ -70,12 +70,25 @@ lab {
       tcpRoute: { gateway: traefik(sectionName) },
     }),
 
-  withVpnHttp(port, fqdn, cidrs=null, name=null)::
+  // magicentry: { name: 'Display Name', realms: 'admin' } to gate the route behind magicentry
+  withVpnHttp(port, fqdn, cidrs=null, name=null, magicentry=null)::
     local rn = routeNameFor(name, 'vpn', port);
+    local middleware =
+      (if cidrs != null then [rn] else [])
+      + (if magicentry != null then ['magicentry-' + rn] else []);
     lab.withPort(
-      commonHttpOptions(port, fqdn, name, null, 'vpn', if cidrs != null then ['ipfilter-' + rn] else [], 'websecure-vpn')
+      commonHttpOptions(port, fqdn, name, null, 'vpn', middleware, 'websecure-vpn')
     )
-    + if cidrs != null then { ['ipfilter-' + rn]: ipFilteringMiddleware(rn, cidrs) } else {},
+    + (if cidrs != null then { ['ipfilter-' + rn]: ipFilteringMiddleware(rn, cidrs) } else {})
+    + (if magicentry != null then {
+         ['magicentry-' + rn]: magicentryHelper.middleware('magicentry-' + rn),
+         service+: {
+           metadata+: {
+             labels+: magicentryHelper.serviceLabels,
+             annotations+: magicentryHelper.serviceAnnotations(magicentry.name, fqdn, magicentry.realms),
+           },
+         },
+       } else {}),
 
   withOpEnvs(envs, name=null)::
     local secName = if name != null then name else $._name;
