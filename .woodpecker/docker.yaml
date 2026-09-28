@@ -11,6 +11,9 @@ matrix:
   image:
     - netshoot
     - affine
+    - hermes
+    - hermes-workspace
+    - kagi-mcp
 
 steps:
   - name: publish-image

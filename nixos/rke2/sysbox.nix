@@ -4,17 +4,7 @@
   pkgs,
   ...
 }:
-let
-  containerdConfigTemplate = pkgs.writeText "rke2-sysbox-config-v3.toml.tmpl" ''
-    {{ template "base" . }}
-
-    [plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.'sysbox-runc']
-      runtime_type = "io.containerd.runc.v2"
-    [plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.'sysbox-runc'.options]
-      BinaryName = "${pkgs.sysbox-runc}/bin/sysbox-runc"
-      SystemdCgroup = true
-  '';
-in
+# The containerd runtime registration lives in containerd.nix
 {
   boot = {
     kernelModules = [
@@ -59,11 +49,6 @@ in
     "L+ /usr/sbin/iptables-save - - - - ${pkgs.iptables}/bin/iptables-save"
     "L+ /usr/sbin/iptables-restore - - - - ${pkgs.iptables}/bin/iptables-restore"
   ];
-
-  systemd.tmpfiles.settings."10-rke2-sysbox" = {
-    "/var/lib/rancher/rke2/agent/etc/containerd/config-v3.toml.tmpl"."L+".argument =
-      toString containerdConfigTemplate;
-  };
 
   systemd.services = {
     sysbox-mgr = {
@@ -120,15 +105,10 @@ in
         shadow
         util-linux
       ];
-      restartTriggers = [ containerdConfigTemplate ];
     };
   };
 
   # RKE2 command-line labels take precedence over config.yaml labels, so retain
   # the shared labels while advertising the runtime once both daemons are up.
-  services.rke2.nodeLabel = [
-    "provider=${config.setup.provider}"
-    "topology.kubernetes.io/zone=${config.setup.provider}"
-    "sysbox-runtime=running"
-  ];
+  services.rke2.nodeLabel = [ "sysbox-runtime=running" ];
 }

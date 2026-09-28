@@ -74,6 +74,10 @@ local agentLabels = {
                 self_hosted: { issuer: 'https://auth.dzerv.art', client_id: 'kube-Hermes' },
               },
             },
+
+            // terminal: {
+            //   env_passthrough: ['FORGEJO_TOKEN']
+            // }
           },
         },
         storage: { persistence: { enabled: true } },
