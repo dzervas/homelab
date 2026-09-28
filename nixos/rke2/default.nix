@@ -15,6 +15,7 @@ in
 {
   imports = [
     ./config.nix
+    ./containerd.nix
     ./etcd.nix
     ./firewall.nix
     ./kernel.nix
@@ -39,6 +40,11 @@ in
       tokenFile = if is-master then null else "/etc/k3s-token";
       # Use a hosts-defined address that resolves to the 3 defined servers
       serverAddr = if is-master then "" else "https://rke2-registration.${config.networking.domain}:9345";
+
+      nodeLabel = [
+        "provider=${config.setup.provider}"
+        "topology.kubernetes.io/zone=${config.setup.provider}"
+      ];
 
       # TODO: Requires https://docs.rke2.io/security/hardening_guide/
       # cisHardening = true;
