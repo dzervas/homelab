@@ -9,7 +9,7 @@ when:
 
 matrix:
   image:
-    - netshoot
+    # - netshoot
     - affine
     - hermes
     - hermes-workspace

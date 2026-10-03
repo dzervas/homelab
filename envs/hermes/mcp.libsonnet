@@ -17,26 +17,26 @@ local namespace = 'mcp';
 local hermesNamespace = 'hermes';
 
 local servers = {
-  github: { url: 'https://api.githubcopilot.com/mcp/', fqdn: 'api.githubcopilot.com', token: true },
-  linear: { url: 'https://mcp.linear.app/mcp', fqdn: 'mcp.linear.app', token: true },
+  // github: { url: 'https://api.githubcopilot.com/mcp/', fqdn: 'api.githubcopilot.com', token: true },
+  // linear: { url: 'https://mcp.linear.app/mcp', fqdn: 'mcp.linear.app', token: true },
 
   // Read-only. Fields: url (the Grafana Cloud stack), token (Viewer service account)
-  grafana: {
-    image: 'grafana/mcp-grafana:latest',
-    port: 8000,
-    args: [
-      '-t',
-      'streamable-http',
-      '--address',
-      '0.0.0.0:8000',
-      // Host header check, port included
-      '--allowed-hosts',
-      'grafana.mcp:8000,grafana.mcp.svc:8000',
-      // '--disable-write',
-    ],
-    secrets: { GRAFANA_URL: 'url', GRAFANA_SERVICE_ACCOUNT_TOKEN: 'token' },
-    egress: { fqdns: [{ pattern: '*.grafana.net' }] },
-  },
+  // grafana: {
+  //   image: 'grafana/mcp-grafana:latest',
+  //   port: 8000,
+  //   args: [
+  //     '-t',
+  //     'streamable-http',
+  //     '--address',
+  //     '0.0.0.0:8000',
+  //     // Host header check, port included
+  //     '--allowed-hosts',
+  //     'grafana.mcp:8000,grafana.mcp.svc:8000',
+  //     // '--disable-write',
+  //   ],
+  //   secrets: { GRAFANA_URL: 'url', GRAFANA_SERVICE_ACCOUNT_TOKEN: 'token' },
+  //   egress: { fqdns: [{ pattern: '*.grafana.net' }] },
+  // },
 
   // Single-arch image. Serves every caller with its own token, so only Hermes
   // may reach it (see ingress below). Field: token (Forgejo bot user)
