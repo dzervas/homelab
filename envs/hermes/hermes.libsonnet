@@ -20,15 +20,43 @@ local image = 'git.vpn.dzerv.art/dzervas/homelab/hermes:latest';  // docker/herm
 local managedDir = '/etc/hermes-managed';
 local sshKey = '/opt/data/.workspace-ssh/id_ed25519';
 
+// Gateway and dashboard share one container: gVisor gives each container its
+// own view of the volume, so SQLite locks across containers don't see each
+// other and state.db gets corrupted. s6 would supervise both but needs root.
+// The loop restarts the gateway after it exits; --external-supervisor makes
+// the dashboard's restart and `hermes update` hand the restart to this loop.
+// SSH ControlMaster hard-links its socket, which gVisor's 9p volumes reject, and
+// Hermes hardcodes its dir under TMPDIR (the scratch dir on the PV), so that dir
+// is a symlink into /tmp. The hourly touch keeps scratch pruning (24h idle) off it
+local supervisor = |||
+  stop() { kill -TERM $(jobs -p) 2>/dev/null; wait; }
+  trap 'stop; exit 0' TERM INT
+  rm -rf /opt/data/cache/scratch/hermes-ssh
+  mkdir -p /tmp/hermes-ssh
+  ln -s /tmp/hermes-ssh /opt/data/cache/scratch/hermes-ssh
+  while sleep 3600; do touch -h /opt/data/cache/scratch/hermes-ssh; done &
+  (
+    trap 'kill -TERM $gw 2>/dev/null; wait $gw; exit 0' TERM
+    while :; do hermes gateway run --external-supervisor & gw=$!; wait $gw; sleep 1; done
+  ) &
+  hermes dashboard --host 0.0.0.0 --port 9119 --no-open --skip-build &
+  wait -n
+  stop
+  exit 1
+|||;
+
 // Hermes' managed scope: merged over ~/.hermes/config.yaml, and these keys
 // can't be changed from inside Hermes. Everything else stays Hermes' own
 local managedConfig = {
-  model: {
-    provider: 'custom',
+  custom_providers: [{
+    name: 'CPA',
     base_url: 'http://cliproxyapi.cliproxyapi.svc:8317/v1',
+    // CPA has no API keys; without one Hermes warns on every auxiliary call
     api_key: 'sk-dummy',
-    default: 'gpt-6-luna',
-  },
+    model: 'gpt-6-luna',
+    api_mode: 'chat_completions',
+  }],
+  database: { journal_mode: 'delete' },  // Hermes nags about SQLite WAL on virtiofs and results in corruption
   secrets: { onepassword: { enabled: true } },
   terminal: { backend: 'ssh' },
   browser: {
@@ -59,7 +87,8 @@ local managedConfig = {
     + lab.withRunAsUser(10000)
     + lab.withAffinity(affinity.requireProviders(['homelab']))
     + lab.withPV('/opt/data', { name: 'data', size: '10Gi' })
-    + lab.withArgs(['gateway', 'run'])
+    // The entrypoint's bootstrap runs first, then execs bash
+    + lab.withArgs(['bash', '-c', supervisor])
     + lab.withVpnHttp(9119, domain)
     + lab.withPodLabels({ 'ai/enable': 'true' })  // see envs/cliproxyapi networkPolicy
     + lab.withConfigMapMount(managedDir, 'hermes-managed')
@@ -70,6 +99,11 @@ local managedConfig = {
       OP_SERVICE_ACCOUNT_TOKEN: 'op-service-account-token',
       SIGNAL_ACCOUNT: 'signal-account',
       SIGNAL_ALLOWED_USERS: 'signal-allowed-users',
+      MATRIX_PASSWORD: 'matrix-password',
+      MATRIX_RECOVERY_KEY: 'matrix-recovery-key',
+      MATRIX_ALLOWED_USERS: 'matrix-allowed-users',
+      MATRIX_USER_ID: 'matrix-user-id',
+      MATRIX_DEVICE_ID: 'matrix-device-id',
     }, { store: '1password', remoteKey: 'hermes' })
     // Hosted MCP servers' bearer tokens (mcp.libsonnet)
     + std.foldl(
@@ -90,6 +124,11 @@ local managedConfig = {
       TERMINAL_SSH_HOST: 'workspace.hermes-workspace.svc',
       TERMINAL_SSH_USER: 'agent',  // passwordless sudo
       TERMINAL_SSH_KEY: sshKey,
+
+      MATRIX_HOMESERVER: 'https://matrix.org',
+      MATRIX_AUTO_THREAD: 'true',
+      MATRIX_DM_AUTO_THREAD: 'true',
+      MATRIX_E2EE_MODE: 'required',
     })
     + lab.withResources({ requests: { cpu: '100m', memory: '512Mi' }, limits: { memory: '2Gi' } })
     // ssh refuses keys that aren't private to their owner; secret mounts are
@@ -98,14 +137,6 @@ local managedConfig = {
       name: 'ssh-key',
       image: image,
       command: ['sh', '-c', 'install -d -m 700 %s && install -m 600 /etc/workspace-ssh/private_key %s' % [std.split(sshKey, '/id_')[0], sshKey]],
-    })
-    // Started directly: the gateway container already runs the bootstrap
-    + lab.withContainer({
-      name: 'dashboard',
-      image: image,
-      command: ['/opt/hermes/.venv/bin/hermes', 'dashboard', '--host', '0.0.0.0', '--port', '9119', '--no-open', '--skip-build'],
-      // Sidecars inherit env and volume mounts, but not ConfigMap mounts
-      volumeMounts: [{ name: 'hermes-managed', mountPath: managedDir, readOnly: true }],
     })
     // Multi-account mode (no -a); Hermes passes the account. --no-receive-stdout
     // keeps message bodies out of the logs
@@ -117,13 +148,19 @@ local managedConfig = {
     + {
       workload+: { spec+: { template+: { spec+: {
         // Not PID 1, so the entrypoint skips s6-overlay (which needs root);
-        // the pause container reaps zombies, and the dashboard can see the gateway
+        // the pause container reaps zombies
         shareProcessNamespace: true,
         runtimeClassName: 'gvisor',
         // A Service named hermes would inject HERMES_* service-link env vars
         enableServiceLinks: false,
         automountServiceAccountToken: false,
-        securityContext+: { seccompProfile: { type: 'RuntimeDefault' } },
+        securityContext+: {
+          seccompProfile: { type: 'RuntimeDefault' },
+          // The PV is already owned by the hermes UID; fsGroup's recursive chmod
+          // (g+rw on every file) breaks tools that insist on 0600, like op
+          fsGroup:: null,
+          fsGroupChangePolicy:: null,
+        },
       } } } },
 
       // Registers the dashboard with magicentry as an OIDC client (admin realm)

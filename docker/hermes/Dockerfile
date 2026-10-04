@@ -18,6 +18,10 @@ RUN arch=$(dpkg --print-architecture) \
 # envdir even without /init, and a rootless bootstrap can't create it in /run
 RUN install -d -o hermes -g hermes /run/s6/container_environment
 
+# The base image bakes XDG_RUNTIME_DIR in root-owned, and the rootless bootstrap
+# can only create or chown it, so op can't put its daemon socket there
+RUN install -d -o hermes -g hermes -m 700 /tmp/hermes-runtime
+
 # Rootless: the image's own hermes user is the one non-root UID the bootstrap
 # accepts (docker/stage2-hook.sh). It only works when the entrypoint is not
 # PID 1, which makes entrypoint-dispatch.sh skip s6-overlay's /init (that
