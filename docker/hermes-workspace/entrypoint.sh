@@ -15,6 +15,8 @@ keys=/home/.sshd
 install -d -m 700 "$keys"
 for type in ed25519 rsa; do
   [ -f "$keys/ssh_host_${type}_key" ] || ssh-keygen -q -t "$type" -N '' -f "$keys/ssh_host_${type}_key"
+  # fsGroup can broaden persisted key permissions; sshd requires root-only access
+  chmod 600 "$keys/ssh_host_${type}_key"
 done
 
 if [ ! -d "$home" ]; then

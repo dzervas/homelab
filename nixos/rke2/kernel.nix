@@ -62,6 +62,13 @@
       # Linstor
       "net.core.rmem_max" = 1048576;
 
+      # Cilium's DNS proxy redirect (fwmark 0x200 -> table 2004 "local default dev lo")
+      # makes pod DNS queries (lxc*) and CoreDNS replies (wg0) martian when
+      # src_valid_mark=1. cilium/cilium#46284. Only on those interfaces: systemd's
+      # udev rule applies per-interface keys to new pod veths as they appear
+      "net.ipv4.conf.lxc*.accept_local" = 1;
+      "net.ipv4.conf.wg0.accept_local" = 1;
+
       # if applicable:
       # "net.ipv4.conf.flannel.1.rp_filter" = 0;
       # "net.ipv4.conf.cali*.rp_filter" = 0;
@@ -74,15 +81,12 @@
     enable = true;
     name = "${config.networking.hostName}-initiatorhost";
   };
-  # BindPaths resolves the symlink at start, so restart on system-path changes
-  # or /bin ends up pointing at a GC'd store path and longhorn's iscsiadm breaks
-  systemd.services.iscsid.restartTriggers = [ config.system.path ];
-  systemd.services.iscsid.serviceConfig = {
-    PrivateMounts = "yes";
-    BindPaths = "/run/current-system/sw/bin:/bin";
-  };
   systemd.tmpfiles.rules = [
     # Create a symbolic link /usr/bin/mount -> /run/current-system/sw/bin/mount
     "L /usr/bin/mount - - - - /run/current-system/sw/bin/mount"
+    # Longhorn runs iscsiadm by PATH in iscsid's mount namespace, and caches
+    # iscsid's PID per engine, so iscsid must not be restarted under it.
+    # Resolved at exec time, so it follows the current system without restarts
+    "L /usr/bin/iscsiadm - - - - /run/current-system/sw/bin/iscsiadm"
   ];
 }
