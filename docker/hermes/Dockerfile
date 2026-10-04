@@ -2,14 +2,14 @@
 
 FROM nousresearch/hermes-agent:latest
 
-ARG TARGETARCH
-
 USER root
 
 # 1Password CLI: backs the credential vault (browser autofill on the right
 # origin). Picked up from PATH, authenticated by OP_SERVICE_ACCOUNT_TOKEN
-RUN curl -fsSL -o /tmp/op.deb \
-      "https://downloads.1password.com/linux/debian/${TARGETARCH}/stable/1password-cli-${TARGETARCH}-latest.deb" \
+# kaniko doesn't set TARGETARCH; ask the build's own userland instead
+RUN arch=$(dpkg --print-architecture) \
+    && curl -fsSL -o /tmp/op.deb \
+      "https://downloads.1password.com/linux/debian/${arch}/stable/1password-cli-${arch}-latest.deb" \
     && dpkg -i /tmp/op.deb \
     && rm /tmp/op.deb \
     && op --version

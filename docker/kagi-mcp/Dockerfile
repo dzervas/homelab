@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1
 FROM debian:trixie-slim AS download
-ARG TARGETARCH
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl \
@@ -9,11 +8,13 @@ RUN apt-get update \
 # Changes with every release, so a new release invalidates the cached download below.
 ADD https://github.com/Microck/kagi-cli/releases/latest/download/release-notes.json /release-notes.json
 
+# kaniko doesn't set TARGETARCH; ask the build's own userland instead
 RUN set -eu; \
-    case "$TARGETARCH" in \
+    arch=$(dpkg --print-architecture); \
+    case "$arch" in \
       amd64) target=x86_64-unknown-linux-gnu ;; \
       arm64) target=aarch64-unknown-linux-gnu ;; \
-      *) printf 'Unsupported architecture: %s\n' "$TARGETARCH" >&2; exit 1 ;; \
+      *) printf 'Unsupported architecture: %s\n' "$arch" >&2; exit 1 ;; \
     esac; \
     latest=$(curl -fsSLo /dev/null -w '%{url_effective}' --retry 3 \
       https://github.com/Microck/kagi-cli/releases/latest); \

@@ -102,6 +102,9 @@ local anubis = import './anubis.libsonnet';
 
             protocol: 'TCP',
             http: { tls: { enabled: true } },
+            // Traefik v3 cuts request bodies off after 60s, which 502s large
+            // container image layer pushes to Forgejo's registry
+            transport: { respondingTimeouts: { readTimeout: '10m' } },
             expose: {
               default: false,
               // Expose the port over a different service with static IP
