@@ -5,6 +5,7 @@
 local externalSecrets = import 'external-secrets.libsonnet';
 local netpol = import 'helpers/netpol.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
+local affinity = import 'helpers/affinity.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
@@ -27,6 +28,7 @@ local namespace = 'hermes-workspace';
     + lab.withType('StatefulSet')
     + lab.withPV('/home', { name: 'home', size: '20Gi' })
     + lab.withPort({ port: 22, name: 'ssh' })
+    + lab.withAffinity(affinity.requireProviders(['homelab']))
     + lab.withSecretMount('/etc/workspace-ssh', 'workspace-ssh')
     // 1Password item hermes-workspace, field git-credentials:
     // https://<forgejo bot user>:<token>@git.vpn.dzerv.art (one per line)

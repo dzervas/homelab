@@ -3,6 +3,7 @@
 // website logins, but runs no agent commands: the terminal, file tools and
 // execute_code go over SSH to the workspace (workspace.libsonnet).
 local externalSecrets = import 'external-secrets.libsonnet';
+local affinity = import 'helpers/affinity.libsonnet';
 local netpol = import 'helpers/netpol.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
@@ -26,8 +27,9 @@ local managedConfig = {
     provider: 'custom',
     base_url: 'http://cliproxyapi.cliproxyapi.svc:8317/v1',
     api_key: 'sk-dummy',
-    default: 'claude-sonnet-5-5',
+    default: 'gpt-6-luna',
   },
+  secrets: { onepassword: { enabled: true } },
   terminal: { backend: 'ssh' },
   browser: {
     cdp_url: browser.cdpUrl,
@@ -55,6 +57,7 @@ local managedConfig = {
     + lab.withType('StatefulSet')
     // The image's own hermes user: the one non-root UID its bootstrap accepts
     + lab.withRunAsUser(10000)
+    + lab.withAffinity(affinity.requireProviders(['homelab']))
     + lab.withPV('/opt/data', { name: 'data', size: '10Gi' })
     + lab.withArgs(['gateway', 'run'])
     + lab.withVpnHttp(9119, domain)
@@ -116,6 +119,7 @@ local managedConfig = {
         // Not PID 1, so the entrypoint skips s6-overlay (which needs root);
         // the pause container reaps zombies, and the dashboard can see the gateway
         shareProcessNamespace: true,
+        runtimeClassName: 'gvisor',
         // A Service named hermes would inject HERMES_* service-link env vars
         enableServiceLinks: false,
         automountServiceAccountToken: false,
@@ -143,27 +147,12 @@ local managedConfig = {
   egress: netpol.egress('hermes-egress', namespace, { 'app.kubernetes.io/name': 'hermes' }, {
     // The browser's SSRF guard resolves navigation targets from this pod before using CDP
     dnsNames: ['*'],
+    cidrs: [netpol.internet],
     endpoints: [
       { namespace: 'cliproxyapi', labels: { 'app.kubernetes.io/name': 'cliproxyapi' }, ports: [{ port: 8317 }] },
       { namespace: 'hermes-workspace', labels: { 'app.kubernetes.io/name': 'workspace' }, ports: [{ port: 22 }] },
       { namespace: namespace, labels: { 'app.kubernetes.io/name': 'browser' }, ports: [{ port: 9222 }] },
     ] + mcp.hermesEgress.endpoints,
-    fqdns: [
-      { name: 'signal.org' },
-      { name: 'pypi.org' },
-      { name: 'files.pythonhosted.org' },
-      { name: 'registry.npmjs.org' },
-      { name: 'github.com' },
-      { name: 'api.github.com' },
-      { name: 'raw.githubusercontent.com' },
-      { name: 'release-assets.githubusercontent.com' },
-      { name: 'hermes-agent.nousresearch.com' },
-      { name: '1.1.1.1' },
-      { pattern: '**.signal.org' },
-      { pattern: '**.1password.com' },
-      { pattern: '**.1passwordusercontent.com' },
-      { name: 'auth.dzerv.art' },
-    ] + mcp.hermesEgress.fqdns,
     // auth.dzerv.art (dashboard OIDC token/JWKS calls) resolves to the nodes'
     // public IPs, which Cilium identifies as host/remote-node, not by FQDN
     entities: [{ entities: ['host', 'remote-node'], ports: [{ port: 443 }] }],

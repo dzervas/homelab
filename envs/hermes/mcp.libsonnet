@@ -12,6 +12,7 @@
 local netpol = import 'helpers/netpol.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
+local affinity = import 'helpers/affinity.libsonnet';
 
 local namespace = 'mcp';
 local hermesNamespace = 'hermes';
@@ -36,6 +37,13 @@ local servers = {
   //   ],
   //   secrets: { GRAFANA_URL: 'url', GRAFANA_SERVICE_ACCOUNT_TOKEN: 'token' },
   //   egress: { fqdns: [{ pattern: '*.grafana.net' }] },
+  // },
+
+  // kagi: {
+  //   image: 'git.vpn.dzerv.art/dzervas/homelab/kagi-mcp:latest',
+  //   port: 8000,
+  //   secrets: { KAGI_SESSION_TOKEN: 'url' },
+  //   egress: { fqdns: [{ pattern: '*.kagi.com' }] },
   // },
 
   // Single-arch image. Serves every caller with its own token, so only Hermes
@@ -72,6 +80,7 @@ local pod(name, s) = {
     lab.new(name, s.image)
     + lab.withNamespace(namespace)
     + lab.withPort({ port: s.port, name: 'mcp' })
+    + lab.withAffinity(affinity.requireProviders(['homelab']))
     + (if std.objectHas(s, 'args') then lab.withArgs(s.args) else {})
     + (if std.objectHas(s, 'env') then lab.withEnv(s.env) else {})
     + (if std.objectHas(s, 'secrets') then

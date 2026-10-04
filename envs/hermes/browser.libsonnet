@@ -1,6 +1,7 @@
 // CloakBrowser that Hermes drives over CDP (and fills logins into from
 // its 1Password vault). Its own pod, so it can have internet egress while the
 // hermes pod doesn't.
+local affinity = import 'helpers/affinity.libsonnet';
 local netpol = import 'helpers/netpol.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
@@ -12,6 +13,7 @@ local namespace = 'hermes';
   browser:
     lab.new('browser', 'cloakhq/cloakbrowser:latest')
     + lab.withNamespace(namespace)
+    + lab.withAffinity(affinity.requireProviders(['homelab']))
     + lab.withArgs(['cloakserve'])
     + lab.withPort({ port: 9222, name: 'cdp' })
     + lab.withEmptyDir('/dev/shm')
