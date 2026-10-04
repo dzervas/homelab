@@ -14,6 +14,10 @@ RUN arch=$(dpkg --print-architecture) \
     && rm /tmp/op.deb \
     && op --version
 
+# stage2-hook.sh (set -eu) writes AGENT_BROWSER_EXECUTABLE_PATH into s6's
+# envdir even without /init, and a rootless bootstrap can't create it in /run
+RUN install -d -o hermes -g hermes /run/s6/container_environment
+
 # Rootless: the image's own hermes user is the one non-root UID the bootstrap
 # accepts (docker/stage2-hook.sh). It only works when the entrypoint is not
 # PID 1, which makes entrypoint-dispatch.sh skip s6-overlay's /init (that

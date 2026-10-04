@@ -92,7 +92,7 @@ local managedConfig = {
     + lab.withInitContainer({
       name: 'ssh-key',
       image: image,
-      command: ['sh', '-c', 'install -d -m 700 %s && install -m 600 /etc/workspace-ssh/private-key %s' % [std.split(sshKey, '/id_')[0], sshKey]],
+      command: ['sh', '-c', 'install -d -m 700 %s && install -m 600 /etc/workspace-ssh/private_key %s' % [std.split(sshKey, '/id_')[0], sshKey]],
     })
     // Started directly: the gateway container already runs the bootstrap
     + lab.withContainer({

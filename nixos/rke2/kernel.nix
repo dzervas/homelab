@@ -74,6 +74,9 @@
     enable = true;
     name = "${config.networking.hostName}-initiatorhost";
   };
+  # BindPaths resolves the symlink at start, so restart on system-path changes
+  # or /bin ends up pointing at a GC'd store path and longhorn's iscsiadm breaks
+  systemd.services.iscsid.restartTriggers = [ config.system.path ];
   systemd.services.iscsid.serviceConfig = {
     PrivateMounts = "yes";
     BindPaths = "/run/current-system/sw/bin:/bin";
