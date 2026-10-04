@@ -25,6 +25,8 @@ if [ ! -d "$home" ]; then
   chown -R agent:agent "$home"
 fi
 
+# Restore persisted home ownership/mode after fsGroup handling
+install -d -m 755 -o agent -g agent "$home"
 install -d -m 700 -o agent -g agent "$home/.ssh"
 install -m 600 -o agent -g agent /etc/workspace-ssh/authorized_keys "$home/.ssh/authorized_keys"
 

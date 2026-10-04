@@ -6,11 +6,8 @@ local lab = import 'labsonnet.libsonnet';
 
 local namespace = 'hermes';
 
-// Keep the existing CDP address so Hermes' managed configuration stays unchanged
-local clusterIP = '10.43.0.52';
-
 {
-  cdpUrl:: 'http://%s:9222' % clusterIP,
+  cdpUrl:: 'http://browser.%s.svc:9222' % namespace,
 
   browser:
     lab.new('browser', 'cloakhq/cloakbrowser:latest')
@@ -33,7 +30,6 @@ local clusterIP = '10.43.0.52';
           for v in super.volumes
         ],
       } } } },
-      service+: { spec+: { clusterIP: clusterIP } },
     },
 
   browserEgress: netpol.egress('browser-egress', namespace, { 'app.kubernetes.io/name': 'browser' }, {

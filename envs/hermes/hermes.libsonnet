@@ -80,6 +80,8 @@ local managedConfig = {
     + lab.withEnv({
       TZ: timezone,
       HERMES_MANAGED_DIR: managedDir,
+      // Browser readers skip the managed overlay; the CDP env override takes precedence
+      BROWSER_CDP_URL: browser.cdpUrl,
       SIGNAL_HTTP_URL: 'http://127.0.0.1:8080',
       TERMINAL_ENV: 'ssh',
       TERMINAL_SSH_HOST: 'workspace.hermes-workspace.svc',
@@ -146,6 +148,15 @@ local managedConfig = {
     ] + mcp.hermesEgress.endpoints,
     fqdns: [
       { name: 'signal.org' },
+      { name: 'pypi.org' },
+      { name: 'files.pythonhosted.org' },
+      { name: 'registry.npmjs.org' },
+      { name: 'github.com' },
+      { name: 'api.github.com' },
+      { name: 'raw.githubusercontent.com' },
+      { name: 'release-assets.githubusercontent.com' },
+      { name: 'hermes-agent.nousresearch.com' },
+      { name: '1.1.1.1' },
       { pattern: '**.signal.org' },
       { pattern: '**.1password.com' },
       { pattern: '**.1passwordusercontent.com' },

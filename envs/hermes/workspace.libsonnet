@@ -60,8 +60,11 @@ local namespace = 'hermes-workspace';
     + externalSecret.metadata.withNamespace(namespace)
     + externalSecret.spec.secretStoreRef.withKind('ClusterSecretStore')
     + externalSecret.spec.secretStoreRef.withName('1password')
-    + externalSecret.spec.withDataFrom([{ extract: { key: 'hermes-workspace-ssh' } }])
-    + externalSecret.spec.target.template.withData({ authorized_keys: '{{ index . "public-key" }}' }),
+    // Resolve the SSH public key directly; bulk extraction supplies an empty value
+    + externalSecret.spec.withData([{
+      secretKey: 'authorized_keys',
+      remoteRef: { key: 'hermes-workspace-ssh/public_key' },
+    }]),
 
   egress: netpol.egress('workspace-egress', namespace, { 'app.kubernetes.io/name': 'workspace' }, {
     dnsNames: ['*'],
