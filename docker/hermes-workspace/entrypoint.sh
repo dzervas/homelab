@@ -22,6 +22,7 @@ if [ ! -d "$home" ]; then
   cp -r /etc/skel/. "$home"
   chown -R agent:agent "$home"
 fi
+
 install -d -m 700 -o agent -g agent "$home/.ssh"
 install -m 600 -o agent -g agent /etc/workspace-ssh/authorized_keys "$home/.ssh/authorized_keys"
 
