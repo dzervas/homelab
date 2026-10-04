@@ -141,6 +141,8 @@ local managedConfig = {
     + k.core.v1.configMap.metadata.withNamespace(namespace),
 
   egress: netpol.egress('hermes-egress', namespace, { 'app.kubernetes.io/name': 'hermes' }, {
+    // The browser's SSRF guard resolves navigation targets from this pod before using CDP
+    dnsNames: ['*'],
     endpoints: [
       { namespace: 'cliproxyapi', labels: { 'app.kubernetes.io/name': 'cliproxyapi' }, ports: [{ port: 8317 }] },
       { namespace: 'hermes-workspace', labels: { 'app.kubernetes.io/name': 'workspace' }, ports: [{ port: 22 }] },

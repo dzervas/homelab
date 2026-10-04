@@ -24,6 +24,10 @@ RUN useradd -u 1000 -U -s /bin/bash -M -d /home/agent -p '*' agent \
     && echo 'agent ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/agent \
     && chmod 440 /etc/sudoers.d/agent
 
+# Hermes syncs skills over SSH to ~/.hermes/skills; keep controller-local script paths working
+RUN mkdir -p /opt/data \
+    && ln -s /home/agent/.hermes/skills /opt/data/skills
+
 COPY --chmod=0755 entrypoint.sh /entrypoint.sh
 
 EXPOSE 22
