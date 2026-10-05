@@ -39,6 +39,7 @@ ENV HOME=/tmp/kagi \
 
 USER 10001:10001
 WORKDIR /tmp
+
 ENTRYPOINT ["/usr/local/bin/kagi"]
 CMD ["mcp"]
 
