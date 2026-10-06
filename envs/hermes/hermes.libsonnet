@@ -86,12 +86,14 @@ local managedConfig = {
     // The image's own hermes user: the one non-root UID its bootstrap accepts
     + lab.withRunAsUser(10000)
     + lab.withAffinity(affinity.requireProviders(['homelab']))
+    + lab.withPort({ port: 8642, name: 'gateway' })
     + lab.withPV('/opt/data', { name: 'data', size: '10Gi' })
     // The entrypoint's bootstrap runs first, then execs bash
     + lab.withArgs(['bash', '-c', supervisor])
     + lab.withVpnHttp(9119, domain)
     + lab.withPodLabels({ 'ai/enable': 'true' })  // see envs/cliproxyapi networkPolicy
     + lab.withConfigMapMount(managedDir, 'hermes-managed')
+    + lab.withSecretEnv({ API_SERVER_KEY: { name: 'hermes-api-key', key: 'password' } })
     + lab.withExternalSecretMount('workspace-ssh', '/etc/workspace-ssh', { store: '1password', remoteKey: 'hermes-workspace-ssh' })
     // 1Password item `hermes`: op-service-account-token (can read only the
     // hermes-logins vault), signal-account (E.164), signal-allowed-users
@@ -117,6 +119,7 @@ local managedConfig = {
     + lab.withEnv({
       TZ: timezone,
       HERMES_MANAGED_DIR: managedDir,
+      API_SERVER_HOST: '0.0.0.0',  // Reachable from the workspace UI pod
       // Browser readers skip the managed overlay; the CDP env override takes precedence
       BROWSER_CDP_URL: browser.cdpUrl,
       SIGNAL_HTTP_URL: 'http://127.0.0.1:8080',
@@ -177,6 +180,22 @@ local managedConfig = {
       },
     },
 
+  apiKey:
+    externalSecret.new('hermes-api-key')
+    + externalSecret.metadata.withNamespace(namespace)
+    // Keep the shared gateway key stable unless this ExternalSecret changes
+    + externalSecret.spec.withRefreshPolicy('OnChange')
+    + externalSecret.spec.withDataFrom([{
+      sourceRef: {
+        generatorRef: {
+          apiVersion: 'generators.external-secrets.io/v1alpha1',
+          kind: 'ClusterGenerator',
+          name: 'password',
+        },
+      },
+    }])
+    + externalSecret.spec.target.template.withData({ password: '{{ .password }}' }),
+
   managed:
     k.core.v1.configMap.new('hermes-managed', { 'config.yaml': std.manifestYamlDoc(managedConfig) })
     + k.core.v1.configMap.metadata.withNamespace(namespace),
@@ -196,5 +215,7 @@ local managedConfig = {
   }),
 
   // Only Traefik, for the dashboard
-  ingress: netpol.onlyFromNamespaces('hermes-ingress', namespace, { 'app.kubernetes.io/name': 'hermes' }, ['traefik']),
+  ingress: netpol.onlyFromNamespaces('hermes-ingress', namespace, { 'app.kubernetes.io/name': 'hermes' }, ['traefik'], [
+    { fromEndpoints: [{ matchLabels: { 'app.kubernetes.io/name': 'workspace-ui', app: 'workspace-ui' } }] },
+  ]),
 }

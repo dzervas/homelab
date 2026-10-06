@@ -80,15 +80,13 @@ local internet = {
   // any allow, including envs/network's clusterwide one. NotIn alone would also
   // match identities without a namespace label (host, so kubelet probes), hence
   // the Exists
-  onlyFromNamespaces(name, namespace, selector, namespaces)::
+  onlyFromNamespaces(name, namespace, selector, namespaces, additionalIngress=[])::
     cnp.new(name)
     + cnp.metadata.withNamespace(namespace)
     + cnp.spec.endpointSelector.withMatchLabels(selector)
-    + cnp.spec.enableDefaultDeny.withIngress(false)
-    + cnp.spec.withIngressDeny([{
-      fromEndpoints: [{
-        matchExpressions: [{ key: nsKey, operator: 'Exists' }]
-                          + (if namespaces == [] then [] else [{ key: nsKey, operator: 'NotIn', values: namespaces }]),
-      }],
-    }]),
+    + cnp.spec.enableDefaultDeny.withIngress(true)
+    + cnp.spec.withIngress(
+      (if namespaces == [] then [] else [{ fromEndpoints: [{ matchExpressions: [{ key: nsKey, operator: 'In', values: namespaces }] }] }])
+      + additionalIngress
+    ),
 }
