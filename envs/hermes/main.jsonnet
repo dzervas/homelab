@@ -1,6 +1,7 @@
 local k = import 'k.libsonnet';
 
 local mcp = import './mcp.libsonnet';
+local workspaceUi = import './workspace-ui.libsonnet';
 
 // Plan and reasoning: docs/research/hermes.md
 {
@@ -14,6 +15,7 @@ local mcp = import './mcp.libsonnet';
   hermes: import './hermes.libsonnet',
   browser: import './browser.libsonnet',
   workspace: import './workspace.libsonnet',
+  workspaceUi: workspaceUi,
   mcp: mcp.resources,
 
   // runsc is registered on every node by nixos/rke2/containerd.nix
