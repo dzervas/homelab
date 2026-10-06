@@ -93,7 +93,10 @@ local managedConfig = {
     + lab.withVpnHttp(9119, domain)
     + lab.withPodLabels({ 'ai/enable': 'true' })  // see envs/cliproxyapi networkPolicy
     + lab.withConfigMapMount(managedDir, 'hermes-managed')
-    + lab.withSecretEnv({ API_SERVER_KEY: { name: 'hermes-api-key', key: 'password' } })
+    + lab.withSecretEnv({
+      API_SERVER_KEY: { name: 'hermes-api-key', key: 'password' },
+      NTFY_TOKEN: { name: 'hermes-ntfy', key: 'token' },
+    })
     + lab.withExternalSecretMount('workspace-ssh', '/etc/workspace-ssh', { store: '1password', remoteKey: 'hermes-workspace-ssh' })
     // 1Password item `hermes`: op-service-account-token (can read only the
     // hermes-logins vault), signal-account (E.164), signal-allowed-users
@@ -132,6 +135,15 @@ local managedConfig = {
       MATRIX_AUTO_THREAD: 'true',
       MATRIX_DM_AUTO_THREAD: 'true',
       MATRIX_E2EE_MODE: 'required',
+
+      NTFY_SERVER_URL: 'http://ntfy.ntfy.svc:8080',
+      NTFY_TOPIC: 'hermes-in',
+      NTFY_PUBLISH_TOPIC: 'hermes',
+      NTFY_HOME_CHANNEL: 'hermes',
+      NTFY_HOME_CHANNEL_NAME: 'Notifications',
+      // Notifications only: reject every inbound message
+      NTFY_ALLOWED_USERS: '',
+      NTFY_ALLOW_ALL_USERS: 'false',
     })
     + lab.withResources({ requests: { cpu: '100m', memory: '512Mi' }, limits: { memory: '2Gi' } })
     // ssh refuses keys that aren't private to their owner; secret mounts are
@@ -196,6 +208,16 @@ local managedConfig = {
     }])
     + externalSecret.spec.target.template.withData({ password: '{{ .password }}' }),
 
+  ntfyToken:
+    externalSecret.new('hermes-ntfy')
+    + externalSecret.metadata.withNamespace(namespace)
+    + externalSecret.spec.secretStoreRef.withKind('ClusterSecretStore')
+    + externalSecret.spec.secretStoreRef.withName('ntfy-hermes-auth')
+    + externalSecret.spec.withData([{
+      secretKey: 'token',
+      remoteRef: { key: 'ntfy-hermes-auth', property: 'token' },
+    }]),
+
   managed:
     k.core.v1.configMap.new('hermes-managed', { 'config.yaml': std.manifestYamlDoc(managedConfig) })
     + k.core.v1.configMap.metadata.withNamespace(namespace),
@@ -206,6 +228,7 @@ local managedConfig = {
     cidrs: [netpol.internet],
     endpoints: [
       { namespace: 'cliproxyapi', labels: { 'app.kubernetes.io/name': 'cliproxyapi' }, ports: [{ port: 8317 }] },
+      { namespace: 'ntfy', labels: { 'app.kubernetes.io/name': 'ntfy' }, ports: [{ port: 8080 }] },
       { namespace: 'hermes-workspace', labels: { 'app.kubernetes.io/name': 'workspace' }, ports: [{ port: 22 }] },
       { namespace: namespace, labels: { 'app.kubernetes.io/name': 'browser' }, ports: [{ port: 9222 }] },
     ] + mcp.hermesEgress.endpoints,

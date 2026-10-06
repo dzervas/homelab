@@ -44,7 +44,9 @@ local cloudSecret = 'k8s-monitoring-op';
           alloy: {
             resources: {
               requests: { cpu: '50m', memory: '128Mi' },
-              limits: { cpu: '300m', memory: '384Mi' },
+              // At 384Mi the page cache was squeezed out and Alloy re-read its
+              // binary from disk (~255MB/s on gr0), pegging the CPU limit.
+              limits: { cpu: '300m', memory: '512Mi' },
             },
           },
           controller: { replicas: 2 },

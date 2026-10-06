@@ -4,6 +4,7 @@
   hostIndex,
   hostIP,
   home-vpn-prefix,
+  lib,
   node-vpn-prefix,
   pkgs,
   role,
@@ -13,6 +14,28 @@ let
   # Denotes the "master" node, where the initial clusterInit happens
   is-master = hostIndex == "100";
   node-ip = "${node-vpn-prefix}.${hostIndex}";
+  # Contents of /charts in the rke2-runtime image
+  bundledCharts = [
+    "harvester-cloud-provider"
+    "harvester-csi-driver"
+    "rancher-vsphere-cpi"
+    "rancher-vsphere-csi"
+    "rke2-calico"
+    "rke2-calico-crd"
+    "rke2-canal"
+    "rke2-cilium"
+    "rke2-coredns"
+    "rke2-flannel"
+    "rke2-ingress-nginx"
+    "rke2-metrics-server"
+    "rke2-multus"
+    "rke2-runtimeclasses"
+    "rke2-snapshot-controller"
+    "rke2-snapshot-controller-crd"
+    "rke2-snapshot-validation-webhook"
+    "rke2-traefik"
+    "rke2-traefik-crd"
+  ];
 in
 {
   environment.etc."rancher/rke2/config.yaml".text = builtins.toJSON (
@@ -40,6 +63,9 @@ in
           etcd-snapshot-compress = true;
           etcd-snapshot-schedule-cron = "0 */12 * * *";
           etcd-snapshot-retention = 20; # 10 days worth of snapshots
+          # Also serve etcd metrics on the node IP (:2381) so Alloy can scrape them;
+          # by default they only listen on loopback.
+          etcd-expose-metrics = true;
 
           kube-apiserver-arg = [
             # Faster (was 300) dead node pod rescheduling
@@ -91,6 +117,17 @@ in
               "/var/lib/rancher/rke2/server/manifests/rke2-coredns-config.yaml".C.argument =
                 toString rke2-coredns-config;
             }
+          )
+        else
+          { };
+
+      # Mixed-arch servers write differently gzipped chartContent for the bundled charts
+      # (per-arch rke2-runtime builds), so their deploy controllers keep overwriting each
+      # other's HelmCharts and helm-install jobs rerun forever. Only the master applies them.
+      settings."10-rke2-skip-bundled-charts" =
+        if role == "server" && !is-master then
+          lib.genAttrs' bundledCharts (
+            chart: lib.nameValuePair "/var/lib/rancher/rke2/server/manifests/${chart}.yaml.skip" { f = { }; }
           )
         else
           { };

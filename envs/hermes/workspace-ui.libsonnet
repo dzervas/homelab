@@ -1,4 +1,5 @@
 // Hermes Workspace UI, separate from the SSH workspace agent
+local affinity = import 'helpers/affinity.libsonnet';
 local netpol = import 'helpers/netpol.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local lab = import 'labsonnet.libsonnet';
@@ -16,6 +17,7 @@ local image = 'ghcr.io/outsourc-e/hermes-workspace:latest';
     + lab.withPV('/workspace', { name: 'workspace', size: '20Gi' })
     + lab.withVpnHttp(3000, domain, magicentry={ name: 'Hermes Workspace', realms: 'admin' })
     + lab.withSecretEnv({ HERMES_API_TOKEN: { name: 'hermes-api-key', key: 'password' } })
+    + lab.withAffinity(affinity.requireProviders(['homelab']))
     + lab.withEnv({
       TZ: timezone,
       HERMES_HOME: '/home/workspace/.hermes',

@@ -33,8 +33,8 @@ in {
         # Longhorn attaches its volumes as sdb, sdc, ... and the letters are
         # reassigned as pods move, so each attachment mints new series. Allow-list
         # the real disks and LVM devices instead. Longhorn exports its own
-        # longhorn_volume_* metrics for per-volume I/O.
-        "--collector.diskstats.device-include=^(nvme[0-9]+n[0-9]+|sda|dm-[0-9]+)$"
+        # longhorn_volume_* metrics for per-volume I/O. VM nodes boot from vda.
+        "--collector.diskstats.device-include=^(nvme[0-9]+n[0-9]+|sda|vda|dm-[0-9]+)$"
       ];
       firewallRules = ''iifname ${node-vpn-iface} tcp dport ${toString config.services.prometheus.exporters.node.port} counter accept'';
     };

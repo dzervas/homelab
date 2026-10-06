@@ -2,12 +2,13 @@
 	"apiVersion": "tanka.dev/v1alpha1",
 	"kind": "Environment",
 	"metadata": {
-		"name": "envs/descheduler"
+		"name": "envs/ntfy"
 	},
 	"spec": {
-		"contextNames": ["gr"],
-		"namespace": "descheduler",
+		"contextNames": [ "gr" ],
+		"namespace": "ntfy",
 		"injectLabels": true,
+		"applyStrategy": "server",
 		"resourceDefaults": {},
 		"expectVersions": {}
 	}
