@@ -51,16 +51,16 @@ local userPeer(name, ip, admin=false, additionalPolicies=[], disablePolicies=fal
     + esPushSecret.spec.withDeletionPolicy('Delete')
     + esPushSecret.spec.withSecretStoreRefs([
       esPushSecret.spec.secretStoreRefs.withKind('ClusterSecretStore')
-      + esPushSecret.spec.secretStoreRefs.withName('1password')
+      + esPushSecret.spec.secretStoreRefs.withName('1password'),
     ])
     + esPushSecret.spec.selector.secret.withName('users-peer-configs')
     + esPushSecret.spec.withData([
       esPushSecret.spec.data.match.withSecretKey('config')
-      + esPushSecret.spec.data.match.remoteRef.withRemoteKey('zzz-%s-users-wireguard-config' % name)
+      + esPushSecret.spec.data.match.remoteRef.withRemoteKey('zzz-%s-users-wireguard-config' % name),
     ])
     + esPushSecret.spec.template.withData({
       config: '{{ mustRegexReplaceAll "10.50.50.[0-9]+/32" (index . "users-%s" | replace "51820" "25820") "10.50.50.0/24, 10.43.0.0/24" }}\nPersistentKeepalive = 25' % name,
-    })
+    }),
 };
 
 // CIDRs: .0/30 is for internal services
