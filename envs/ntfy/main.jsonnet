@@ -6,6 +6,7 @@ local lab = import 'labsonnet.libsonnet';
 
 local password = externalSecrets.generators.v1alpha1.password;
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
+local esPushSecret = externalSecrets.nogroup.v1alpha1.pushSecret;
 local clusterSecretStore = externalSecrets.nogroup.v1.clusterSecretStore;
 local serviceAccount = k.core.v1.serviceAccount;
 local role = k.rbac.v1.role;
@@ -81,6 +82,20 @@ local users = [
       }])
     for user in users
   },
+
+  dzervasSecret:
+    esPushSecret.new('ntfy-dzervas')
+    + esPushSecret.spec.withDeletionPolicy('None')
+    + esPushSecret.spec.withSecretStoreRefs([
+      esPushSecret.spec.secretStoreRefs.withKind('ClusterSecretStore')
+      + esPushSecret.spec.secretStoreRefs.withName('1password'),
+    ])
+    + esPushSecret.spec.selector.secret.withName('ntfy-dzervas-auth')
+    + esPushSecret.spec.withData([
+      esPushSecret.spec.data.match.withSecretKey('password')
+      + esPushSecret.spec.data.match.remoteRef.withRemoteKey('zzz-ntfy-dzervas')
+      + esPushSecret.spec.data.match.remoteRef.withProperty('password'),
+    ]),
 
   // ESO copies only Hermes' credential across namespaces; no access to the reader's token
   authReaderServiceAccount:

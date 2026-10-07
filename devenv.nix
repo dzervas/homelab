@@ -1,8 +1,6 @@
-{ inputs, pkgs, ... }:
-let
+{ inputs, pkgs, ... }: let
   pkgs-stable = import inputs.nixpkgs-stable { system = pkgs.stdenv.system; };
-in
-{
+in {
   languages = {
     jsonnet.enable = true;
     rust.enable = true;
