@@ -1,7 +1,7 @@
-// Hermes itself: the Signal gateway, the dashboard and signal-cli in one pod.
-// It holds the LLM route, the Signal account and the 1Password token for
-// website logins, but runs no agent commands: the terminal, file tools and
-// execute_code go over SSH to the workspace (workspace.libsonnet).
+// Hermes itself: the Signal gateway, the dashboard and signal-cli in one pod, with the
+// Hermes Workspace UI as a sidecar. It holds the LLM route, the Signal account and the
+// 1Password token for website logins, but runs no agent commands: the terminal, file tools
+// and execute_code go over SSH to the workspace (workspace.libsonnet).
 local externalSecrets = import 'external-secrets.libsonnet';
 local affinity = import 'helpers/affinity.libsonnet';
 local netpol = import 'helpers/netpol.libsonnet';
@@ -14,9 +14,20 @@ local mcp = import './mcp.libsonnet';
 
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 
+local container = k.core.v1.container;
+local envVar = k.core.v1.envVar;
+local pvc = k.core.v1.persistentVolumeClaim;
+local volumeMount = k.core.v1.volumeMount;
+
 local namespace = 'hermes';
-local domain = 'hermes.vpn.dzerv.art';
+// Only the UI has a route: an exposed dashboard and an authenticated UI are mutually exclusive.
+// The dashboard's gate engages on any non-loopback bind, so a dashboard Traefik can reach is a
+// gated dashboard, and the UI has no credential for a gated dashboard (see uiContainer). Its own
+// dashboard screen covers sessions and analytics.
+local domain = 'agent.vpn.dzerv.art';
 local image = 'git.vpn.dzerv.art/dzervas/homelab/hermes:latest';  // docker/hermes
+local uiImage = 'ghcr.io/outsourc-e/hermes-workspace:latest';
+local uiUid = 10010;  // uiImage's workspace user
 local managedDir = '/etc/hermes-managed';
 local sshKey = '/opt/data/.workspace-ssh/id_ed25519';
 
@@ -39,7 +50,7 @@ local supervisor = |||
     trap 'kill -TERM $gw 2>/dev/null; wait $gw; exit 0' TERM
     while :; do hermes gateway run --external-supervisor & gw=$!; wait $gw; sleep 1; done
   ) &
-  hermes dashboard --host 0.0.0.0 --port 9119 --no-open --skip-build &
+  hermes dashboard --host 127.0.0.1 --port 9119 --no-open --skip-build &
   wait -n
   stop
   exit 1
@@ -66,17 +77,51 @@ local managedConfig = {
     // terminal, i.e. in the workspace
     backend: 'off',
   },
-  dashboard: {
-    // Also the only Host the dashboard's DNS-rebinding guard accepts
-    public_url: 'https://' + domain,
-    // Public PKCE client, magicentry names it kube-<magicentry.rs/name>
-    oauth: {
-      provider: 'self-hosted',
-      self_hosted: { issuer: 'https://auth.dzerv.art', client_id: 'kube-Hermes' },
-    },
-  },
   mcp_servers: mcp.config,
 };
+
+// The UI is a sidecar in this pod rather than its own: the only credential it can present to the
+// dashboard is the session token Hermes injects into the root HTML, which Hermes serves only when
+// its auth gate is off, and the gate engages on every non-loopback bind (--insecure has been a
+// no-op since the June 2026 hardening). So the dashboard binds loopback and the UI has to share
+// the pod's network namespace, which gVisor gives per pod — the same way signal-cli is reachable
+// at 127.0.0.1 from the gateway container.
+// Raw because lab.withContainer inherits the main container's env and mounts, i.e. Hermes' secrets
+// and its data volume.
+local labels = { app: 'hermes', 'app.kubernetes.io/name': 'hermes' };
+
+// Mounted on the UI only. The pod has no fsGroup (see the securityContext patch), so a fresh volume
+// root stays root-owned and uiUid can't create its state dir: chown this claim's root once, or move
+// the state dir to an emptyDir.
+local uiClaim = pvc.new('workspace')
+                + pvc.metadata.withNamespace(namespace)
+                + pvc.metadata.withLabels(labels)
+                + pvc.spec.withAccessModes(['ReadWriteOnce'])
+                + pvc.spec.resources.withRequests({ storage: '20Gi' });
+
+local uiContainer = container.new('workspace-ui', uiImage)
+                    + container.withVolumeMounts([volumeMount.new('workspace', '/workspace')])
+                    + container.withEnv([
+                      envVar.withName('HERMES_API_TOKEN')
+                      + envVar.valueFrom.secretKeyRef.withName('hermes-api-key')
+                      + envVar.valueFrom.secretKeyRef.withKey('password'),
+
+                      envVar.new('TZ', timezone),
+                      envVar.new('HERMES_HOME', '/home/workspace/.hermes'),
+                      envVar.new('HERMES_WORKSPACE_DIR', '/workspace'),
+                      envVar.new('HERMES_WORKSPACE_STATE_DIR', '/workspace/.hermes-workspace'),
+                      envVar.new('HERMES_API_URL', 'http://127.0.0.1:8642'),
+                      envVar.new('HERMES_DASHBOARD_URL', 'http://127.0.0.1:9119'),
+                      // Its own login is handled by magicentry at the edge, so the fail-closed
+                      // non-loopback bind guard is bypassed
+                      envVar.new('HERMES_ALLOW_INSECURE_REMOTE', '1'),
+                    ])
+                    // labsonnet builds one securityContext per container from the app's UID
+                    + container.securityContext.withRunAsNonRoot(true)
+                    + container.securityContext.withRunAsUser(uiUid)
+                    + container.securityContext.withRunAsGroup(uiUid)
+                    + container.securityContext.withAllowPrivilegeEscalation(false)
+                    + container.securityContext.capabilities.withDrop(['ALL']);
 
 {
   hermes:
@@ -86,11 +131,18 @@ local managedConfig = {
     // The image's own hermes user: the one non-root UID its bootstrap accepts
     + lab.withRunAsUser(10000)
     + lab.withAffinity(affinity.requireProviders(['homelab']))
-    + lab.withPort({ port: 8642, name: 'gateway' })
     + lab.withPV('/opt/data', { name: 'data', size: '10Gi' })
+    + {
+      workload+: {
+        spec+: {
+          volumeClaimTemplates+: [uiClaim],
+          template+: { spec+: { containers+: [uiContainer] } },
+        },
+      },
+    }
     // The entrypoint's bootstrap runs first, then execs bash
     + lab.withArgs(['bash', '-c', supervisor])
-    + lab.withVpnHttp(9119, domain)
+    + lab.withVpnHttp(3000, domain, name='ui', magicentry={ name: 'Hermes Workspace', realms: 'admin' })
     + lab.withPodLabels({ 'ai/enable': 'true' })  // see envs/cliproxyapi networkPolicy
     + lab.withConfigMapMount(managedDir, 'hermes-managed')
     + lab.withSecretEnv({
@@ -122,7 +174,7 @@ local managedConfig = {
     + lab.withEnv({
       TZ: timezone,
       HERMES_MANAGED_DIR: managedDir,
-      API_SERVER_HOST: '0.0.0.0',  // Reachable from the workspace UI pod
+      API_SERVER_HOST: '127.0.0.1',  // The UI is in this pod, so the gateway API stays loopback
       // Browser readers skip the managed overlay; the CDP env override takes precedence
       BROWSER_CDP_URL: browser.cdpUrl,
       SIGNAL_HTTP_URL: 'http://127.0.0.1:8080',
@@ -177,19 +229,6 @@ local managedConfig = {
           fsGroupChangePolicy:: null,
         },
       } } } },
-
-      // Registers the dashboard with magicentry as an OIDC client (admin realm)
-      service+: {
-        metadata+: {
-          labels+: { 'magicentry.rs/enable': 'true' },
-          annotations+: {
-            'magicentry.rs/name': 'Hermes',
-            'magicentry.rs/url': 'https://' + domain,
-            'magicentry.rs/realms': 'admin',
-            'magicentry.rs/oidc_redirect_urls': 'https://%s/auth/callback' % domain,
-          },
-        },
-      },
     },
 
   apiKey:
@@ -232,13 +271,8 @@ local managedConfig = {
       { namespace: 'hermes-workspace', labels: { 'app.kubernetes.io/name': 'workspace' }, ports: [{ port: 22 }] },
       { namespace: namespace, labels: { 'app.kubernetes.io/name': 'browser' }, ports: [{ port: 9222 }] },
     ] + mcp.hermesEgress.endpoints,
-    // auth.dzerv.art (dashboard OIDC token/JWKS calls) resolves to the nodes'
-    // public IPs, which Cilium identifies as host/remote-node, not by FQDN
-    entities: [{ entities: ['host', 'remote-node'], ports: [{ port: 443 }] }],
   }),
 
-  // Only Traefik, for the dashboard
-  ingress: netpol.onlyFromNamespaces('hermes-ingress', namespace, { 'app.kubernetes.io/name': 'hermes' }, ['traefik'], [
-    { fromEndpoints: [{ matchLabels: { 'app.kubernetes.io/name': 'workspace-ui', app: 'workspace-ui' } }] },
-  ]),
+  // Only Traefik, for the UI; the UI is in this pod so it needs no policy of its own
+  ingress: netpol.onlyFromNamespaces('hermes-ingress', namespace, { 'app.kubernetes.io/name': 'hermes' }, ['traefik']),
 }

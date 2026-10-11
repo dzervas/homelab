@@ -11,9 +11,10 @@ matrix:
   image:
     # - netshoot
     - affine
-    - hermes
-    - hermes-workspace
+    # - hermes
+    # - hermes-workspace
     - kagi-mcp
+    - openclaw
 
 steps:
   - name: publish-image

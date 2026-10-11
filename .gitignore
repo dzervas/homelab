@@ -30,3 +30,6 @@
 !/lib/helpers
 !/lib/docker-service
 !/lib/**.libsonnet
+!/docker
+!/docker/*
+!/docker/*/*
