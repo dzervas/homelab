@@ -6,6 +6,8 @@ local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
+local mcp = import '../mcp/main.jsonnet';
+
 local cnp = cilium.cilium.v2.ciliumNetworkPolicy;
 local password = externalSecrets.generators.v1alpha1.password;
 local externalSecret = externalSecrets.nogroup.v1.externalSecret;
@@ -17,7 +19,7 @@ local image = 'ghcr.io/openclaw/openclaw:latest-browser';
 local labels = { 'app.kubernetes.io/name': 'openclaw' };
 local nsKey = 'k8s:io.kubernetes.pod.namespace';
 
-// Bootstrap once: subsequent UI/agent config edits survive restarts
+// Bootstrap once; shared MCP entries are refreshed on startup, other UI/agent edits survive
 // Existing PVCs must set gateway.auth to { mode: 'token' } before this rollout
 local config = {
   gateway: {
@@ -41,6 +43,12 @@ local config = {
       },
     },
   },
+  mcp: {
+    servers: {
+      [name]: mcp.config[name] { transport: 'streamable-http', enabled: true }
+      for name in std.objectFields(mcp.config)
+    },
+  },
   browser: {
     enabled: true,
     headless: true,
@@ -58,6 +66,19 @@ local start = |||
   if [ ! -f "$OPENCLAW_CONFIG_PATH" ]; then
     install -m 600 /etc/openclaw-bootstrap/openclaw.json "$OPENCLAW_CONFIG_PATH"
   fi
+  # Refresh managed MCP entries on retained volumes without replacing user settings
+  node --input-type=commonjs <<'NODE'
+  const fs = require('node:fs');
+  const path = process.env.OPENCLAW_CONFIG_PATH;
+  const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+  const managed = JSON.parse(fs.readFileSync('/etc/openclaw-bootstrap/openclaw.json', 'utf8'));
+  config.mcp = { ...config.mcp, servers: { ...config.mcp?.servers, ...managed.mcp.servers } };
+  fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n', { mode: 0o600 });
+  NODE
+  # Restore private permissions after fsGroup handling on the retained volume
+  printf '%s\n' "$GIT_CREDENTIALS" > "$HOME/.git-credentials"
+  chmod 600 "$HOME/.git-credentials"
+  git config --global credential.helper store
   # Preserve the official entrypoint's retained-volume migrations after seeding
   exec node /app/docker-entrypoint.mjs node /app/openclaw.mjs gateway
 |||;
@@ -84,10 +105,23 @@ local probe(path) = {
     + lab.withServiceName('openclaw')
     + lab.withPV('/data', { name: 'data', size: '20Gi' })
     + lab.withVpnHttp(18789, domain)
-    + lab.withPodLabels({ 'ai/enable': 'true' })
+    + lab.withPodLabels({ 'ai/enable': 'true', 'mcp/enable': 'true' })
     + lab.withConfigMapMount('/etc/openclaw-bootstrap', 'openclaw-bootstrap')
     + lab.withArgs(['sh', '-ec', start])
     + lab.withSecretEnv({ OPENCLAW_GATEWAY_TOKEN: { name: authSecretName, key: 'token' } })
+    // Reuse the Forgejo bot credentials previously supplied to Hermes' workspace
+    + lab.withExternalSecretEnvs('openclaw-git', { GIT_CREDENTIALS: 'git-credentials' }, {
+      store: '1password',
+      remoteKey: 'hermes-workspace',
+    })
+    + std.foldl(
+      function(acc, env) acc + lab.withExternalSecretEnvs(mcp.tokens[env][0] + '-op', { [env]: mcp.tokens[env][1] }, {
+        store: '1password',
+        remoteKey: mcp.tokens[env][0],
+      }),
+      std.objectFields(mcp.tokens),
+      {},
+    )
     + lab.withEnv({
       TZ: timezone,
       HOME: '/data',
@@ -143,7 +177,11 @@ local probe(path) = {
   egress: netpol.egress('openclaw-egress', namespace, labels, {
     dnsNames: ['*'],
     cidrs: [netpol.internet],
-    endpoints: [{ namespace: 'cliproxyapi', labels: { 'app.kubernetes.io/name': 'cliproxyapi' }, ports: [{ port: 8317 }] }],
+    endpoints: [
+      { namespace: 'cliproxyapi', labels: { 'app.kubernetes.io/name': 'cliproxyapi' }, ports: [{ port: 8317 }] },
+      netpol.traefikVpn,  // git.vpn.dzerv.art resolves to Traefik's private VPN address
+    ] + mcp.clientEgress.endpoints,
+    fqdns: mcp.clientEgress.fqdns,
   }),
 
   ingress:

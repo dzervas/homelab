@@ -1,4 +1,4 @@
-// MCP servers Hermes connects to. To add one, add an entry to `servers`:
+// Shared MCP servers for pods labeled mcp/enable: 'true'. To add one, add an entry to `servers`:
 //
 //   Hosted (someone else runs it):
 //     name: { url: 'https://…/mcp', fqdn: 'host', token: true }   token: send a bearer token
@@ -7,15 +7,16 @@
 //             egress: netpol.egress opts, arch: 'amd64' }
 //
 // Tokens and secrets come from the 1Password item `mcp-<name>`:
-//   hosted: field `token`, sent as `Authorization: Bearer …` by Hermes
+//   hosted: field `token`, sent as `Authorization: Bearer …` by the client
 //   self-hosted: the fields named in `secrets`, env vars of the MCP pod only
+local affinity = import 'helpers/affinity.libsonnet';
 local netpol = import 'helpers/netpol.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
-local affinity = import 'helpers/affinity.libsonnet';
+
+local networkPolicy = k.networking.v1.networkPolicy;
 
 local namespace = 'mcp';
-local hermesNamespace = 'hermes';
 
 local servers = {
   // github: { url: 'https://api.githubcopilot.com/mcp/', fqdn: 'api.githubcopilot.com', token: true },
@@ -39,15 +40,15 @@ local servers = {
   //   egress: { fqdns: [{ pattern: '*.grafana.net' }] },
   // },
 
-  // kagi: {
-  //   image: 'git.vpn.dzerv.art/dzervas/homelab/kagi-mcp:latest',
-  //   port: 8000,
-  //   secrets: { KAGI_SESSION_TOKEN: 'url' },
-  //   egress: { fqdns: [{ pattern: '*.kagi.com' }] },
-  // },
+  kagi: {
+    image: 'git.vpn.dzerv.art/dzervas/homelab/kagi-mcp:latest',
+    port: 8000,
+    secrets: { KAGI_SESSION_TOKEN: 'token' },
+    egress: { fqdns: [{ pattern: '*.kagi.com' }] },
+  },
 
-  // Single-arch image. Serves every caller with its own token, so only Hermes
-  // may reach it (see ingress below). Field: token (Forgejo bot user)
+  // Single-arch image. All opted-in callers share the server's Forgejo bot token
+  // Field: token (Forgejo bot user)
   forgejo: {
     image: 'git.b4mad.industries/agentic-forges/forgejo-mcp:latest',
     port: 8080,
@@ -74,7 +75,7 @@ local isHosted(s) = std.objectHas(s, 'url');
 local tokenEnv(name) = 'MCP_%s_TOKEN' % std.asciiUpper(name);
 
 // A self-hosted server: Deployment + Service, egress default-deny plus its
-// own allowances, ingress only from Hermes
+// own allowances, ingress from opted-in client pods
 local pod(name, s) = {
   server:
     lab.new(name, s.image)
@@ -92,7 +93,15 @@ local pod(name, s) = {
     } + (if std.objectHas(s, 'arch') then { nodeSelector: { 'kubernetes.io/arch': s.arch } } else {}) } } } },
 
   egress: netpol.egress(name + '-egress', namespace, { 'app.kubernetes.io/name': name }, std.get(s, 'egress', {})),
-  ingress: netpol.onlyFromNamespaces(name + '-ingress', namespace, { 'app.kubernetes.io/name': name }, [hermesNamespace]),
+  ingress:
+    networkPolicy.new(name + '-ingress')
+    + networkPolicy.metadata.withNamespace(namespace)
+    + networkPolicy.spec.podSelector.withMatchLabels({ 'app.kubernetes.io/name': name })
+    + networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + networkPolicy.spec.withIngress([{
+      from: [{ namespaceSelector: {}, podSelector: { matchLabels: { 'mcp/enable': 'true' } } }],
+      ports: [{ port: s.port, protocol: 'TCP' }],
+    }]),
 };
 
 {
@@ -101,6 +110,7 @@ local pod(name, s) = {
     namespace:
       k.core.v1.namespace.new(namespace)
       + k.core.v1.namespace.metadata.withLabels({
+        forgejoCreds: 'enabled',
         'pod-security.kubernetes.io/enforce': 'restricted',
         'pod-security.kubernetes.io/enforce-version': 'latest',
       }),
@@ -127,8 +137,8 @@ local pod(name, s) = {
     if isHosted(servers[name]) && std.get(servers[name], 'token', false)
   },
 
-  // What the Hermes pod's egress policy must allow
-  hermesEgress:: {
+  // What each client pod's egress policy must allow
+  clientEgress:: {
     fqdns: [{ name: servers[name].fqdn } for name in std.objectFields(servers) if isHosted(servers[name])],
     endpoints: [
       { namespace: namespace, labels: { 'app.kubernetes.io/name': name }, ports: [{ port: servers[name].port }] }

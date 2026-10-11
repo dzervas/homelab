@@ -2,11 +2,11 @@
 	"apiVersion": "tanka.dev/v1alpha1",
 	"kind": "Environment",
 	"metadata": {
-		"name": "envs/hermes"
+		"name": "envs/mcp"
 	},
 	"spec": {
 		"contextNames": ["gr"],
-		"namespace": "hermes",
+		"namespace": "mcp",
 		"injectLabels": true,
 		"applyStrategy": "server",
 		"resourceDefaults": {},

@@ -118,4 +118,13 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
   //     networkPolicyIngressRule.withFrom([{ namespaceSelector: {} }]),
   //   ]),
 
+  // runsc is registered on every node by nixos/rke2/containerd.nix
+  gvisor: {
+    apiVersion: 'node.k8s.io/v1',
+    kind: 'RuntimeClass',
+    metadata: { name: 'gvisor', annotations: { 'tanka.dev/namespaced': 'false' } },
+    handler: 'runsc',
+    overhead: { podFixed: { cpu: '50m', memory: '64Mi' } },
+    scheduling: { nodeSelector: { 'gvisor-runtime': 'running' } },
+  },
 }
