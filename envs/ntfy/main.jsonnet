@@ -16,9 +16,10 @@ local namespace = 'ntfy';
 local domain = 'ntfy.vpn.dzerv.art';
 local authReader = 'ntfy-hermes-auth-reader';
 local users = [
-  { name: 'dzervas', access: ['hermes:ro'] },
+  { name: 'dzervas', access: ['hermes:ro', 'forgejo:ro'] },
   // Hermes' adapter always subscribes; isolate that stream from outgoing notifications
   { name: 'hermes', access: ['hermes:wo', 'hermes-in:ro'] },
+  { name: 'forgejo', access: ['forgejo:wo'] },
 ];
 
 {
@@ -29,6 +30,7 @@ local users = [
     + lab.withType('StatefulSet')
     + lab.withArgs(['serve'])
     + lab.withPV('/var/lib/ntfy', { name: 'data', size: '1Gi' })
+    + lab.withConfigMapMount('/etc/ntfy/templates', 'ntfy-templates')
     + lab.withVpnHttp(8080, domain)
     + lab.withSecretEnv({
       ['NTFY_USER_%d' % i]: { name: 'ntfy-' + users[i].name + '-auth', key: 'user' }
@@ -50,6 +52,32 @@ local users = [
       NTFY_AUTH_ACCESS: std.join(',', [user.name + ':' + access for user in users for access in user.access]),
       NTFY_ENABLE_LOGIN: 'true',
       TZ: timezone,
+    }),
+
+  templates:
+    k.core.v1.configMap.new('ntfy-templates', {
+      'forgejo.yml': std.manifestYamlDoc({
+        title: |||
+          {{- if .pull_request -}}
+          🔧 PR {{ .action }}: {{ .pull_request.title }}
+          {{- else if .release -}}
+          🚀 Release {{ .action }}: {{ .release.tag_name }}
+          {{- else if .run -}}
+          {{ if eq .action "failure" -}}💥 {{ else if eq .action "recover" -}}🔁 {{ else if eq .action "success" -}}✅ {{ end -}}
+          CI {{ if eq .action "failure" }}Failure{{ else if eq .action "recover" }}Recovery{{ else if eq .action "success" }}Success{{ end }}: {{ .run.title }}
+          {{- end }}
+        |||,
+        message: |||
+          {{- if .pull_request -}}
+          {{ .pull_request.html_url }}
+          {{- else if .release -}}
+          {{ .release.html_url }}
+          {{- else if .run -}}
+          {{ .run.html_url }}
+          {{- end }}
+        |||,
+        priority: '{{ if eq .action "failure" }}4{{ else }}3{{ end }}',
+      }),
     }),
 
   // ntfy requires tk_ plus exactly 29 alphanumeric characters
@@ -131,6 +159,10 @@ local users = [
   ingress: netpol.onlyFromNamespaces('ntfy-ingress', namespace, { 'app.kubernetes.io/name': 'ntfy' }, ['traefik'], [
     {
       fromEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'hermes', 'app.kubernetes.io/name': 'hermes' } }],
+      toPorts: [{ ports: [{ port: '8080', protocol: 'TCP' }] }],
+    },
+    {
+      fromEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'forgejo', 'app.kubernetes.io/name': 'forgejo' } }],
       toPorts: [{ ports: [{ port: '8080', protocol: 'TCP' }] }],
     },
   ]),

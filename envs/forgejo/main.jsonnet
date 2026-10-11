@@ -1,9 +1,12 @@
+local nativeRunner = import './native-runner.libsonnet';
 local runner = import './runner.libsonnet';
 local woodpecker = import './woodpecker.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
+local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 local statefulSet = k.apps.v1.statefulSet;
 local container = k.core.v1.container;
 
@@ -29,7 +32,7 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
       FORGEJO__actions__ENABLED: 'true',
       FORGEJO__service__REQUIRE_SIGNIN_VIEW: 'false',
 
-      FORGEJO__webhook__ALLOWED_HOST_LIST: 'woodpecker-server',
+      FORGEJO__webhook__ALLOWED_HOST_LIST: 'woodpecker-server,ntfy.ntfy.svc',
       TZ: timezone,
     })
     // Idempotent offline registration of the shared forgejo-runner identity.
@@ -51,4 +54,4 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
       |||])
     )
     + { workload+: statefulSet.mapContainers(function(c) c { imagePullPolicy: 'Always' }) },
-} + woodpecker + runner
+} + woodpecker + runner  // + nativeRunner(image)
