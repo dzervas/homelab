@@ -104,6 +104,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/jsonnet-libs/keda-libsonnet.git",
+          "subdir": ""
+        }
+      },
+      "version": "dc2d8bbd2472d81138c76b71f34d59fc4cc21df7",
+      "sum": "YTSHSPWEYbzPzHuU3iRNVsEU/ghJ5thwt5TNQzMENyU="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/prometheus-operator-libsonnet.git",
           "subdir": ""
         }

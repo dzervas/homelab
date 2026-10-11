@@ -9,10 +9,7 @@ when:
 
 matrix:
   image:
-    # - netshoot
     - affine
-    # - hermes
-    # - hermes-workspace
     - kagi-mcp
     - openclaw
 

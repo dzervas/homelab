@@ -54,4 +54,4 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
       |||])
     )
     + { workload+: statefulSet.mapContainers(function(c) c { imagePullPolicy: 'Always' }) },
-} + woodpecker + runner  // + nativeRunner(image)
+} + woodpecker + runner + nativeRunner

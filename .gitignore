@@ -12,6 +12,9 @@
 !/.agents/skills/**
 !/.woodpecker
 !/.woodpecker/*.yaml
+!/.forgejo
+!/.forgejo/workflows
+!/.forgejo/workflows/*.yaml
 !/nixos
 !/nixos/flake.lock
 !/nixos/hosts

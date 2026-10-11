@@ -1,0 +1,13 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": { "name": "envs/keda" },
+  "spec": {
+    "contextNames": ["gr"],
+    "namespace": "keda",
+    "injectLabels": true,
+    "applyStrategy": "server",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

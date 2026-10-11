@@ -24,11 +24,19 @@ RUN set -eu; \
       -o /kagi; \
     chmod 0755 /kagi
 
-FROM debian:trixie-slim
+FROM node:24-trixie-slim
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Refresh the cached install when npm publishes a new stable release
+# Stable releases do not yet include the standalone binaries advertised on main
+ADD https://registry.npmjs.org/supergateway/latest /tmp/supergateway-release.json
+RUN npm install --global "supergateway@$(node -p 'require("/tmp/supergateway-release.json").version')" \
+    && npm cache clean --force \
+    && rm /tmp/supergateway-release.json \
+    && supergateway --version
 
 COPY --from=download /kagi /usr/local/bin/kagi
 
@@ -40,12 +48,8 @@ ENV HOME=/tmp/kagi \
 USER 10001:10001
 WORKDIR /tmp
 
-ENTRYPOINT ["/usr/local/bin/kagi"]
-CMD ["mcp"]
-
-# Built as kagi-mcp:local by docker-mcp-builder.service
-# (home/pi-mcp-gateway.nix). One-time setup:
-# docker mcp secret set kagi.session_token
-# docker mcp profile server add pi --server file://pi-kagi.yaml
-# systemctl --user restart pi-mcp-gateway
-# docker mcp profile tools pi --disable kagi.kagi_extract --disable kagi.kagi_fastgpt --disable kagi.kagi_enrich_web --disable kagi.kagi_enrich_news --disable kagi.kagi_history_list --disable kagi.kagi_history_stats --disable kagi.kagi_site_pref_list --disable kagi.kagi_assistant_custom_list --disable kagi.kagi_lens_list --disable kagi.kagi_custom_bang_list --disable kagi.kagi_redirect_list --disable kagi.kagi_auth_check
+# The child inherits KAGI_SESSION_TOKEN; clients receive tools, not the token
+# For direct stdio clients, override the entrypoint with /usr/local/bin/kagi
+EXPOSE 8000
+ENTRYPOINT ["supergateway"]
+CMD ["--stdio", "/usr/local/bin/kagi mcp", "--outputTransport", "streamableHttp", "--stateful", "--port", "8000", "--streamableHttpPath", "/mcp"]
