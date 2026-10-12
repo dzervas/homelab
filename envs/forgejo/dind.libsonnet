@@ -1,4 +1,4 @@
-// Proven in envs/forgejo-dind-canary on AMD64 and ARM64; shared bootstrap, not a production dependency on that env
+// Baseline proved in envs/forgejo-dind-canary on AMD64/ARM64; later xattr workaround still needs live acceptance
 {
   // Last Docker 29 patch with runc 1.3.5; 29.6+ mask mounts need unsupported tmpfs options (gVisor#13670)
   // gVisor release-20260714.0 adds nr_blocks/nr_inodes and removes this blocker; retest before repinning
@@ -29,10 +29,14 @@
     iptables-legacy -t nat -A POSTROUTING -o "$interface" -j SNAT --to-source "$address" -p udp
 
     # Vfs disk is a bounded correctness baseline, not a production performance approval
+    # Gofer rejects security.* writes: best-effort drops unsupported xattrs, including file capabilities
+    # Capability-dependent programs may fail; retest the real job image on both architectures
+    # TODO: Test disk-backed gVisor overlay and Docker overlayfs separately, preserving xattrs without image-sized RAM
     # Literal dockerd avoids the entrypoint's unauthenticated TCP listener; no managed port publishing
     exec dockerd-entrypoint.sh dockerd \
       --host="$DOCKER_HOST" --group=1000 \
       --iptables=false --ip6tables=false --mtu="$mtu" \
-      --feature containerd-snapshotter=false --storage-driver=vfs
+      --feature containerd-snapshotter=false --storage-driver=vfs \
+      --storage-opt vfs.xattrs=i_want_broken_containers
   |||,
 }

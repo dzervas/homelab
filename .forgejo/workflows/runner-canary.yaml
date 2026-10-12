@@ -3,6 +3,13 @@ name: Staged Docker runner acceptance
 # No push/PR trigger and no production labels: promotion is a separate explicit cutover
 on:
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: success runs normally; failure exits deliberately; cancellation waits for UI cancel
+        required: false
+        default: success
+        type: choice
+        options: [success, failure, cancellation]
 
 jobs:
   acceptance:
@@ -11,7 +18,8 @@ jobs:
       matrix:
         arch: [amd64, arm64]
     runs-on: k8s-canary-${{ matrix.arch }}
-    timeout-minutes: 15
+    # Cold image pulls and service/container setup consume this budget, especially on ARM64
+    timeout-minutes: 30
     services:
       web:
         image: nginx:alpine
@@ -65,8 +73,34 @@ jobs:
       - name: Docker-container Action
         uses: docker://alpine:3.23
         with:
-          args: sh -ec 'test -f /github/workspace/.runner-canary/js/index.js; echo RUNNER_DOCKER_ACTION_PASS'
+          args: sh -ec 'test -f "$GITHUB_WORKSPACE/.runner-canary/js/index.js"; echo RUNNER_DOCKER_ACTION_PASS'
+      - name: Deliberate lifecycle scenario
+        env:
+          SCENARIO: ${{ inputs.scenario }}
+        run: |
+          set -eu
+          case "${SCENARIO:-success}" in
+            success) ;;
+            failure)
+              echo RUNNER_CANARY_FORCED_FAILURE
+              exit 1
+              ;;
+            cancellation)
+              echo RUNNER_CANARY_CANCEL_READY
+              # Cancel in the Forgejo UI after BOTH architecture jobs reach this marker.
+              # Allow 20 minutes for the slower architecture; the total 30-minute deadline still applies.
+              remaining=120
+              while [ "$remaining" -gt 0 ]; do
+                sleep 10
+                remaining=$((remaining - 1))
+              done
+              echo RUNNER_CANARY_CANCEL_INCONCLUSIVE_NOT_CANCELLED
+              exit 1
+              ;;
+            *) echo RUNNER_CANARY_INVALID_SCENARIO; exit 1 ;;
+          esac
       - name: Acceptance marker
         run: echo 'RUNNER_ACTIONS_CANARY_PASS ${{ matrix.arch }}'
-      # The human live gate must also inspect Job completion, DinD termination, scale-to-zero
-      # and registration cleanup; this marker alone does not prove lifecycle or storage capacity
+      # For success/failure/cancel, collect each Pod completion/status and DinD termination,
+      # then zero queue/worker Pods and no site-wide or project runner identities. Markers
+      # are not lifecycle/storage proof. No-task/startup/API interruption remain unproved.

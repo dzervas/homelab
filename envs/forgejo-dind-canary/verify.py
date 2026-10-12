@@ -71,6 +71,9 @@ for job in jobs:
     assert next(e['value'] for e in tester['env'] if e['name'] == 'EXPECTED_ARCH') == arch
 
 scripts = next(o['data'] for o in objects if o['kind'] == 'ConfigMap')
+assert '--storage-driver=vfs' in scripts['start-dockerd.sh']
+assert '--storage-opt vfs.xattrs=i_want_broken_containers' in scripts['start-dockerd.sh']
+assert 'Extended file attributes' in scripts['test-dind.sh'] and 'best-effort' in scripts['test-dind.sh']
 for script in ['start-dockerd.sh', 'test-dind.sh']:
     with tempfile.NamedTemporaryFile(mode='w+', suffix='.sh') as source:
         source.write(scripts[script])

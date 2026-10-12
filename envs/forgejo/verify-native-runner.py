@@ -26,6 +26,7 @@ objects = list(resources(root))
 by_name = {(o["kind"], o["metadata"]["name"]): o for o in objects}
 ns = by_name["Namespace", "forgejo-runners"]
 assert ns["metadata"]["labels"]["pod-security.kubernetes.io/enforce"] == "privileged"
+assert ns["metadata"]["labels"]["ghcrCreds"] == "enabled"
 policy = by_name["ValidatingAdmissionPolicy", "forgejo-native-job-security"]["spec"]
 assert policy["failurePolicy"] == "Fail"
 assert policy["matchConstraints"]["namespaceSelector"]["matchLabels"] == {
@@ -53,6 +54,12 @@ for arch in ["amd64", "arm64"]:
     volumes = {v["name"]: v for v in spec["volumes"]}
     assert volumes["dind-socket"]["emptyDir"] == {"medium": "Memory", "sizeLimit": "16Mi"}
     assert volumes["docker-data"]["emptyDir"] == {"sizeLimit": "8Gi"}
+    assert spec["securityContext"]["fsGroup"] == 1000
+    assert volumes["registry-auth"]["secret"] == {
+        "secretName": "ghcr-cluster-secret",
+        "items": [{"key": ".dockerconfigjson", "path": "config.json"}],
+        "defaultMode": 0o440,
+    }
     assert not any("hostPath" in v or "persistentVolumeClaim" in v for v in volumes.values())
     daemon, register = spec["initContainers"]
     assert daemon["name"] == "dind" and daemon["image"] == "docker:29.5.3-dind"
@@ -85,6 +92,14 @@ for arch in ["amd64", "arm64"]:
     assert next(e["value"] for e in register["env"] if e["name"] == "RUNNER_LABELS").split(",") == [label + ":docker://" + job_image for label in labels]
     assert all(label + ":docker://" + job_image in config for label in labels)
     worker_mounts = {m["name"]: m for m in worker["volumeMounts"]}
+    assert worker_mounts["registry-auth"] == {
+        "name": "registry-auth", "mountPath": "/run/secrets/registry-auth", "readOnly": True,
+    }
+    assert next(e["value"] for e in worker["env"] if e["name"] == "DOCKER_CONFIG") == "/run/secrets/registry-auth"
+    for c in [daemon, register]:
+        assert "registry-auth" not in {m["name"] for m in c["volumeMounts"]}
+        assert not any(e["name"] == "DOCKER_CONFIG" for e in c["env"])
+    assert "DOCKER_CONFIG" not in config, "Registry auth must not enter workflow runner.envs"
     assert worker_mounts["runner-config"] == {"name": "runner-config", "mountPath": "/runner-state", "readOnly": True}
     if args.cache_enabled:
         assert '"enabled": true' in config
@@ -135,7 +150,7 @@ api_ingress = by_name["CiliumNetworkPolicy", "forgejo-runners"]["spec"]["ingress
 assert all(ep["matchLabels"]["k8s:io.kubernetes.pod.namespace"] == "traefik" for rule in api_ingress for ep in rule["fromEndpoints"])
 script = by_name["ConfigMap", "forgejo-dind-startup"]["data"]["start-dockerd.sh"]
 subprocess.run(["sh", "-n"], input=script.encode(), check=True)
-for required in ["--group=1000", "--iptables=false", "--storage-driver=vfs", "--feature containerd-snapshotter=false"]:
+for required in ["--group=1000", "--iptables=false", "--storage-driver=vfs", "--feature containerd-snapshotter=false", "--storage-opt vfs.xattrs=i_want_broken_containers"]:
     assert required in script
 assert "2375" not in script and "tcp://" not in script
 # Rollback and cache ownership survive replacement template changes

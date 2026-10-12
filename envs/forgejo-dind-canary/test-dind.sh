@@ -10,7 +10,8 @@ trap cleanup EXIT
 docker version
 docker buildx version
 [ "$(docker info --format '{{.Driver}}')" = vfs ]
-echo 'PASS: cross-container Docker socket and classic vfs storage'
+[ "$(docker info --format '{{range .DriverStatus}}{{if eq (index . 0) "Extended file attributes"}}{{index . 1}}{{end}}{{end}}')" = best-effort ]
+echo 'PASS: cross-container Docker socket and classic vfs storage with best-effort xattrs'
 
 case "$EXPECTED_ARCH" in
   amd64) expected_machine=x86_64 ;;

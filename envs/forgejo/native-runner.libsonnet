@@ -26,6 +26,8 @@ local policy = jobPolicy(jobNamespace, dind=true);
 local startupConfig = 'forgejo-dind-startup';
 // Verified AMD64/ARM64 Ubuntu 24.04 LTS workflow tools: Node 24/20, Git, tar, Docker CLI and bundled Buildx
 // This is the job tool image, not a claim that the separately pinned Docker 29.5.3 daemon is LTS
+// Live ARM64 pull failed restoring gst-ptp-helper's security.capability; shared DinD now uses best-effort xattrs
+// Keep Actions acceptance blocked until the lossy workaround is proved with the real image on both arches
 local jobImage = 'ghcr.io/catthehacker/ubuntu:act-24.04@sha256:62d572b92f9f32d3427b6d220ad1f9dca9c7b6ffad37d295425037dbff78abaf';
 // Flip to k8s only after both-architecture Actions/cache/lifecycle acceptance and explicit production cutover
 local labelPrefix = 'k8s-canary';
@@ -76,6 +78,10 @@ local runnerPod(arch) =
     volume.fromEmptyDir('docker-data') + volume.emptyDir.withSizeLimit('8Gi'),
     volume.fromConfigMap('dind-startup', startupConfig),
     volume.fromConfigMap(configName(arch), configName(arch)),
+    // Stock Runner supplies Docker pull auth; imagePullSecrets only apply to kubelet pulls
+    volume.fromSecret('registry-auth', 'ghcr-cluster-secret')
+    + volume.secret.withItems([{ key: '.dockerconfigjson', path: 'config.json' }])
+    + volume.secret.withDefaultMode(288),  // 0440; readable by the stock Runner through fsGroup 1000
   ] + if cacheEnabled then [
     // Only Runner sees the signing key and its generated private config
     volume.fromSecret('cache-signing', cache.secretName)
@@ -157,6 +163,7 @@ local runnerPod(arch) =
       volumeMount.new(configName(arch), '/config', true),
       volumeMount.new('runner-data', '/data'),
       volumeMount.new('dind-socket', '/run/dind'),
+      volumeMount.new('registry-auth', '/run/secrets/registry-auth', true),
     ] + if cacheEnabled then [
       volumeMount.new('cache-signing', cache.secretPath, true),
       volumeMount.new('private-config', '/runner-config'),
@@ -166,6 +173,8 @@ local runnerPod(arch) =
     + container.resources.withLimits({ cpu: '2', memory: '2Gi', 'ephemeral-storage': '4Gi' })
     + container.withEnvMap({
       HOME: '/data',
+      // Process environment, not runner.envs: workflows must not receive the registry config
+      DOCKER_CONFIG: '/run/secrets/registry-auth',
       DOCKER_HOST: dind.socket,
       TZ: timezone,
     }),
@@ -178,6 +187,7 @@ local runnerPod(arch) =
     + k.core.v1.namespace.metadata.withLabels({
       'pod-security.kubernetes.io/enforce': 'privileged',
       'pod-security.kubernetes.io/enforce-version': 'latest',
+      ghcrCreds: 'enabled',
     }),
 
   // Retain the quota identity; cap six non-terminal Pods (KEDA counts its minimum separately)
