@@ -17,9 +17,10 @@ concurrency:
 permissions:
   contents: read
 
-# Native host runners supply Node, Git and the Docker CLI, but no Docker daemon.
-# Variables: BUILDKIT_AMD64_ENDPOINT / BUILDKIT_ARM64_ENDPOINT (tcp://certificate-hostname:port).
-# Secrets: forgejo_token (package write), BUILDKIT_CA, BUILDKIT_CLIENT_CERT, BUILDKIT_CLIENT_KEY.
+# Job toolchain must supply Node, Git, tar, Docker CLI and its bundled Buildx plugin.
+# Build-only variables: BUILDKIT_AMD64_ENDPOINT / BUILDKIT_ARM64_ENDPOINT (tcp://certificate-hostname:port).
+# Publish needs only forgejo_token (package write); builds also need
+# BUILDKIT_CA, BUILDKIT_CLIENT_CERT and BUILDKIT_CLIENT_KEY.
 # Remote workers must persist their BuildKit state for layer caching across job Pods.
 env:
   REGISTRY: git.vpn.dzerv.art
@@ -126,44 +127,29 @@ jobs:
         image: ${{ fromJSON(needs.changes.outputs.images) }}
     env:
       DOCKER_CONFIG: /tmp/docker-config
-      # Setup connects to a worker; imagetools itself only needs registry access.
-      BUILDKIT_ENDPOINT: ${{ vars.BUILDKIT_AMD64_ENDPOINT }}
     steps:
+      # Use the plugin bundled with the Docker CLI toolchain, not setup-buildx:
+      # that action creates/boots a builder even though imagetools is registry-only.
+      - name: Require Buildx CLI
+        run: docker buildx version
       - uses: https://github.com/docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ forgejo.repository_owner }}
           password: ${{ secrets.forgejo_token }}
-      - name: Require authenticated BuildKit
-        env:
-          BUILDKIT_CA: ${{ secrets.BUILDKIT_CA }}
-          BUILDKIT_CLIENT_CERT: ${{ secrets.BUILDKIT_CLIENT_CERT }}
-          BUILDKIT_CLIENT_KEY: ${{ secrets.BUILDKIT_CLIENT_KEY }}
-        run: |
-          : "${BUILDKIT_CA:?Missing BUILDKIT_CA}"
-          : "${BUILDKIT_CLIENT_CERT:?Missing BUILDKIT_CLIENT_CERT}"
-          : "${BUILDKIT_CLIENT_KEY:?Missing BUILDKIT_CLIENT_KEY}"
-          case "$BUILDKIT_ENDPOINT" in
-            tcp://*) ;;
-            *) echo 'Configure BUILDKIT_AMD64_ENDPOINT'; exit 1 ;;
-          esac
-      - uses: https://github.com/docker/setup-buildx-action@v3
-        env:
-          BUILDER_NODE_0_AUTH_TLS_CACERT: ${{ secrets.BUILDKIT_CA }}
-          BUILDER_NODE_0_AUTH_TLS_CERT: ${{ secrets.BUILDKIT_CLIENT_CERT }}
-          BUILDER_NODE_0_AUTH_TLS_KEY: ${{ secrets.BUILDKIT_CLIENT_KEY }}
-        with:
-          driver: remote
-          endpoint: ${{ env.BUILDKIT_ENDPOINT }}
-          cache-binary: false
       - name: Publish multi-architecture latest tag
         # Configure registry retention for build-* tags before enabling this workflow.
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ forgejo.repository }}/${{ matrix.image }}
           BUILD_TAG: build-${{ forgejo.run_id }}
         run: |
+          set -eu
+          # Resolve both successful run-specific siblings before mutating latest.
+          # Do not use run_attempt: partial reruns retain older successful siblings.
+          AMD64_DIGEST=$(docker buildx imagetools inspect "$IMAGE:$BUILD_TAG-amd64" --format '{{.Manifest.Digest}}')
+          ARM64_DIGEST=$(docker buildx imagetools inspect "$IMAGE:$BUILD_TAG-arm64" --format '{{.Manifest.Digest}}')
           docker buildx imagetools create \
             --tag "$IMAGE:latest" \
-            "$IMAGE:$BUILD_TAG-amd64" \
-            "$IMAGE:$BUILD_TAG-arm64"
+            "$IMAGE@$AMD64_DIGEST" \
+            "$IMAGE@$ARM64_DIGEST"
           docker buildx imagetools inspect "$IMAGE:latest"

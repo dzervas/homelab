@@ -127,4 +127,15 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
     overhead: { podFixed: { cpu: '50m', memory: '64Mi' } },
     scheduling: { nodeSelector: { 'gvisor-runtime': 'running' } },
   },
+
+  // DinD needs sandbox packet writes; ordinary gVisor workloads retain their existing handler
+  // TODO: Prove Docker 29 networking/storage on both architectures before promoting CI runners
+  gvisorDind: {
+    apiVersion: 'node.k8s.io/v1',
+    kind: 'RuntimeClass',
+    metadata: { name: 'gvisor-dind', annotations: { 'tanka.dev/namespaced': 'false' } },
+    handler: 'runsc-dind',
+    overhead: { podFixed: { cpu: '50m', memory: '64Mi' } },
+    scheduling: { nodeSelector: { 'gvisor-dind-runtime': 'running' } },
+  },
 }

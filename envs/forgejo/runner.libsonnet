@@ -1,9 +1,7 @@
-local externalSecrets = import 'external-secrets.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
-local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 local container = k.core.v1.container;
 local deployment = k.apps.v1.deployment;
 
@@ -54,23 +52,6 @@ local runnerConfig = std.manifestYamlDoc({
 });
 
 {
-  forgejoRunnerSecret:
-    externalSecret.new(secretName)
-    + externalSecret.spec.target.template.withData({
-      token: runnerId + '{{ .password | sha1sum | trunc 24 }}',
-      'cache-secret': '{{ .password | sha256sum }}',
-    })
-    + externalSecret.spec.withRefreshPolicy('OnChange')
-    + externalSecret.spec.withDataFrom([{
-      sourceRef: {
-        generatorRef: {
-          apiVersion: 'generators.external-secrets.io/v1alpha1',
-          kind: 'ClusterGenerator',
-          name: 'password',
-        },
-      },
-    }]),
-
   forgejoRunnerConfig: k.core.v1.configMap.new('forgejo-runner-config', { 'config.yml': runnerConfig }),
 
   // Runner + dockerd sidecar, isolated by sysbox instead of privileged mode.
@@ -121,19 +102,4 @@ local runnerConfig = std.manifestYamlDoc({
           } else c),
     },
 
-  forgejoRunnerCache:
-    lab.new('forgejo-runner-cache', runnerImage)
-    + lab.withNamespace('forgejo')
-    + lab.withType('StatefulSet')
-    + lab.withPort({ port: cachePort, name: 'http' })
-    + lab.withPV('/data', { name: 'data', size: '20Gi', storageClassName: 'longhorn-throwaway' })
-    + lab.withEnv({ TZ: timezone })
-    + lab.withSecretEnv({ CACHE_SECRET: { name: secretName, key: 'cache-secret' } })
-    + lab.withArgs([
-      'forgejo-runner',
-      'cache-server',
-      '--dir=/data',
-      '--port=%d' % cachePort,
-      '--secret=$(CACHE_SECRET)',
-    ]),
 }

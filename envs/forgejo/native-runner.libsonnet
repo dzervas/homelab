@@ -1,3 +1,5 @@
+local cache = import './cache-client.libsonnet';
+local dind = import './dind.libsonnet';
 local jobPolicy = import './native-job-policy.libsonnet';
 local cilium = import 'cilium-libsonnet/1.18/main.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
@@ -10,39 +12,53 @@ local pod = k.core.v1.pod;
 local volume = k.core.v1.volume;
 local volumeMount = k.core.v1.volumeMount;
 
-local namespace = 'forgejo';
 local jobNamespace = 'forgejo-runners';
-local forgejoURL = 'http://forgejo.forgejo.svc';
+// Nested Docker workloads can share/sniff the Pod network; encrypt registration and Runner's token headers
+// Public CA TLS via the existing VPN route (Pod CIDR allowed); never disable certificate verification
+local forgejoURL = 'https://git.vpn.dzerv.art';
 // Manually managed in forgejo-runners: registration-token (global) and admin-read-token (read:admin PAT)
 local authSecret = 'forgejo-runner-auth';
-local runnerImage = 'data.forgejo.org/forgejo/runner:13';
-local jobImage = 'data.forgejo.org/oci/node:lts-trixie';
-local configName(arch) = 'forgejo-host-runner-' + arch;
-local runnerLabels(arch) = ['k8s:host', 'k8s-' + arch + ':host'];
+local runnerImage = 'data.forgejo.org/forgejo/runner:13.2.0';
+// Shared compatibility pin and archived/not-LTS warning live beside dind.version
+local dockerVersion = dind.version;
+local dockerImage = 'docker:' + dockerVersion + '-dind';
+local policy = jobPolicy(jobNamespace, dind=true);
+local startupConfig = 'forgejo-dind-startup';
+// Verified AMD64/ARM64 Ubuntu 24.04 LTS workflow tools: Node 24/20, Git, tar, Docker CLI and bundled Buildx
+// This is the job tool image, not a claim that the separately pinned Docker 29.5.3 daemon is LTS
+local jobImage = 'ghcr.io/catthehacker/ubuntu:act-24.04@sha256:62d572b92f9f32d3427b6d220ad1f9dca9c7b6ffad37d295425037dbff78abaf';
+// Flip to k8s only after both-architecture Actions/cache/lifecycle acceptance and explicit production cutover
+local labelPrefix = 'k8s-canary';
+// Compile-time opt-in for cache canaries only; leave disabled until the live cache gate passes
+local cacheEnabled = false;
+local configName(arch) = 'forgejo-docker-runner-' + arch;
+// Generic work belongs only to AMD64 so KEDA pools do not compete for the same queue
+local runnerLabels(arch) = (if arch == 'amd64' then [labelPrefix + ':docker://' + jobImage] else []) + [labelPrefix + '-' + arch + ':docker://' + jobImage];
 local runnerConfig(arch) = std.manifestYamlDoc({
   runner: {
-    file: '/runner-config/.runner',
+    file: '/runner-state/.runner',
     labels: runnerLabels(arch),
     capacity: 1,
+    insecure: false,
     timeout: '3h',
     shutdown_timeout: '30s',
     env_file: '/dev/null',
+    // Stock Runner binds container.docker_host at /var/run/docker.sock inside jobs, not /run/dind
+    envs: { DOCKER_HOST: 'unix:///var/run/docker.sock' } + if cacheEnabled then cache.runnerEnvs else {},
   },
-  cache: { enabled: false },
-  container: { docker_host: '-', workdir_parent: 'workspace' },
-  host: { workdir_parent: '/workspace' },
+  cache: if cacheEnabled then cache.config else { enabled: false },
+  container: { docker_host: dind.socket, workdir_parent: '/workspace', privileged: false, valid_volumes: [] },
 });
 local jobLabels = { app: 'forgejo-keda-runner', 'app.kubernetes.io/managed-by': 'forgejo-keda' };
 local jobSelector = jobLabels { 'k8s:io.kubernetes.pod.namespace': jobNamespace };
-local forgejoSelector = { 'k8s:io.kubernetes.pod.namespace': namespace, app: 'forgejo' };
 local sandbox =
   container.securityContext.withAllowPrivilegeEscalation(false)
   + container.securityContext.capabilities.withDrop(['ALL']);
 
 local runnerPod(arch) =
   pod.metadata.withLabels(jobLabels)
-  + pod.metadata.withAnnotations({ 'checksum/config': std.md5(runnerConfig(arch)) })
-  + pod.spec.withRuntimeClassName('gvisor')  // Shared RuntimeClass is owned by envs/network
+  + pod.metadata.withAnnotations(dind.annotations { 'checksum/config': std.md5(runnerConfig(arch) + dind.startupScript) })
+  + pod.spec.withRuntimeClassName('gvisor-dind')  // Shared RuntimeClass is owned by envs/network
   + pod.spec.withNodeSelector({ 'kubernetes.io/arch': arch })
   + pod.spec.withRestartPolicy('Never')
   + pod.spec.withAutomountServiceAccountToken(false)
@@ -50,44 +66,60 @@ local runnerPod(arch) =
   + pod.spec.withEnableServiceLinks(false)
   + pod.spec.withTerminationGracePeriodSeconds(60)
   + pod.spec.securityContext.seccompProfile.withType('RuntimeDefault')
+  + pod.spec.securityContext.withFsGroup(1000)
   + pod.spec.withVolumes([
-    volume.fromEmptyDir('runner-bin') + volume.emptyDir.withSizeLimit('256Mi'),
-    volume.fromEmptyDir('docker-bin') + volume.emptyDir.withSizeLimit('128Mi'),
     volume.fromEmptyDir('runner-config') + volume.emptyDir.withSizeLimit('1Mi'),
-    volume.fromEmptyDir('workspace') + volume.emptyDir.withSizeLimit('2Gi'),
-    volume.fromEmptyDir('home') + volume.emptyDir.withSizeLimit('512Mi'),
-    volume.fromEmptyDir('tmp') + volume.emptyDir.withSizeLimit('512Mi'),
+    // Runner state/credentials are never mounted in DinD or workflow containers
+    volume.fromEmptyDir('runner-data') + volume.emptyDir.withSizeLimit('1Gi'),
+    volume.fromEmptyDir('dind-socket') + volume.emptyDir.withMedium('Memory') + volume.emptyDir.withSizeLimit('16Mi'),
+    // Cold images and named workflow volumes share a deliberate disk budget; vfs duplicates layers
+    volume.fromEmptyDir('docker-data') + volume.emptyDir.withSizeLimit('8Gi'),
+    volume.fromConfigMap('dind-startup', startupConfig),
     volume.fromConfigMap(configName(arch), configName(arch)),
-  ])
+  ] + if cacheEnabled then [
+    // Only Runner sees the signing key and its generated private config
+    volume.fromSecret('cache-signing', cache.secretName)
+    + volume.secret.withItems([{ key: cache.secretKey, path: cache.secretKey }])
+    + volume.secret.withDefaultMode(288),  // 0440; fsGroup makes it readable by the stock nonroot Runner
+    volume.fromEmptyDir('private-config') + volume.emptyDir.withMedium('Memory') + volume.emptyDir.withSizeLimit('1Mi'),
+  ] else [])
   + pod.spec.withInitContainers([
-    // Both official binaries are static; reuse them in the Node toolbox without a custom image
-    container.new('runner-binaries', runnerImage)
+    // Native sidecar starts before registration and is terminated automatically after the worker exits
+    container.new('dind', dockerImage)
     + sandbox
-    + container.withCommand(['sh', '-ec', 'cp /bin/forgejo-runner /usr/bin/dumb-init /runner-bin/'])
-    + container.withVolumeMounts([volumeMount.new('runner-bin', '/runner-bin')])
-    + container.withEnvMap({ TZ: timezone }),
-
-    // Standard Docker actions need the CLI, not a daemon; remote BuildKit still does the builds
-    container.new('docker-cli', 'docker:29-cli')
-    + sandbox
-    + container.withCommand(['sh', '-ec', 'cp /usr/local/bin/docker /docker-bin/docker'])
-    + container.withVolumeMounts([volumeMount.new('docker-bin', '/docker-bin')])
-    + container.withEnvMap({ TZ: timezone }),
+    + container.securityContext.withAllowPrivilegeEscalation(true)
+    + container.securityContext.capabilities.withAdd(policy.dindCapabilities)
+    + container.securityContext.withRunAsUser(0)
+    + container.securityContext.withRunAsGroup(0)
+    + container.withRestartPolicy('Always')
+    + container.withCommand(['sh', '/scripts/start-dockerd.sh'])
+    + container.withVolumeMounts([
+      volumeMount.new('dind-startup', '/scripts', true),
+      volumeMount.new('dind-socket', '/run/dind'),
+      volumeMount.new('docker-data', '/var/lib/docker'),
+    ])
+    + container.startupProbe.exec.withCommand(['docker', 'info'])
+    + container.startupProbe.withPeriodSeconds(2)
+    + container.startupProbe.withTimeoutSeconds(2)
+    + container.startupProbe.withFailureThreshold(60)
+    + container.resources.withRequests({ cpu: '100m', memory: '128Mi', 'ephemeral-storage': '256Mi' })
+    + container.resources.withLimits({ cpu: '2', memory: '2Gi', 'ephemeral-storage': '10Gi' })
+    + container.withEnvMap({ DOCKER_HOST: dind.socket, DOCKER_TLS_CERTDIR: '', TZ: timezone }),
 
     // Same image USER as the worker so its private .runner file remains readable without extra capabilities.
     // Only this init sees the reusable registration token; stock Runner saves fresh ephemeral credentials.
-    container.new('register', jobImage)
+    container.new('register', runnerImage)
     + sandbox
     + container.withCommand(['sh', '-ec', |||
       : "${REGISTRATION_TOKEN:?registration token is missing}"
-      exec /runner-bin/forgejo-runner --config /config/config.yaml register \
+      umask 077
+      exec /bin/forgejo-runner --config /config/config.yaml register \
         --no-interactive --ephemeral --instance "$FORGEJO_URL" \
         --name "$POD_NAME" --labels "$RUNNER_LABELS" --token "$REGISTRATION_TOKEN"
     |||])
     + container.withVolumeMounts([
-      volumeMount.new('runner-bin', '/runner-bin', true),
       volumeMount.new(configName(arch), '/config', true),
-      volumeMount.new('runner-config', '/runner-config'),
+      volumeMount.new('runner-config', '/runner-state'),
     ])
     + container.withEnv([
       envVar.fromFieldPath('POD_NAME', 'metadata.name'),
@@ -102,32 +134,39 @@ local runnerPod(arch) =
     }),
   ])
   + pod.spec.withContainers([
-    container.new('runner', jobImage)
+    container.new('runner', runnerImage)
     + sandbox
-    + container.withCommand([
-      '/runner-bin/dumb-init',
+    + container.withCommand(if cacheEnabled then [
+      '/usr/bin/dumb-init',
       '--',
-      '/runner-bin/forgejo-runner',
+      'sh',
+      '-ec',
+      cache.prepareConfig + '\nexec /bin/forgejo-runner --config /runner-config/config.yaml one-job',
+    ] else [
+      '/usr/bin/dumb-init',
+      '--',
+      '/bin/forgejo-runner',
       '--config',
       '/config/config.yaml',
+      // Exit on an empty queue so surplus runners drain and KEDA can reconcile
       'one-job',
-      '--wait',
     ])
-    + container.withWorkingDir('/workspace')
+    + container.withWorkingDir('/data')
     + container.withVolumeMounts([
-      volumeMount.new('runner-bin', '/runner-bin', true),
-      volumeMount.new('runner-config', '/runner-config', true),
-      volumeMount.new('docker-bin', '/docker-bin', true),
+      volumeMount.new('runner-config', '/runner-state', true),
       volumeMount.new(configName(arch), '/config', true),
-      volumeMount.new('workspace', '/workspace'),
-      volumeMount.new('home', '/home/runner'),
-      volumeMount.new('tmp', '/tmp'),
-    ])
+      volumeMount.new('runner-data', '/data'),
+      volumeMount.new('dind-socket', '/run/dind'),
+    ] + if cacheEnabled then [
+      volumeMount.new('cache-signing', cache.secretPath, true),
+      volumeMount.new('private-config', '/runner-config'),
+    ] else [])
+    + container.withEnv(if cacheEnabled then [envVar.fromFieldPath('POD_IP', 'status.podIP')] else [])
     + container.resources.withRequests({ cpu: '100m', memory: '128Mi', 'ephemeral-storage': '256Mi' })
     + container.resources.withLimits({ cpu: '2', memory: '2Gi', 'ephemeral-storage': '4Gi' })
     + container.withEnvMap({
-      HOME: '/home/runner',
-      PATH: '/docker-bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+      HOME: '/data',
+      DOCKER_HOST: dind.socket,
       TZ: timezone,
     }),
   ]);
@@ -135,9 +174,9 @@ local runnerPod(arch) =
 {
   nativeJobNamespace:
     k.core.v1.namespace.new(jobNamespace)
-    // Image USER (including root) is honored; admission requires gVisor and drops capabilities
+    // DinD sandbox capabilities need PSA privileged; namespace-wide dind=true CEL guard forbids host access
     + k.core.v1.namespace.metadata.withLabels({
-      'pod-security.kubernetes.io/enforce': 'baseline',
+      'pod-security.kubernetes.io/enforce': 'privileged',
       'pod-security.kubernetes.io/enforce-version': 'latest',
     }),
 
@@ -146,6 +185,10 @@ local runnerPod(arch) =
     k.core.v1.resourceQuota.new('forgejo-native-canary')
     + k.core.v1.resourceQuota.metadata.withNamespace(jobNamespace)
     + k.core.v1.resourceQuota.spec.withHard({ pods: '6' }),
+
+  dindStartupConfig:
+    k.core.v1.configMap.new(startupConfig, { 'start-dockerd.sh': dind.startupScript })
+    + k.core.v1.configMap.metadata.withNamespace(jobNamespace),
 
   runnerConfigs: {
     [arch]:
@@ -186,7 +229,7 @@ local runnerPod(arch) =
           completions: 1,
           backoffLimit: 0,  // Never retry a job with a consumed ephemeral credential
           ttlSecondsAfterFinished: 300,
-          // Absolute lifetime including idle time: bounds malicious runners, but can cut a late-starting job short
+          // Bound registration/startup and task execution independently of the runner timeout
           activeDeadlineSeconds: 6 * 60 * 60,
           template: runnerPod(arch),
         },
@@ -195,8 +238,7 @@ local runnerPod(arch) =
           metadata: {
             address: forgejoURL,
             global: 'true',
-            // Generic jobs can match either pool; reconciliation is not an instantaneous idle guarantee
-            labels: 'k8s,k8s-' + arch,
+            labels: std.join(',', [std.split(label, ':')[0] for label in runnerLabels(arch)]),
           },
           authenticationRef: { name: 'forgejo-runners' },
         }],
@@ -215,14 +257,10 @@ local runnerPod(arch) =
         toEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'kube-system', 'k8s:k8s-app': 'kube-dns' } }],
         toPorts: [{ ports: [{ port: '53', protocol: 'UDP' }, { port: '53', protocol: 'TCP' }] }],
       },
-      {
-        toEndpoints: [{ matchLabels: forgejoSelector }],
-        toPorts: [{ ports: [{ port: '80', protocol: 'TCP' }] }],
-      },
-      // The registry's VPN hostname resolves to Traefik inside the cluster, not to world
+      // Forgejo API and registry use public CA HTTPS; VPN DNS resolves to Traefik, not world
       {
         toEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'traefik', 'app.kubernetes.io/name': 'traefik' } }],
-        toPorts: [{ ports: [{ port: '10443', protocol: 'TCP' }], serverNames: ['git.vpn.dzerv.art'] }],
+        toPorts: [{ ports: [{ port: '10443', protocol: 'TCP' }], serverNames: ['git.vpn.dzerv.art'] + if cacheEnabled then ['forgejo-cache.vpn.dzerv.art'] else [] }],
       },
       { toEntities: ['world'], toPorts: [{ ports: [{ port: '443', protocol: 'TCP' }] }] },
     ]),
@@ -234,19 +272,25 @@ local runnerPod(arch) =
     + ciliumNetworkPolicy.spec.withIngress([{
       fromEndpoints: [{ matchLabels: jobSelector }],
       toPorts: [{ ports: [{ port: '10443', protocol: 'TCP' }] }],
+    }, {
+      // HTTPS scaler polling must be allowed at both ends, not just for worker Pods
+      fromEndpoints: [{ matchLabels: {
+        'k8s:io.kubernetes.pod.namespace': 'keda',
+        'app.kubernetes.io/name': 'keda-operator',
+      } }],
+      toPorts: [{ ports: [{ port: '10443', protocol: 'TCP' }] }],
     }]),
 
   nativeJobForgejoIngress:
     ciliumNetworkPolicy.new('forgejo-runners')
     + ciliumNetworkPolicy.spec.endpointSelector.withMatchLabels({ app: 'forgejo' })
     + ciliumNetworkPolicy.spec.withIngress([{
-      fromEndpoints: [
-        { matchLabels: jobSelector },
-        { matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'keda', 'app.kubernetes.io/name': 'keda-operator' } },
-      ],
+      // Retain the policy identity while removing direct cleartext API access from native jobs/KEDA
+      fromEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'traefik', 'app.kubernetes.io/name': 'traefik' } }],
       toPorts: [{ ports: [{ port: '80', protocol: 'TCP' }] }],
     }]),
 
-  // No Actions cache-signing key is exposed to host-mode jobs. Their runner config disables that cache.
-  // TODO: Provision the isolated remote BuildKit workers used by .forgejo/workflows/docker.yaml
-} + jobPolicy(jobNamespace)
+  // Cache integration is gated separately (homelab-42j.5); retain legacy Sysbox/cache as rollback
+  // Production promotion requires real Actions, lifecycle and storage/performance acceptance on both arches
+  // Docker-managed published ports are unsupported with iptables=false; services must use bridge aliases
+} + policy

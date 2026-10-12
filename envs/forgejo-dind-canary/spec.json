@@ -1,0 +1,13 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": { "name": "envs/forgejo-dind-canary" },
+  "spec": {
+    "contextNames": ["gr"],
+    "namespace": "forgejo-dind-canary",
+    "injectLabels": true,
+    "applyStrategy": "server",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

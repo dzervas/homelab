@@ -29,6 +29,13 @@
 !/envs/*/main.jsonnet
 !/envs/*/*.libsonnet
 !/envs/*/*.md
+!/envs/forgejo-dind-canary/*.sh
+!/envs/forgejo-dind-canary/verify.py
+!/envs/forgejo-buildkit-canary/buildkitd.toml
+!/envs/forgejo-buildkit-canary/test-buildkit.sh
+!/envs/forgejo-buildkit-canary/verify.py
+!/envs/forgejo/verify-native-runner.py
+!/envs/forgejo/verify-cache.py
 !/lib
 !/lib/helpers
 !/lib/docker-service

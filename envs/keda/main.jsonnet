@@ -41,6 +41,7 @@ local namespace = 'keda';
         ports: [{ port: '53', protocol: 'UDP' }, { port: '53', protocol: 'TCP' }],
       }]),
       ciliumNetworkPolicy.spec.egress.withToEntities(['kube-apiserver']),
+      // Retain the cleartext grant for existing scalers; staged Docker pools poll the TLS VPN route
       ciliumNetworkPolicy.spec.egress.withToEndpoints([{
         matchLabels: {
           'k8s:io.kubernetes.pod.namespace': 'forgejo',
@@ -49,6 +50,16 @@ local namespace = 'keda';
       }])
       + ciliumNetworkPolicy.spec.egress.withToPorts([{
         ports: [{ port: '80', protocol: 'TCP' }],
+      }]),
+      ciliumNetworkPolicy.spec.egress.withToEndpoints([{
+        matchLabels: {
+          'k8s:io.kubernetes.pod.namespace': 'traefik',
+          'app.kubernetes.io/name': 'traefik',
+        },
+      }])
+      + ciliumNetworkPolicy.spec.egress.withToPorts([{
+        ports: [{ port: '10443', protocol: 'TCP' }],
+        serverNames: ['git.vpn.dzerv.art'],
       }]),
     ]),
 }

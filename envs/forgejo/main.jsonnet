@@ -1,3 +1,4 @@
+local cache = import './cache.libsonnet';
 local nativeRunner = import './native-runner.libsonnet';
 local runner = import './runner.libsonnet';
 local woodpecker = import './woodpecker.libsonnet';
@@ -26,10 +27,16 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
     + lab.withPublicTCP(2222, 'ssh')
     + lab.withEnv({
       FORGEJO__server__HTTP_PORT: '80',
+      // Keep Actions clone/API URLs on verified TLS; Docker jobs share the runner Pod network
+      FORGEJO__server__ROOT_URL: 'https://git.vpn.dzerv.art',
       // FORGEJO__server__SSH_PORT: '2222',
       FORGEJO__server__SSH_DOMAIN: 'git.vpn.dzerv.art',
 
       FORGEJO__actions__ENABLED: 'true',
+      // Orphan backstop for idle ephemeral registrations; keep upstream's 24h age and midnight schedule
+      // _0x2E_ encodes the period in [cron.cleanup_offline_runners]
+      FORGEJO__cron_0x2E_cleanup_offline_runners__ENABLED: 'true',
+      FORGEJO__cron_0x2E_cleanup_offline_runners__GLOBAL_SCOPE_ONLY: 'true',
       FORGEJO__service__REQUIRE_SIGNIN_VIEW: 'false',
 
       FORGEJO__webhook__ALLOWED_HOST_LIST: 'woodpecker-server,ntfy.ntfy.svc',
@@ -54,4 +61,4 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
       |||])
     )
     + { workload+: statefulSet.mapContainers(function(c) c { imagePullPolicy: 'Always' }) },
-} + woodpecker + runner + nativeRunner
+} + woodpecker + runner + cache + nativeRunner

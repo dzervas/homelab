@@ -1,0 +1,72 @@
+name: Staged Docker runner acceptance
+
+# No push/PR trigger and no production labels: promotion is a separate explicit cutover
+on:
+  workflow_dispatch:
+
+jobs:
+  acceptance:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    runs-on: k8s-canary-${{ matrix.arch }}
+    timeout-minutes: 15
+    services:
+      web:
+        image: nginx:alpine
+        # No published ports with iptables=false; use the Docker bridge service alias
+    steps:
+      - uses: https://github.com/actions/checkout@v4
+      - name: Verified job tools and external daemon socket
+        run: |
+          set -eu
+          git --version
+          tar --version
+          node --version
+          test -n "$DOCKER_HOST"
+          docker version
+          docker info
+          docker buildx version
+          curl --fail --retry 10 --retry-delay 2 --retry-connrefused http://web/
+      - name: Prepare local JavaScript and composite Actions
+        run: |
+          set -eu
+          mkdir -p .runner-canary/js .runner-canary/composite
+          cat > .runner-canary/js/action.yml <<'EOF'
+          name: Node 24 acceptance
+          description: Exercise the Runner JavaScript action runtime
+          runs:
+            using: node24
+            main: index.js
+          EOF
+          cat > .runner-canary/js/index.js <<'EOF'
+          const assert = require('node:assert/strict');
+          const { execFileSync } = require('node:child_process');
+          assert.equal(process.versions.node.split('.')[0], '24');
+          console.log(execFileSync('git', ['--version'], { encoding: 'utf8' }));
+          console.log('RUNNER_JAVASCRIPT_PASS');
+          EOF
+          cat > .runner-canary/composite/action.yml <<'EOF'
+          name: Composite acceptance
+          description: Exercise the Runner composite action runtime
+          runs:
+            using: composite
+            steps:
+              - shell: bash
+                run: |
+                  set -eu
+                  test -f .runner-canary/js/index.js
+                  docker info >/dev/null
+                  echo RUNNER_COMPOSITE_PASS
+          EOF
+      - uses: ./.runner-canary/js
+      - uses: ./.runner-canary/composite
+      - name: Docker-container Action
+        uses: docker://alpine:3.23
+        with:
+          args: sh -ec 'test -f /github/workspace/.runner-canary/js/index.js; echo RUNNER_DOCKER_ACTION_PASS'
+      - name: Acceptance marker
+        run: echo 'RUNNER_ACTIONS_CANARY_PASS ${{ matrix.arch }}'
+      # The human live gate must also inspect Job completion, DinD termination, scale-to-zero
+      # and registration cleanup; this marker alone does not prove lifecycle or storage capacity
