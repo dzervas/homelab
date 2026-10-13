@@ -10,7 +10,9 @@ import sys
 import tempfile
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--baseline", type=Path, help="Pre-extraction tk eval output (configuration only)")
+parser.add_argument("--baseline", type=Path, help="Earlier tk eval output (configuration only)")
+parser.add_argument("--cache-enabled", action=argparse.BooleanOptionalAction, default=True,
+                    help="Expect staged native cache enabled (default); --no-cache-enabled checks rollback renders")
 args = parser.parse_args()
 root = json.load(sys.stdin)
 
@@ -25,6 +27,15 @@ def resources(value):
 
 
 objects = list(resources(root))
+by_name = {(o["kind"], o["metadata"]["name"]): o for o in objects}
+# Default renders intentionally opt in only the k8s-canary pools, not production labels.
+for arch in ["amd64", "arm64"]:
+    config = by_name["ConfigMap", "forgejo-docker-runner-" + arch]["data"]["config.yaml"]
+    assert ('"enabled": true' if args.cache_enabled else '"enabled": false') in config
+    assert ('"FORGEJO_RUNNER_POD_IP": "__RUNNER_POD_IP__"' in config) == args.cache_enabled
+    pool = by_name["ScaledJob", "keda-k8s-" + arch]["spec"]
+    labels = ["k8s-canary", "k8s-canary-amd64"] if arch == "amd64" else ["k8s-canary-arm64"]
+    assert pool["triggers"][0]["metadata"]["labels"].split(",") == labels
 cache = root["forgejoRunnerCache"]
 workload = cache["workload"]
 assert workload["kind"] == "StatefulSet"
@@ -105,6 +116,14 @@ workflow_path = Path(__file__).resolve().parents[2] / ".forgejo/workflows/cache-
 workflow = json.loads(subprocess.check_output(["yq", "-o=json", ".", str(workflow_path)]))
 assert set(workflow["on"]) == {"workflow_dispatch"}
 assert workflow["jobs"]["cache"]["strategy"]["matrix"]["arch"] == ["amd64", "arm64"]
+assert workflow["jobs"]["cache"]["runs-on"] == "k8s-canary-${{ matrix.arch }}"
+assert "concurrency" not in workflow and "concurrency" not in workflow["jobs"]["cache"], "Same-key concurrent restore gate must not be serialized"
+credential_check = next(step["run"] for step in workflow["jobs"]["cache"]["steps"]
+                        if step.get("name") == "Runner-only credential paths absent in job and Docker helper")
+assert "docker run --rm alpine:3.23 sh -ec" in credential_check
+for path in ["/runner-state/.runner", "/run/secrets/registry-auth/config.json", "/run/secrets/forgejo-cache/cache-secret", "/runner-config/config.yaml"]:
+    assert credential_check.count(path) == 2, path
+assert credential_check.count('test ! -e "$path"') == 2
 for step in workflow["jobs"]["cache"]["steps"]:
     if "run" in step:
         subprocess.run(["sh", "-n"], input=step["run"].encode(), check=True)

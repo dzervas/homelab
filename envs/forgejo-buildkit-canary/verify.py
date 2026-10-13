@@ -97,10 +97,51 @@ server = networks['buildkit-server']
 client = networks['buildkit-probe']
 assert server['endpointSelector']['matchLabels']['role'] == 'server'
 assert client['endpointSelector']['matchLabels']['role'] == 'probe'
-assert len(server['ingress']) == 1 and client['ingress'] == []
+assert len(server['ingress']) == 2 and client['ingress'] == []
 assert server['ingress'][0]['fromEndpoints'][0]['matchLabels']['k8s:role'] == 'probe'
 assert server['ingress'][0]['toPorts'][0]['ports'] == [{'port': '1234', 'protocol': 'TCP'}]
-assert server['egress'][1] == {'toEntities': ['world'], 'toPorts': [{'ports': [{'port': '443', 'protocol': 'TCP'}]}]}
+assert server['ingress'][1] == {
+    'fromEndpoints': [{'matchLabels': {
+        'k8s:io.kubernetes.pod.namespace': 'forgejo-runners',
+        'k8s:app': 'forgejo-keda-runner',
+    }}],
+    'toPorts': [{'ports': [{'port': '1234', 'protocol': 'TCP'}]}],
+}
+actions_object = next(o for o in objects if o['kind'] == 'CiliumNetworkPolicy'
+                      and o['metadata']['name'] == 'buildkit-canary-actions')
+assert actions_object['metadata']['namespace'] == 'forgejo-runners'
+actions = actions_object['spec']
+assert actions['endpointSelector']['matchLabels'] == {'app': 'forgejo-keda-runner'}
+assert actions['egress'] == [{
+    'toEndpoints': [{'matchLabels': {
+        'k8s:io.kubernetes.pod.namespace': 'forgejo-buildkit-canary',
+        'k8s:app': 'buildkit-canary',
+        'k8s:role': 'server',
+    }}],
+    'toPorts': [{'ports': [{'port': '1234', 'protocol': 'TCP'}]}],
+}]
+assert server['egress'][1] == {'toEntities': ['world'], 'toPorts': [{'ports': [{'port': '80', 'protocol': 'TCP'}, {'port': '443', 'protocol': 'TCP'}]}]}
+assert server['egress'][2] == {
+    'toEndpoints': [{'matchLabels': {
+        'k8s:io.kubernetes.pod.namespace': 'traefik',
+        'app.kubernetes.io/name': 'traefik',
+    }}],
+    'toPorts': [{'ports': [{'port': '10443', 'protocol': 'TCP'}],
+                 'serverNames': ['git.vpn.dzerv.art']}],
+}
+registry_object = next(o for o in objects if o['kind'] == 'CiliumNetworkPolicy'
+                       and o['metadata']['name'] == 'buildkit-canary-registry')
+assert registry_object['metadata']['namespace'] == 'traefik'
+registry = registry_object['spec']
+assert registry['endpointSelector']['matchLabels'] == {'app.kubernetes.io/name': 'traefik'}
+assert registry['ingress'] == [{
+    'fromEndpoints': [{'matchLabels': {
+        'k8s:io.kubernetes.pod.namespace': 'forgejo-buildkit-canary',
+        'k8s:app': 'buildkit-canary',
+        'k8s:role': 'server',
+    }}],
+    'toPorts': [{'ports': [{'port': '10443', 'protocol': 'TCP'}]}],
+}]
 assert client['egress'][1]['toEndpoints'][0]['matchLabels']['k8s:role'] == 'server'
 assert client['egress'][1]['toPorts'][0]['ports'] == [{'port': '1234', 'protocol': 'TCP'}]
 for net in [client, server]:

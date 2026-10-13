@@ -1,11 +1,18 @@
 name: Actions cache canary
 
-# Native cache stays disabled until explicitly enabled for this live acceptance test.
-# Dispatch seed with a new generation, then restore with the same generation in fresh Pods.
-# Repeat restore after cache-server restart; run probe in a second repository with the same key.
+# Native k8s-canary cache is staged enabled; none of these live gates has been proved by rendering.
+# After user deployment and publishing this workflow, use a unique public generation (e.g. gate-20261013a):
+# fj actions dispatch cache-canary.yaml main -I generation=gate-20261013a -I mode=seed
+# Wait for BOTH arches; repeat with -I mode=restore to prove exact bytes from fresh one-job Pods.
+# Dispatch two restores concurrently with the SAME generation; require distinct owning proxy IPs per arch.
+# kubectl -n forgejo rollout restart statefulset/forgejo-runner-cache
+# kubectl -n forgejo rollout status statefulset/forgejo-runner-cache --timeout=5m
+# Then repeat restore; never delete the cache PVC or rotate its signing identity for this gate.
+# In a SECOND repository containing this workflow: fj actions dispatch cache-canary.yaml main
+#   --repo OWNER/SECOND_REPO -I generation=gate-20261013a -I mode=probe
 # Isolation proof requires a prior exact restore in the source repo with the SAME logged version.
 # HTTP lookup errors are INCONCLUSIVE, never isolation passes; SDK missing output alone proves nothing.
-# Docker file/network credential isolation remains a separate required gate.
+# File checks below do not prove shared-Pod network isolation; that remains a separate required live gate.
 on:
   workflow_dispatch:
     inputs:
@@ -22,13 +29,12 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: cache-canary-${{ inputs.generation }}
-  cancel-in-progress: false
-
+# Allow same-key concurrent restores to test separate owning proxies; finish seed before dispatching restores.
 jobs:
   cache:
     runs-on: k8s-canary-${{ matrix.arch }}
+    # Cold image pulls count toward the deadline, as in the accepted runner canary.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -41,6 +47,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Runner-only credential paths absent in job and Docker helper
+        run: |
+          set -eu
+          # Presence checks only: never read credentials or dump process/container environments.
+          test -z "${REGISTRATION_TOKEN:-}"
+          test "${DOCKER_CONFIG:-}" != /run/secrets/registry-auth
+          for path in /runner-state/.runner /run/secrets/registry-auth/config.json /run/secrets/forgejo-cache/cache-secret /runner-config/config.yaml; do
+            test ! -e "$path"
+          done
+          docker run --rm alpine:3.23 sh -ec '
+            test -z "${REGISTRATION_TOKEN:-}"
+            test "${DOCKER_CONFIG:-}" != /run/secrets/registry-auth
+            for path in /runner-state/.runner /run/secrets/registry-auth/config.json /run/secrets/forgejo-cache/cache-secret /runner-config/config.yaml; do
+              test ! -e "$path"
+            done
+          '
+          echo "CACHE_CANARY_CREDENTIAL_PATHS_PASS arch=$ARCH"
       - name: Validate owning proxy and exact candidate lookup
         id: lookup
         run: |

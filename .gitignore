@@ -15,6 +15,7 @@
 !/.forgejo
 !/.forgejo/workflows
 !/.forgejo/workflows/*.yaml
+!/.forgejo/build-publish-canary.mjs
 !/nixos
 !/nixos/flake.lock
 !/nixos/hosts

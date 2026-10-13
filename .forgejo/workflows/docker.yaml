@@ -21,7 +21,8 @@ permissions:
 # Build-only variables: BUILDKIT_AMD64_ENDPOINT / BUILDKIT_ARM64_ENDPOINT (tcp://certificate-hostname:port).
 # Publish needs only forgejo_token (package write); builds also need
 # BUILDKIT_CA, BUILDKIT_CLIENT_CERT and BUILDKIT_CLIENT_KEY.
-# Remote workers must persist their BuildKit state for layer caching across job Pods.
+# Forgejo registry holds exported layer cache; worker PVCs are local warm storage, not its only durable copy.
+# Retain cache-* tags; separate image/architecture refs prevent sibling writers from overwriting each other.
 env:
   REGISTRY: git.vpn.dzerv.art
   DOCKER_BUILD_SUMMARY: 'false'
@@ -113,6 +114,9 @@ jobs:
           pull: true
           # OpenClaw's latest CLI downloads must refresh on every rebuild.
           no-cache: ${{ matrix.image == 'openclaw' }}
+          # Uses the existing registry login; mTLS separately authenticates the remote builder.
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ forgejo.repository }}/${{ matrix.image }}:cache-${{ matrix.platform.arch }}
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ forgejo.repository }}/${{ matrix.image }}:cache-${{ matrix.platform.arch }},mode=max,oci-mediatypes=true,image-manifest=true
           provenance: false
           sbom: false
           # Stable within a run so partial reruns can reuse successful sibling builds.

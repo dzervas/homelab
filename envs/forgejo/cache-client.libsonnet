@@ -6,7 +6,7 @@
   proxyPort: 4002,
   externalServer: 'https://forgejo-cache.vpn.dzerv.art',
 
-  // Enable only behind the live cache gate; project the key into Runner, never DinD or jobs
+  // Staged canary integration only until the live cache gate passes; key stays in Runner, never DinD or jobs
   config: {
     enabled: true,
     external_server: $.externalServer,

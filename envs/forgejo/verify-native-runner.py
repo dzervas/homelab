@@ -6,7 +6,8 @@ import subprocess
 import sys
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--cache-enabled", action="store_true", help="Check a render with the compile-time cache opt-in enabled")
+parser.add_argument("--cache-enabled", action=argparse.BooleanOptionalAction, default=True,
+                    help="Expect staged cache enabled (default); --no-cache-enabled checks rollback renders")
 parser.add_argument("--keda", help="Also check the rendered KEDA environment JSON")
 args = parser.parse_args()
 root = json.load(sys.stdin)
@@ -72,6 +73,13 @@ for arch in ["amd64", "arm64"]:
     assert register["name"] == "register" and register["image"].endswith(":13.2.0")
     assert "--ephemeral" in register["command"][-1]
     assert "umask 077" in register["command"][-1]
+    # Runner validates cache settings even in register; its key must remain worker-only.
+    assert "--config /config/register.yaml register" in register["command"][-1], "Registration must not load the runtime cache config"
+    registration = by_name["ConfigMap", "forgejo-docker-runner-" + arch]["data"]["register.yaml"]
+    assert '"enabled": false' in registration
+    assert '"secret_url"' not in registration and "__RUNNER_POD_IP__" not in registration
+    assert '"file": "/runner-state/.runner"' in registration
+    assert all(label + ":docker://" + job_image in registration for label in labels)
     assert next(e["value"] for e in register["env"] if e["name"] == "FORGEJO_URL") == "https://git.vpn.dzerv.art"
     assert {m["name"] for m in register["volumeMounts"]}.isdisjoint(daemon_mounts)
     worker, = spec["containers"]
@@ -156,4 +164,4 @@ assert "2375" not in script and "tcp://" not in script
 # Rollback and cache ownership survive replacement template changes
 assert ("Deployment", "forgejo-runner") in by_name
 assert ("StatefulSet", "forgejo-runner-cache") in by_name
-print("NATIVE_RUNNER_OFFLINE_PASS (live Actions/lifecycle/storage gates still required)")
+print("NATIVE_RUNNER_OFFLINE_PASS (live cache/isolation/storage gates still required)")

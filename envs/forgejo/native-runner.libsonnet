@@ -27,16 +27,17 @@ local startupConfig = 'forgejo-dind-startup';
 // Verified AMD64/ARM64 Ubuntu 24.04 LTS workflow tools: Node 24/20, Git, tar, Docker CLI and bundled Buildx
 // This is the job tool image, not a claim that the separately pinned Docker 29.5.3 daemon is LTS
 // Live ARM64 pull failed restoring gst-ptp-helper's security.capability; shared DinD now uses best-effort xattrs
-// Keep Actions acceptance blocked until the lossy workaround is proved with the real image on both arches
+// Both-architecture Actions and eventual lifecycle cleanup accepted; cache/storage gates remain separate
 local jobImage = 'ghcr.io/catthehacker/ubuntu:act-24.04@sha256:62d572b92f9f32d3427b6d220ad1f9dca9c7b6ffad37d295425037dbff78abaf';
 // Flip to k8s only after both-architecture Actions/cache/lifecycle acceptance and explicit production cutover
 local labelPrefix = 'k8s-canary';
-// Compile-time opt-in for cache canaries only; leave disabled until the live cache gate passes
-local cacheEnabled = false;
+// Staged cache opt-in for k8s-canary pools after accepted runner/lifecycle gates; not production promotion
+// Cold/fresh-Pod restore, concurrency, restart, repository and credential isolation still need live proof
+local cacheEnabled = true;
 local configName(arch) = 'forgejo-docker-runner-' + arch;
 // Generic work belongs only to AMD64 so KEDA pools do not compete for the same queue
 local runnerLabels(arch) = (if arch == 'amd64' then [labelPrefix + ':docker://' + jobImage] else []) + [labelPrefix + '-' + arch + ':docker://' + jobImage];
-local runnerConfig(arch) = std.manifestYamlDoc({
+local runnerConfig(arch, enableCache=cacheEnabled) = std.manifestYamlDoc({
   runner: {
     file: '/runner-state/.runner',
     labels: runnerLabels(arch),
@@ -46,9 +47,9 @@ local runnerConfig(arch) = std.manifestYamlDoc({
     shutdown_timeout: '30s',
     env_file: '/dev/null',
     // Stock Runner binds container.docker_host at /var/run/docker.sock inside jobs, not /run/dind
-    envs: { DOCKER_HOST: 'unix:///var/run/docker.sock' } + if cacheEnabled then cache.runnerEnvs else {},
+    envs: { DOCKER_HOST: 'unix:///var/run/docker.sock' } + if enableCache then cache.runnerEnvs else {},
   },
-  cache: if cacheEnabled then cache.config else { enabled: false },
+  cache: if enableCache then cache.config else { enabled: false },
   container: { docker_host: dind.socket, workdir_parent: '/workspace', privileged: false, valid_volumes: [] },
 });
 local jobLabels = { app: 'forgejo-keda-runner', 'app.kubernetes.io/managed-by': 'forgejo-keda' };
@@ -114,12 +115,13 @@ local runnerPod(arch) =
 
     // Same image USER as the worker so its private .runner file remains readable without extra capabilities.
     // Only this init sees the reusable registration token; stock Runner saves fresh ephemeral credentials.
+    // Forgejo #14589 can delay cancellation drain until the local worker exits; eventual cleanup accepted, retain ephemeral
     container.new('register', runnerImage)
     + sandbox
     + container.withCommand(['sh', '-ec', |||
       : "${REGISTRATION_TOKEN:?registration token is missing}"
       umask 077
-      exec /bin/forgejo-runner --config /config/config.yaml register \
+      exec /bin/forgejo-runner --config /config/register.yaml register \
         --no-interactive --ephemeral --instance "$FORGEJO_URL" \
         --name "$POD_NAME" --labels "$RUNNER_LABELS" --token "$REGISTRATION_TOKEN"
     |||])
@@ -202,7 +204,11 @@ local runnerPod(arch) =
 
   runnerConfigs: {
     [arch]:
-      k.core.v1.configMap.new(configName(arch), { 'config.yaml': runnerConfig(arch) })
+      k.core.v1.configMap.new(configName(arch), {
+        'config.yaml': runnerConfig(arch),
+        // Register validates cache settings too, but must never receive the worker's signing key
+        'register.yaml': runnerConfig(arch, enableCache=false),
+      })
       + k.core.v1.configMap.metadata.withNamespace(jobNamespace)
     for arch in ['amd64', 'arm64']
   },
@@ -300,7 +306,7 @@ local runnerPod(arch) =
       toPorts: [{ ports: [{ port: '80', protocol: 'TCP' }] }],
     }]),
 
-  // Cache integration is gated separately (homelab-42j.5); retain legacy Sysbox/cache as rollback
+  // Cache is enabled only for staged live acceptance (homelab-42j.5); retain legacy Sysbox/cache as rollback
   // Production promotion requires real Actions, lifecycle and storage/performance acceptance on both arches
   // Docker-managed published ports are unsupported with iptables=false; services must use bridge aliases
 } + policy

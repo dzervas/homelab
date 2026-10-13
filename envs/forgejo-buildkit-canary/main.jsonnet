@@ -57,7 +57,9 @@ local leaf(name, usages) =
   + certificate.spec.issuerRef.withName('buildkit-ca')
   + certificate.spec.issuerRef.withKind('Issuer');
 
-// Isolated acceptance only; no Forgejo callers, runner credentials or global device CA
+// Isolated acceptance only; no production callers, runner credentials or global device CA
+// After cold/restart/warm acceptance, build-publish-canary uses the per-arch Service DNS with mTLS
+// Configure Forgejo BUILDKIT_CANARY_* vars/secrets separately; never export the CA signing key
 // Apply namespace and guard FIRST (PSA privileged allows virtual SYS_ADMIN; CEL forbids true privileged/host access):
 // tk apply envs/forgejo-buildkit-canary -t '.*/forgejo-buildkit-canary' -t '.*/forgejo-buildkit-canary-security' -t '.*/default'
 // Inspect guard typeChecking warnings before workloads: kubectl get validatingadmissionpolicy forgejo-buildkit-canary-security -o jsonpath='{.status.typeChecking}'
@@ -72,6 +74,8 @@ local leaf(name, usages) =
 // Repeat cycle: delete all four Jobs, reapply (warm suspended again), then restart/resume as above
 // Servers remain for inspection; cleanup is manual: kubectl delete namespace forgejo-buildkit-canary
 // Then kubectl delete validatingadmissionpolicy,validatingadmissionpolicybinding forgejo-buildkit-canary-security
+// kubectl -n forgejo-runners delete ciliumnetworkpolicy buildkit-canary-actions
+// kubectl -n traefik delete ciliumnetworkpolicy buildkit-canary-registry
 // Namespace cleanup deletes probe PVCs/CA; this 2Gi probe is not a production capacity decision
 {
   namespace:
@@ -210,14 +214,54 @@ local leaf(name, usages) =
     + ciliumNetworkPolicy.spec.withIngress([{
       fromEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': namespace, 'k8s:app': configName, 'k8s:role': 'probe' } }],
       toPorts: [{ ports: [{ port: '1234', protocol: 'TCP' }] }],
+    }, {
+      // Trusted staged Actions only; mTLS authenticates clients, not repository-level authorization
+      fromEndpoints: [{ matchLabels: {
+        'k8s:io.kubernetes.pod.namespace': 'forgejo-runners',
+        'k8s:app': 'forgejo-keda-runner',
+      } }],
+      toPorts: [{ ports: [{ port: '1234', protocol: 'TCP' }] }],
     }])
     + ciliumNetworkPolicy.spec.withEgress([
       {
         toEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'kube-system', 'k8s:k8s-app': 'kube-dns' } }],
         toPorts: [{ ports: [{ port: '53', protocol: 'UDP' }, { port: '53', protocol: 'TCP' }] }],
       },
-      { toEntities: ['world'], toPorts: [{ ports: [{ port: '443', protocol: 'TCP' }] }] },
+      // Unmodified Debian/Node build stages use public HTTP APT mirrors; no registry credentials on this path
+      { toEntities: ['world'], toPorts: [{ ports: [{ port: '80', protocol: 'TCP' }, { port: '443', protocol: 'TCP' }] }] },
+      {
+        // Remote push runs in BuildKit, not the Runner; VPN registry DNS hairpins through Traefik
+        toEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'traefik', 'app.kubernetes.io/name': 'traefik' } }],
+        toPorts: [{ ports: [{ port: '10443', protocol: 'TCP' }], serverNames: ['git.vpn.dzerv.art'] }],
+      },
     ]),
+  registryNetwork:
+    ciliumNetworkPolicy.new('buildkit-canary-registry')
+    + ciliumNetworkPolicy.metadata.withNamespace('traefik')
+    + ciliumNetworkPolicy.spec.endpointSelector.withMatchLabels({ 'app.kubernetes.io/name': 'traefik' })
+    + ciliumNetworkPolicy.spec.withIngress([{
+      fromEndpoints: [{ matchLabels: {
+        'k8s:io.kubernetes.pod.namespace': namespace,
+        'k8s:app': configName,
+        'k8s:role': 'server',
+      } }],
+      toPorts: [{ ports: [{ port: '10443', protocol: 'TCP' }] }],
+    }]),
+
+  // Namespace-default isolation requires both ends; no access to legacy/production builders
+  actionsNetwork:
+    ciliumNetworkPolicy.new('buildkit-canary-actions')
+    + ciliumNetworkPolicy.metadata.withNamespace('forgejo-runners')
+    + ciliumNetworkPolicy.spec.endpointSelector.withMatchLabels({ app: 'forgejo-keda-runner' })
+    + ciliumNetworkPolicy.spec.withEgress([{
+      toEndpoints: [{ matchLabels: {
+        'k8s:io.kubernetes.pod.namespace': namespace,
+        'k8s:app': configName,
+        'k8s:role': 'server',
+      } }],
+      toPorts: [{ ports: [{ port: '1234', protocol: 'TCP' }] }],
+    }]),
+
   clientNetwork:
     ciliumNetworkPolicy.new('buildkit-probe')
     + ciliumNetworkPolicy.spec.endpointSelector.withMatchLabels({ app: configName, role: 'probe' })
