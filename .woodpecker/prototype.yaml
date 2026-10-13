@@ -1,0 +1,48 @@
+# Click Run pipeline on main. This checks nativeKubernetes mechanics, not publication acceptance
+# Admission owns architecture selectors, gVisor/capabilities, workspace/cache PVCs and DinD disk
+when:
+  - event: manual
+    branch: main
+
+# Dedicated agents advertise this label and their native platform; regular agents cannot claim it
+labels:
+  woodpecker-prototype: 'true'
+  platform: linux/${arch}
+
+matrix:
+  arch:
+    - amd64
+    - arm64
+
+steps:
+  - name: prototype-dind-${arch}
+    image: docker:29.5.3-dind
+    detach: true
+    environment:
+      PROTOTYPE_ARCH: ${arch}
+    commands:
+      - sh .woodpecker/prototype/dind.sh
+
+  # Separate Pods prove the mounted OCI layer cache survives executor/Pod termination
+  - name: prototype-build-${arch}
+    image: martizih/kaniko:v1.28.6-debug
+    environment:
+      PROTOTYPE_ARCH: ${arch}
+      PROTOTYPE_BUILD: cold
+    commands:
+      - /busybox/sh .woodpecker/prototype/build.sh
+
+  - name: prototype-warm-${arch}
+    image: martizih/kaniko:v1.28.6-debug
+    environment:
+      PROTOTYPE_ARCH: ${arch}
+      PROTOTYPE_BUILD: warm
+    commands:
+      - /busybox/sh .woodpecker/prototype/build.sh
+
+  - name: prototype-docker-${arch}
+    image: docker:29.5.3-cli
+    environment:
+      PROTOTYPE_ARCH: ${arch}
+    commands:
+      - sh .woodpecker/prototype/docker.sh
