@@ -129,7 +129,8 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
   },
 
   // DinD needs sandbox packet writes; ordinary gVisor workloads retain their existing handler
-  // TODO: Prove Docker 29 networking/storage on both architectures before promoting CI runners
+  // Native Kaniko/TLS DinD execution reported green on AMD64/ARM64; production acceptance remains unverified
+  // TODO: Verify production admission, cache isolation, publication and live DinD teardown
   gvisorDind: {
     apiVersion: 'node.k8s.io/v1',
     kind: 'RuntimeClass',

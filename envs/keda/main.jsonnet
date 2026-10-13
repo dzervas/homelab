@@ -15,15 +15,16 @@ local namespace = 'keda';
     // Scoped RoleBindings share a name across namespaces
     nameFormat: '{{ print .kind "_" .metadata.namespace "_" .metadata.name | snakecase }}',
     values: {
-      // The chart binds workload permissions only in the watched and operator namespaces
-      watchNamespace: 'forgejo-runners',
-      // ScaledJobs poll directly in the operator; no external metrics API or admission pod needed
+      // Retain the operator without Actions workload permissions or a cluster-wide scope
+      // No remaining repository-defined scalers; authorize future consumers explicitly
+      watchNamespace: namespace,
+      // Direct polling needs no external metrics API or admission pod
       metricsServer: { enabled: false, registerAPIService: false },
       webhooks: { enabled: false },
     },
   }),
 
-  // The chart's Cilium policy allows the entire cluster; only these scaler destinations are needed
+  // Retired Actions scaler endpoints are gone; retain only DNS and API access
   operatorEgress:
     ciliumNetworkPolicy.new('keda-operator-egress')
     + ciliumNetworkPolicy.metadata.withNamespace(namespace)
@@ -41,25 +42,5 @@ local namespace = 'keda';
         ports: [{ port: '53', protocol: 'UDP' }, { port: '53', protocol: 'TCP' }],
       }]),
       ciliumNetworkPolicy.spec.egress.withToEntities(['kube-apiserver']),
-      // Retain the cleartext grant for existing scalers; staged Docker pools poll the TLS VPN route
-      ciliumNetworkPolicy.spec.egress.withToEndpoints([{
-        matchLabels: {
-          'k8s:io.kubernetes.pod.namespace': 'forgejo',
-          'k8s:app.kubernetes.io/name': 'forgejo',
-        },
-      }])
-      + ciliumNetworkPolicy.spec.egress.withToPorts([{
-        ports: [{ port: '80', protocol: 'TCP' }],
-      }]),
-      ciliumNetworkPolicy.spec.egress.withToEndpoints([{
-        matchLabels: {
-          'k8s:io.kubernetes.pod.namespace': 'traefik',
-          'app.kubernetes.io/name': 'traefik',
-        },
-      }])
-      + ciliumNetworkPolicy.spec.egress.withToPorts([{
-        ports: [{ port: '10443', protocol: 'TCP' }],
-        serverNames: ['git.vpn.dzerv.art'],
-      }]),
     ]),
 }

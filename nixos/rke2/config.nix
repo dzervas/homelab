@@ -72,7 +72,7 @@ in
             "--default-not-ready-toleration-seconds=30"
             "--default-unreachable-toleration-seconds=30"
 
-            # Built-in CEL mutation for envs/woodpecker-canary is disabled by default in Kubernetes 1.35
+            # Production Woodpecker CEL mutation is disabled by default in Kubernetes 1.35
             "--feature-gates=MutatingAdmissionPolicy=true"
             "--runtime-config=admissionregistration.k8s.io/v1beta1=true"
           ];

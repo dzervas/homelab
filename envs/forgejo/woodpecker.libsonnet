@@ -1,39 +1,18 @@
+local workers = import './woodpecker/agent.libsonnet';
+local policy = import './woodpecker/policy.libsonnet';
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
-local k = import 'k.libsonnet';
 local helm = tk.helm.new(std.thisFile);
 
 {
-  // Split the runners ns
-  woodpeckerNS: k.core.v1.namespace.new('woodpecker'),
-
   woodpecker:
     helm.template('woodpecker', '../../charts/woodpecker', {
       namespace: 'forgejo',
       values: {
         fullnameOverride: 'woodpecker',
-        agent: {
-          networkPolicy: {
-            enabled: true,
-            egress: {
-              // The chart's default apiserver rule uses an ipBlock CIDR, which
-              // doesn't match Cilium's reserved kube-apiserver identity. Drop it
-              // and rely on the CiliumNetworkPolicy below instead.
-              apiserver: null,
-            },
-          },
-          mapAgentSecret: false,
-          extraSecretNamesForEnvFrom: ['woodpecker-agent-op'],
-          env: {
-            TZ: timezone,
-            // Scratch volumes for the pipeline pods the agent spawns: 1-replica
-            // v1 + Delete reclaim (longhorn-throwaway)
-            WOODPECKER_BACKEND_K8S_STORAGE_CLASS: 'longhorn-throwaway',
-            WOODPECKER_BACKEND_K8S_STORAGE_RWX: 'false',
-          },
-        },
+        agent: { enabled: false },
         server: {
           networkPolicy: {
             enabled: true,
@@ -108,9 +87,21 @@ local helm = tk.helm.new(std.thisFile);
           'app.kubernetes.io/name': 'agent',
         },
       },
-      egress: [{
-        toEntities: ['kube-apiserver'],
-      }],
+      egress: [
+        { toEntities: ['kube-apiserver'] },
+        {
+          toEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'kube-system', 'k8s:k8s-app': 'kube-dns' } }],
+          toPorts: [{ ports: [{ port: '53', protocol: 'ANY' }] }],
+        },
+        {
+          toEndpoints: [{ matchLabels: {
+            'k8s:io.kubernetes.pod.namespace': 'forgejo',
+            'k8s:app.kubernetes.io/instance': 'woodpecker',
+            'k8s:app.kubernetes.io/name': 'server',
+          } }],
+          toPorts: [{ ports: [{ port: '9000', protocol: 'TCP' }] }],
+        },
+      ],
     },
   },
-}
+} + workers + policy

@@ -1,0 +1,38 @@
+when:
+  - event: push
+    branch: main
+    path:
+      include:
+        - .woodpecker/docker.yaml
+        - .woodpecker/docker-build.yaml
+        - docker/${image}/**
+      on_empty: false
+
+# Build natively; uncached Kagi/OpenClaw runs refresh their moving upstream tools.
+matrix:
+  include:
+    - { image: affine, arch: amd64, cache: "true" }
+    - { image: affine, arch: arm64, cache: "true" }
+    - { image: kagi-mcp, arch: amd64, cache: "false" }
+    - { image: kagi-mcp, arch: arm64, cache: "false" }
+    - { image: openclaw, arch: amd64, cache: "false" }
+    - { image: openclaw, arch: arm64, cache: "false" }
+
+labels:
+  platform: linux/${arch}
+
+steps:
+  - name: build
+    image: woodpeckerci/plugin-kaniko:2.3.3
+    settings:
+      registry: git.vpn.dzerv.art
+      repo: ${CI_REPO}/${image}
+      tags: build-${CI_PIPELINE_NUMBER}-${arch}
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: forgejo_token
+      context: docker/${image}
+      dockerfile: docker/${image}/Dockerfile
+      cache: "${cache}"
+      # The cache-repo setting prefixes the registry; extra_opts keeps this path local.
+      extra_opts: --force --cache-repo=oci:/cache/layers --custom-platform=linux/${arch}

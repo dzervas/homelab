@@ -1,4 +1,4 @@
-local dind = import '../forgejo/dind.libsonnet';
+local dind = import './dind.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 
@@ -9,8 +9,8 @@ local role = k.rbac.v1.role;
 local roleBinding = k.rbac.v1.roleBinding;
 local serviceAccount = k.core.v1.serviceAccount;
 
-local namespace = 'woodpecker-canary';
-local name = 'woodpecker-canary-agent';
+local namespace = 'woodpecker';
+local name = 'woodpecker-agent-native';
 local arches = ['amd64', 'arm64'];
 local labels(arch) = {
   // Reuse the existing server ingress and agent DNS/apiserver egress policies
@@ -19,21 +19,19 @@ local labels(arch) = {
   app: name,
   arch: arch,
 };
-local startupHeader = 'exec dockerd-entrypoint.sh dockerd \\\n  --host="$DOCKER_HOST" --group=1000 \\\n';
-// Let the stock entrypoint generate verified TCP TLS; leave every existing Unix-socket caller byte-identical
-local tlsStartup = std.strReplace(dind.startupScript, startupHeader, 'exec dockerd-entrypoint.sh \\\n  --group=1000 \\\n');
-
-assert std.length(std.findSubstr(startupHeader, dind.startupScript)) == 1 : 'DinD bootstrap header changed; review TLS adaptation';
 {
   dindBootstrap:
-    k.core.v1.configMap.new('woodpecker-prototype-dind', { 'start-dind.sh': tlsStartup })
+    k.core.v1.configMap.new('woodpecker-dind', {
+      'start-dind.sh': dind.tlsStartupScript,
+      'daemon.sh': importstr 'dind.sh',
+    })
     + k.core.v1.configMap.metadata.withNamespace(namespace),
 
   agentServiceAccount:
     serviceAccount.new(name)
     + serviceAccount.metadata.withNamespace('forgejo'),
 
-  // Same namespaced backend permissions as the vendored chart, never the production worker namespace
+  // Same namespaced backend permissions as the vendored chart; no worker access to the API
   agentRole:
     role.new(name)
     + role.metadata.withNamespace(namespace)
@@ -77,18 +75,13 @@ assert std.length(std.findSubstr(startupHeader, dind.startupScript)) == 1 : 'Din
                 WOODPECKER_BACKEND_K8S_POD_ANNOTATIONS_ALLOW_FROM_STEP: 'false',
                 WOODPECKER_BACKEND_K8S_POD_NODE_SELECTOR_ALLOW_FROM_STEP: 'false',
                 WOODPECKER_BACKEND_K8S_POD_AFFINITY_ALLOW_FROM_STEP: 'false',
+                WOODPECKER_BACKEND_K8S_POD_TOLERATIONS_ALLOW_FROM_STEP: 'false',
+                WOODPECKER_BACKEND_K8S_SECCTX_NONROOT: 'false',
+                WOODPECKER_BACKEND_K8S_USER_NAMESPACES_OVERRIDE_SECCTX_NONROOT: 'false',
                 WOODPECKER_BACKEND_K8S_RUNTIME_CLASS_ALLOW_FROM_STEP: 'false',
                 WOODPECKER_BACKEND_K8S_SERVICE_ACCOUNT_NAME_ALLOW_FROM_STEP: 'false',
                 WOODPECKER_BACKEND_K8S_ALLOW_NATIVE_SECRETS: 'false',
-                // Reserved labels are server-authored; the ordinary label only keeps existing agents out
-                WOODPECKER_AGENT_LABELS: std.join(',', [
-                  '!woodpecker-ci.org/repo-name=homelab',
-                  '!woodpecker-ci.org/repo-full-name=dzervas/homelab',
-                  '!woodpecker-ci.org/event=manual',
-                  '!woodpecker-ci.org/commit-branch=main',
-                  '!woodpecker-prototype=true',
-                  'platform=linux/' + arch,
-                ]),
+                WOODPECKER_AGENT_LABELS: 'platform=linux/' + arch,
                 WOODPECKER_MAX_WORKFLOWS: '1',
                 // Stock stateless registration unregisters on termination; no identity PVC required
                 WOODPECKER_AGENT_CONFIG_FILE: '',

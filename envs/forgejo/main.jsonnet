@@ -1,15 +1,9 @@
-local cache = import './cache.libsonnet';
-local nativeRunner = import './native-runner.libsonnet';
-local runner = import './runner.libsonnet';
 local woodpecker = import './woodpecker.libsonnet';
-local externalSecrets = import 'external-secrets.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
-local externalSecret = externalSecrets.nogroup.v1.externalSecret;
 local statefulSet = k.apps.v1.statefulSet;
-local container = k.core.v1.container;
 
 local image = 'codeberg.org/forgejo/forgejo:15-rootless';
 
@@ -27,38 +21,20 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
     + lab.withPublicTCP(2222, 'ssh')
     + lab.withEnv({
       FORGEJO__server__HTTP_PORT: '80',
-      // Keep Actions clone/API URLs on verified TLS; Docker jobs share the runner Pod network
+      // Git clone/API and package registry clients use verified TLS
       FORGEJO__server__ROOT_URL: 'https://git.vpn.dzerv.art',
       // FORGEJO__server__SSH_PORT: '2222',
       FORGEJO__server__SSH_DOMAIN: 'git.vpn.dzerv.art',
 
-      FORGEJO__actions__ENABLED: 'true',
-      // Orphan backstop for idle ephemeral registrations; keep upstream's 24h age and midnight schedule
-      // _0x2E_ encodes the period in [cron.cleanup_offline_runners]
-      FORGEJO__cron_0x2E_cleanup_offline_runners__ENABLED: 'true',
-      FORGEJO__cron_0x2E_cleanup_offline_runners__GLOBAL_SCOPE_ONLY: 'true',
+      // Apply this disablement before enabling Woodpecker publication: no competing publisher
+      FORGEJO__actions__ENABLED: 'false',
       FORGEJO__service__REQUIRE_SIGNIN_VIEW: 'false',
 
       FORGEJO__webhook__ALLOWED_HOST_LIST: 'woodpecker-server,ntfy.ntfy.svc',
       TZ: timezone,
     })
-    // Idempotent offline registration of the shared forgejo-runner identity.
-    // A sidecar rather than an init container so a failure (e.g. pending DB
-    // migrations) retries without blocking Forgejo from starting.
-    + lab.withSecretMount('/run/secrets/forgejo-runner', 'forgejo-runner')
-    + lab.withInitContainer(
-      container.new('runner-register', image)
-      + container.withImagePullPolicy('Always')
-      + container.withRestartPolicy('Always')  // Makes it a sidecar
-      + container.withCommand(['sh', '-c'])
-      + container.withArgs([|||
-        until forgejo forgejo-cli actions register --name k8s --keep-labels \
-          --secret-file /run/secrets/forgejo-runner/token; do
-          echo 'runner registration failed, retrying...'
-          sleep 10
-        done
-        while true; do sleep 3600; done
-      |||])
-    )
+    // Source retirement does not authorize pruning old runner/cache/BuildKit namespaces or PVCs
+    // Pause CI, apply Forgejo disablement, install Woodpecker guards/network/cache BEFORE agents
+    // Inspect tk diff envs/forgejo; preserve forge data/config PVCs and archive old CI state before cleanup
     + { workload+: statefulSet.mapContainers(function(c) c { imagePullPolicy: 'Always' }) },
-} + woodpecker + runner + cache + nativeRunner
+} + woodpecker
