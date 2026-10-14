@@ -19,21 +19,18 @@ concurrency:
   group: docker
 
 steps:
+  # Manifest mode only runs buildx imagetools against the registry: no daemon, no build.
   - name: publish
-    image: mplatform/manifest-tool:v2.2.2
-    directory: /
-    environment:
-      FORGEJO_TOKEN:
+    image: codefloe.com/crow-plugins/docker-buildx:2.6.1
+    settings:
+      manifest: true
+      manifest_sources:
+        - git.vpn.dzerv.art/${CI_REPO}/${image}:build-${CI_PIPELINE_NUMBER}-amd64
+        - git.vpn.dzerv.art/${CI_REPO}/${image}:build-${CI_PIPELINE_NUMBER}-arm64
+      image_refs:
+        - git.vpn.dzerv.art/${CI_REPO}/${image}:latest
+        - git.vpn.dzerv.art/${CI_REPO}/${image}:build-${CI_PIPELINE_NUMBER}
+      registry: git.vpn.dzerv.art
+      username: ${CI_REPO_OWNER}
+      password:
         from_secret: forgejo_token
-    # Kubernetes expands $(FORGEJO_TOKEN) from the step secret; the scratch image needs no shell.
-    entrypoint:
-      - /manifest-tool
-      - --username=${CI_REPO_OWNER}
-      - --password=$(FORGEJO_TOKEN)
-      - push
-      - --type=oci
-      - from-args
-      - --platforms=linux/amd64,linux/arm64
-      - --template=git.vpn.dzerv.art/${CI_REPO}/${image}:build-${CI_PIPELINE_NUMBER}-ARCH
-      - --target=git.vpn.dzerv.art/${CI_REPO}/${image}:latest
-      - --tags=build-${CI_PIPELINE_NUMBER}

@@ -3,8 +3,11 @@ _: {
 
   nix = {
     extraOptions = ''
-      # Garbage collect when free space is less than 32GB
-      min-free = ${toString (32 * 1024 * 1024 * 1024)}
+      # Garbage collect when free space is less than 2GB, until 10GB are free.
+      # min-free must stay below the nodes' usual free space (30G roots), otherwise
+      # every store write triggers a full GC that races with deploy-rs copies.
+      min-free = ${toString (2 * 1024 * 1024 * 1024)}
+      max-free = ${toString (10 * 1024 * 1024 * 1024)}
     '';
 
     settings = {

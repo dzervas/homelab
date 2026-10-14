@@ -7,6 +7,7 @@
   node-vpn-prefix,
   node-vpn-iface,
   machines,
+  nodes,
   ...
 }:
 let
@@ -55,9 +56,18 @@ in
       mtu = 1420;
 
       # Generate the peers based on the `machines` attribute, defined in the flake
+      # Homelab nodes sit behind the home router and the carrier's CGNAT, so the
+      # cloud can't initiate to them: only homelab nodes set endpoints/keepalives
+      # towards the cloud, and homelab nodes reach each other directly over the LAN.
+      # Cloud->homelab keepalives were dropped since they only keep stale CGNAT
+      # sessions alive.
       peers = builtins.filter (peer: peer != null) (
         lib.attrsets.mapAttrsToList (
           name: machine:
+          let
+            isHomelab = nodes.${name}.config.setup.provider == "homelab";
+            selfIsHomelab = config.setup.provider == "homelab";
+          in
           if name != hostName && builtins.hasAttr "publicKey" machine then
             {
               inherit name;
@@ -65,14 +75,12 @@ in
 
               allowedIPs = [ "${node-vpn-prefix}.${machine.hostIndex}/32" ];
 
-              # Use it as an endpoint only if it's a k3s server
-              # TODO: Filter based on provider
-              # endpoint = if builtins.hasAttr "role" machine && machine.role == "server" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
               endpoint =
-                if name != "srv0" then "${name}.${config.networking.domain}:${toString wireguard-port}" else null;
-              # persistentKeepalive = if builtins.hasAttr "role" machine && machine.role == "server" then null else 25;
-              persistentKeepalive = if name != "srv0" && hostName != "srv0" then null else 25;
-              dynamicEndpointRefreshSeconds = if name != "srv0" then null else 5;
+                if !isHomelab || selfIsHomelab then
+                  "${name}.${config.networking.domain}:${toString wireguard-port}"
+                else
+                  null;
+              persistentKeepalive = if selfIsHomelab then 25 else null;
             }
           else
             null

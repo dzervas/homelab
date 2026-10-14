@@ -35,4 +35,4 @@ steps:
       dockerfile: docker/${image}/Dockerfile
       cache: "${cache}"
       # The cache-repo setting prefixes the registry; extra_opts keeps this path local.
-      extra_opts: --force --cache-repo=oci:/cache/layers --custom-platform=linux/${arch}
+      extra_opts: --force --cache-repo=oci:/cache/layers

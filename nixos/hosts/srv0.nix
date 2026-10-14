@@ -1,3 +1,9 @@
+# 2026-10-14: wg0 to gr0/fra1 died while fra0 kept working. The carrier CGNAT
+# (behind the TRB501 modem) dropped replies to srv0's mapping; the modem's
+# /proc/net/nf_conntrack showed those flows [UNREPLIED]. Moving srv0 to listen
+# port 51821 and back to 51820 got a fresh carrier mapping and fixed it. While on
+# 51821, srv0's own firewall/Cilium path dropped the replies too, since only
+# 51820 is opened. Recheck this if it recurs.
 {
   config,
   lib,
