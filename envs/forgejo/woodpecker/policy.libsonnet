@@ -188,7 +188,8 @@ local security = |||
       validation('(!has(object.spec.hostNetwork) || !object.spec.hostNetwork) && (!has(object.spec.hostPID) || !object.spec.hostPID) && (!has(object.spec.hostIPC) || !object.spec.hostIPC) && (!has(object.spec.shareProcessNamespace) || !object.spec.shareProcessNamespace)', 'Woodpecker Pods must not share host or process namespaces.'),
       // v3.19 secrets.go registrySecretName uses wp-UUID even for service Pods
       validation('!has(object.spec.imagePullSecrets) || (size(object.spec.imagePullSecrets) <= 1 && object.spec.imagePullSecrets.all(s, s.name == ("service" in object.metadata.labels ? "wp-" + object.metadata.name.split("-")[2] : object.metadata.name)))', 'Only the backend-generated own-step registry credential may pull private images.'),
-      validation('(request.operation != "CREATE" || !has(object.spec.nodeName) || object.spec.nodeName == "") && (!has(object.spec.tolerations) || object.spec.tolerations.all(t, t.key in ["node.kubernetes.io/not-ready", "node.kubernetes.io/unreachable"] && t.effect == "NoExecute" && t.operator == "Exists" && t.tolerationSeconds == 300))', 'Jobs cannot bypass scheduling or select arbitrary tolerations.'),
+      // DefaultTolerationSeconds injects these; their seconds come from the apiserver flags in nixos/rke2/config.nix
+      validation('(request.operation != "CREATE" || !has(object.spec.nodeName) || object.spec.nodeName == "") && (!has(object.spec.tolerations) || object.spec.tolerations.all(t, t.key in ["node.kubernetes.io/not-ready", "node.kubernetes.io/unreachable"] && t.effect == "NoExecute" && t.operator == "Exists"))', 'Jobs cannot bypass scheduling or select arbitrary tolerations.'),
       validation('!has(object.spec.securityContext.sysctls) || size(object.spec.securityContext.sysctls) == 0', 'Jobs must not request sandbox sysctl overrides.'),
       validation('!has(object.spec.schedulerName) || object.spec.schedulerName == "default-scheduler"', 'Jobs must use the default scheduler for enforced placement and affinity.'),
       validation('size(object.spec.containers) == 1 && (!has(object.spec.ephemeralContainers) || size(object.spec.ephemeralContainers) == 0)', 'Woodpecker Pods must have exactly one step container and no ephemeral containers.'),
@@ -316,7 +317,8 @@ local security = |||
         toEndpoints: [{ matchLabels: { 'k8s:io.kubernetes.pod.namespace': 'kube-system', 'k8s:k8s-app': 'kube-dns' } }],
         toPorts: [{ ports: [{ port: '53', protocol: 'ANY' }], rules: { dns: [{ matchPattern: '*' }] } }],
       },
-      { toEntities: ['world'], toPorts: [{ ports: [{ port: '443', protocol: 'TCP' }] }] },
+      // Distro package mirrors (e.g. Debian apt) use plain HTTP with signed indexes
+      { toEntities: ['world'], toPorts: [{ ports: [{ port: '80', protocol: 'TCP' }, { port: '443', protocol: 'TCP' }] }] },
       {
         toEndpoints: [{ matchLabels: {
           'k8s:io.kubernetes.pod.namespace': 'traefik',

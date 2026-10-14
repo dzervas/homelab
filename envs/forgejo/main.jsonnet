@@ -1,4 +1,5 @@
 local woodpecker = import './woodpecker.libsonnet';
+local affinity = import 'helpers/affinity.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local k = import 'k.libsonnet';
 local lab = import 'labsonnet.libsonnet';
@@ -12,6 +13,7 @@ local image = 'codeberg.org/forgejo/forgejo:15-rootless';
     lab.new('forgejo', image)
     + lab.withCreateNamespace()
     + lab.withType('StatefulSet')
+    + lab.withAffinity(affinity.requireProviders(['homelab']))
     + lab.withPV('/var/lib/gitea', { name: 'data', size: '10Gi', storageClassName: 'longhorn' })
     + lab.withPV('/etc/gitea', { name: 'config', size: '128Mi', storageClassName: 'longhorn' })
     + lab.withVpnHttp(80, 'git.vpn.dzerv.art', [

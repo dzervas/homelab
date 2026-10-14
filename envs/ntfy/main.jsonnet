@@ -62,6 +62,8 @@ local users = [
           🔧 PR {{ .action }}: {{ .pull_request.title }}
           {{- else if .release -}}
           🚀 Release {{ .action }}: {{ .release.tag_name }}
+          {{- else if .package -}}
+          📦 Package {{ .action }}: `{{ .package.name }}:{{ .package.version }}`!
           {{- else if .run -}}
           {{ if eq .action "failure" -}}💥 {{ else if eq .action "recover" -}}🔁 {{ else if eq .action "success" -}}✅ {{ end -}}
           CI {{ if eq .action "failure" }}Failure{{ else if eq .action "recover" }}Recovery{{ else if eq .action "success" }}Success{{ end }}: {{ .run.title }}
@@ -72,6 +74,8 @@ local users = [
           {{ .pull_request.html_url }}
           {{- else if .release -}}
           {{ .release.html_url }}
+          {{- else if .package -}}
+          {{ .package.html_url }}
           {{- else if .run -}}
           {{ .run.html_url }}
           {{- end }}
