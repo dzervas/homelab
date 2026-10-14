@@ -1,4 +1,8 @@
 when:
+  - event: manual
+    branch: main
+    evaluate: 'IMAGE == "${image}"'
+
   - event: push
     branch: main
     path:
