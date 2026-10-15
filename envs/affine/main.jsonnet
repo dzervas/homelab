@@ -13,14 +13,14 @@ local lab = import 'labsonnet.libsonnet';
     + lab.withPV('/home/node/.affine/config', { name: 'affine-config', size: '1Gi' })
     + lab.withEnv({
       // Needs `CREATE EXTENSION IF NOT EXISTS vector;` once
-      AFFINE_INDEXER_ENABLED: 'true',
+      // AFFINE_INDEXER_ENABLED: 'true',
       AFFINE_SERVER_EXTERNAL_URL: 'https://plan.dzerv.art',
       REDIS_SERVER_HOST: 'redis',
       DEPLOYMENT_TYPE: 'selfhosted',
     })
     + lab.withInitContainer({
       name: 'migrations',
-      image: 'git.vpn.dzerv.art/dzervas/homelab/affine:latest',
+      image: 'ghcr.io/dzervas/affine:latest',
       command: ['sh', '-c', 'node ./scripts/self-host-predeploy.js'],
     })
     // TODO: Install Stakater Reloader before automating database password rotation.
