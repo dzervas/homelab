@@ -1,7 +1,9 @@
 {
   fetchFromGitHub,
+  installShellFiles,
   lib,
   rustPlatform,
+  stdenv,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "rustanka";
@@ -25,6 +27,15 @@ rustPlatform.buildRustPackage (finalAttrs: {
   '';
 
   cargoBuildFlags = [ "-p" "rtk" ];
+
+  nativeBuildInputs = [ installShellFiles ];
+
+  postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+    installShellCompletion --cmd rtk \
+      --bash <(COMPLETE=bash $out/bin/rtk) \
+      --fish <(COMPLETE=fish $out/bin/rtk) \
+      --zsh <(COMPLETE=zsh $out/bin/rtk)
+  '';
 
   # The test suite shells out to tk/helm/kustomize and compares against them
   doCheck = false;

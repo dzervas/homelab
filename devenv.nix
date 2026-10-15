@@ -27,7 +27,7 @@ in {
 
   packages = with pkgs; [
     tanka
-    (callPackage ./pkgs/rustanka.nix { })
+    (callPackage ./pkgs/rustanka.nix {})
     jsonnet-bundler
     deploy-rs
     hubble
@@ -62,6 +62,28 @@ in {
       PRIMARY="$(kubectl -n postgres get pods -l 'cnpg.io/cluster=shared,cnpg.io/instanceRole=primary' -o jsonpath='{.items[0].metadata.name}')"
       echo "PRIMARY=$PRIMARY"
       kubectl -n postgres exec -i "$PRIMARY" -c postgres -- psql -U postgres -d postgres
+    '';
+
+    pis-kube.exec = ''
+      set -eu
+      dir="$DEVENV_STATE/agent-kube"
+      mkdir -p -m 700 "$dir"
+      ctx=gr
+      cluster=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$ctx\")].context.cluster}")
+      server=$(kubectl config view -o jsonpath="{.clusters[?(@.name==\"$cluster\")].cluster.server}")
+      ca=$(kubectl config view --raw -o jsonpath="{.clusters[?(@.name==\"$cluster\")].cluster.certificate-authority-data}")
+
+      (umask 077; kubectl --context "$ctx" -n kube-system create token agent-readonly --duration=8h > "$dir/token")
+      cat > "$dir/config" <<EOF
+      apiVersion: v1
+      kind: Config
+      clusters: [{name: $ctx, cluster: {server: $server, certificate-authority-data: $ca}}]
+      users: [{name: agent, user: {tokenFile: $dir/token}}]
+      contexts: [{name: agent, context: {cluster: $ctx, user: agent}}]
+      current-context: agent
+      EOF
+
+      exec pis --env KUBECONFIG="$dir/config" "$@"
     '';
   };
 

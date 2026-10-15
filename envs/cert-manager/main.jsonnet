@@ -21,9 +21,9 @@ local domain = 'dzerv.art';
     namespace: namespace,
     values: {
       crds: { enabled: true },
-      prometheus: {
-        servicemonitor: { enabled: true },
-      },
+      prometheus: { enabled: false },
+      // HTTP-01 self-checks must follow public DNS, not the VPN's SQL-only ClusterIPs
+      extraArgs: ['--acme-http01-solver-nameservers=1.1.1.1:53,8.8.8.8:53'],
       webhook: {
         networkPolicy: { enabled: true },
       },

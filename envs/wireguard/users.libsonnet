@@ -18,6 +18,8 @@ local userPeerAdminPolicies = dzervasPeerPolicies + [
   userPolicy('10.43.0.1', 443),
   // Forgejo SSH
   userPolicy('10.43.0.50', 2222),
+  // Dolt SQL (native TLS, bypassing Traefik)
+  userPolicy('10.43.0.60', 3306),
 
   // Network devices
   userPolicy(cidr.prefix + '16', 443),
