@@ -121,13 +121,6 @@ local sandboxLabels = {
             tolerations: [],
           },
         },
-        dockerDataRoot: {
-          persistence: {
-            enabled: true,
-            size: '64Gi',
-            storageClass: 'longhorn-v1',
-          },
-        },
       },
     },
   }),

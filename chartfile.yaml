@@ -70,7 +70,7 @@ requires:
   - chart: nccloud/wireguard-operator
     version: 0.3.0
   - chart: n8n-sandbox/n8n-sandbox-service
-    version: 0.7.0
+    version: 0.10.4
   - chart: external-dns/external-dns
     version: 1.22.0
   - chart: hermeum/hermes-agent-operator

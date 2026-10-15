@@ -37,6 +37,11 @@ local domain = 'dzerv.art';
       N8N_RUNNERS_MODE: 'external',
       N8N_RUNNERS_BROKER_LISTEN_ADDRESS: '0.0.0.0',
 
+      // custom/ uses Chat Completions: cliproxyapi forces store=false for Codex, so the
+      // openai provider's Responses item_references 404 (CLIProxyAPI#999)
+      N8N_INSTANCE_AI_MODEL: 'custom/gpt-6.1-sol',
+      N8N_INSTANCE_AI_MODEL_URL: 'http://cliproxyapi.cliproxyapi.svc:8317/v1',
+
       N8N_INSTANCE_AI_SANDBOX_ENABLED: 'true',
       N8N_INSTANCE_AI_SANDBOX_PROVIDER: 'n8n-sandbox',
       N8N_SANDBOX_SERVICE_URL: 'http://sandbox-n8n-sandbox-service-api.n8n-sandbox.svc.cluster.local:8080',

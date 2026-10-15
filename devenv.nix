@@ -27,6 +27,7 @@ in {
 
   packages = with pkgs; [
     tanka
+    (callPackage ./pkgs/rustanka.nix { })
     jsonnet-bundler
     deploy-rs
     hubble

@@ -70,6 +70,103 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
       }]),
   },
 
+  // Read-only access for local coding agents, using short-lived tokens minted with `kubectl create token`
+  agentReadonly: {
+    serviceAccount:
+      serviceAccount.new('agent-readonly')
+      + serviceAccount.metadata.withNamespace('kube-system'),
+    clusterRole:
+      clusterRole.new('agent-readonly')
+      + clusterRole.withRules([
+        // Secrets only exist in the core group, so only its resources are listed one by one
+        // No pods/exec, pods/attach, pods/portforward, nodes/proxy or services/proxy: those are not reads
+        {
+          apiGroups: [''],
+          resources: [
+            'pods',
+            'pods/log',
+            'services',
+            'endpoints',
+            'namespaces',
+            'nodes',
+            'configmaps',
+            'events',
+            'persistentvolumes',
+            'persistentvolumeclaims',
+            'serviceaccounts',
+            'replicationcontrollers',
+            'podtemplates',
+            'resourcequotas',
+            'limitranges',
+          ],
+          verbs: ['get', 'list', 'watch'],
+        },
+        // RBAC has no deny and '*' would match the core group, so new CRD groups have to be added here
+        // Drift check: kubectl get crd -o jsonpath='{range .items[*]}{.spec.group}{"\n"}{end}' | sort -u
+        {
+          apiGroups: [
+            // Built-in
+            'admissionregistration.k8s.io',
+            'apiextensions.k8s.io',
+            'apiregistration.k8s.io',
+            'apps',
+            'autoscaling',
+            'batch',
+            'certificates.k8s.io',
+            'coordination.k8s.io',
+            'discovery.k8s.io',
+            'events.k8s.io',
+            'flowcontrol.apiserver.k8s.io',
+            'metrics.k8s.io',
+            'networking.k8s.io',
+            'node.k8s.io',
+            'policy',
+            'rbac.authorization.k8s.io',
+            'resource.k8s.io',
+            'scheduling.k8s.io',
+            'storage.k8s.io',
+
+            // CRDs
+            'acme.cert-manager.io',
+            'agents.hermeum.app',
+            'cert-manager.io',
+            'cilium.io',
+            'collectors.grafana.com',
+            'eventing.keda.sh',
+            'external-secrets.io',
+            'externaldns.k8s.io',
+            'gateway.networking.k8s.io',
+            'gateway.networking.x-k8s.io',
+            'gemini.fairwinds.com',
+            'generators.external-secrets.io',
+            'helm.cattle.io',
+            'hub.traefik.io',
+            'k3s.cattle.io',
+            'keda.sh',
+            'longhorn.io',
+            'monitoring.coreos.com',
+            'monitoring.grafana.com',
+            'postgresql.cnpg.io',
+            'snapshot.storage.k8s.io',
+            'traefik.io',
+            'vpn.wireguard-operator.io',
+          ],
+          resources: ['*'],
+          verbs: ['get', 'list', 'watch'],
+        },
+      ]),
+    clusterRoleBinding:
+      clusterRoleBinding.new('agent-readonly')
+      + clusterRoleBinding.roleRef.withApiGroup('rbac.authorization.k8s.io')
+      + clusterRoleBinding.roleRef.withKind('ClusterRole')
+      + clusterRoleBinding.roleRef.withName('agent-readonly')
+      + clusterRoleBinding.withSubjects([{
+        kind: 'ServiceAccount',
+        name: 'agent-readonly',
+        namespace: 'kube-system',
+      }]),
+  },
+
   defaultDenyNP:
     ciliumClusterwideNetworkPolicy.new('default-ingress')
     // NS to affect

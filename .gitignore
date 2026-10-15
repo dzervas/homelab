@@ -4,6 +4,8 @@
 !/devenv.nix
 !/devenv.lock
 !/devenv.yaml
+!/pkgs
+!/pkgs/*.nix
 !/jsonnetfile.json*
 !/renovate.json
 !/.agents

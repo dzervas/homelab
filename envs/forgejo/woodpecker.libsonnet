@@ -1,10 +1,16 @@
 local workers = import './woodpecker/agent.libsonnet';
 local policy = import './woodpecker/policy.libsonnet';
 local opsecretLib = import 'docker-service/opsecret.libsonnet';
+local externalSecrets = import 'external-secrets.libsonnet';
 local tk = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local ingress = import 'helpers/ingress.libsonnet';
 local timezone = import 'helpers/timezone.libsonnet';
 local helm = tk.helm.new(std.thisFile);
+
+local password = externalSecrets.generators.v1alpha1.password;
+local externalSecret = externalSecrets.nogroup.v1.externalSecret;
+
+local grpcSecretName = 'woodpecker-grpc-secret';
 
 {
   woodpecker:
@@ -47,6 +53,7 @@ local helm = tk.helm.new(std.thisFile);
           extraSecretNamesForEnvFrom: [
             'woodpecker-agent-op',
             'woodpecker-server-op',
+            grpcSecretName,
           ],
           env: {
             WOODPECKER_HOST: 'https://ci.vpn.dzerv.art',
@@ -61,6 +68,13 @@ local helm = tk.helm.new(std.thisFile);
 
             WOODPECKER_EXPERT_WEBHOOK_HOST: 'http://woodpecker-server',
 
+            // Stock SQLite uses a rollback journal and a 5s busy timeout, so log writes on
+            // Longhorn locked out other queries; WAL lets readers run alongside the writer
+            WOODPECKER_DATABASE_DATASOURCE: '/var/lib/woodpecker/woodpecker.sqlite?_journal_mode=WAL&_busy_timeout=30000&_txlock=immediate',
+            // Pipeline logs were the bulk of the DB writes
+            WOODPECKER_LOG_STORE: 'file',
+            WOODPECKER_LOG_STORE_FILE_PATH: '/var/lib/woodpecker/logs',
+
             TZ: timezone,
           },
         },
@@ -69,6 +83,33 @@ local helm = tk.helm.new(std.thisFile);
 
   woodpeckerAgentSecret: opsecretLib.new('woodpecker-agent'),
   woodpeckerServerSecret: opsecretLib.new('woodpecker-server'),
+
+  // Without a persisted secret the server generates a new one per restart
+  woodpeckerGrpcSecretGenerator:
+    password.new(grpcSecretName)
+    + password.metadata.withNamespace('forgejo')
+    + password.spec.withLength(64)
+    + password.spec.withSymbols(0)
+    + password.spec.withAllowRepeat(true),
+
+  woodpeckerGrpcSecret:
+    externalSecret.new(grpcSecretName)
+    + externalSecret.metadata.withNamespace('forgejo')
+    + externalSecret.spec.withRefreshPolicy('OnChange')
+    + externalSecret.spec.target.withName(grpcSecretName)
+    + externalSecret.spec.target.withCreationPolicy('Owner')
+    + externalSecret.spec.target.template.withData({
+      WOODPECKER_GRPC_SECRET: '{{ .password }}',
+    })
+    + externalSecret.spec.withDataFrom([{
+      sourceRef: {
+        generatorRef: {
+          apiVersion: 'generators.external-secrets.io/v1alpha1',
+          kind: 'Password',
+          name: grpcSecretName,
+        },
+      },
+    }]),
 
   // CiliumNetworkPolicy to allow agent egress to kube-apiserver.
   // Standard NetworkPolicy ipBlock CIDR rules don't match Cilium's
