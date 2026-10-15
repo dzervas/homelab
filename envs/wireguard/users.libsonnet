@@ -8,7 +8,12 @@ local userPolicy(ip, port, proto='TCP') = {
   to: { ip: ip, port: port },
 };
 
-local userPeerAdminPolicies = [
+local dzervasPeerPolicies = [
+  { action: 'ACCEPT', to: { ip: cidr.prefix + ip } }
+  for ip in [4, 5, 6]
+];
+
+local userPeerAdminPolicies = dzervasPeerPolicies + [
   // kube-api
   userPolicy('10.43.0.1', 443),
   // Forgejo SSH
@@ -17,7 +22,8 @@ local userPeerAdminPolicies = [
   // Network devices
   userPolicy(cidr.prefix + '16', 443),
   userPolicy(cidr.prefix + '16', 22),
-  userPolicy(cidr.prefix + '17', 443),
+  // The operator is stateless, so allow replies to connections initiated by hass too
+  { action: 'ACCEPT', to: { ip: cidr.prefix + '17' } },
 ];
 
 local userPeerPolicies(name, ip, admin=false, additionalPolicies=[]) =
@@ -71,7 +77,7 @@ userPeer('dzervas-desktop', 4, true)
 
 // .16/28 is the network devices subnet (16-31)
 + userPeer('modem', 16, disablePolicies=true)
-+ userPeer('hass', 17)  // CLIProxyAPI access
++ userPeer('hass', 17, additionalPolicies=dzervasPeerPolicies)
 
 // .128/25 is for other users (128-255)
 + userPeer('shed', 128, pushSecret=true)
