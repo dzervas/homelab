@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1
 
 # Follow the current official browser release on each CI rebuild.
 # For local builds, use --pull --no-cache to refresh the base and CLI download.
