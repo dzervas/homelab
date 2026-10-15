@@ -236,4 +236,20 @@ local ciliumClusterwideNetworkPolicy = cilium.cilium.v2.ciliumClusterwideNetwork
     overhead: { podFixed: { cpu: '50m', memory: '64Mi' } },
     scheduling: { nodeSelector: { 'gvisor-dind-runtime': 'running' } },
   },
+
+  shellAdmin: {
+    serviceAccount:
+      serviceAccount.new('shell-admin')
+      + serviceAccount.metadata.withNamespace('kube-system'),
+    clusterRoleBinding:
+      clusterRoleBinding.new('shell-admin')
+      + clusterRoleBinding.roleRef.withApiGroup('rbac.authorization.k8s.io')
+      + clusterRoleBinding.roleRef.withKind('ClusterRole')
+      + clusterRoleBinding.roleRef.withName('cluster-admin')
+      + clusterRoleBinding.withSubjects([{
+        kind: 'ServiceAccount',
+        name: 'shell-admin',
+        namespace: 'kube-system',
+      }]),
+  },
 }

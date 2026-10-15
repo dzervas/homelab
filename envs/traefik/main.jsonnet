@@ -17,7 +17,9 @@ local anubis = import './anubis.libsonnet';
           spec: { type: 'ClusterIP' },
           additionalServices: {
             // Static vpn clusterIP to be able to filter it in wireguard egress networkpolicy
-            vpn: { spec: { clusterIP: '10.43.0.50' } },
+            // Local: Traefik runs on every node, and Cluster spread in-cluster *.vpn traffic
+            // (e.g. home CI registry pushes) to cloud pods, hairpinning over the cellular uplink
+            vpn: { spec: { clusterIP: '10.43.0.50', internalTrafficPolicy: 'Local' } },
           },
         },
         updateStrategy: {

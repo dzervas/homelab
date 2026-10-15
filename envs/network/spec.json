@@ -5,7 +5,7 @@
 		"name": "envs/network"
 	},
 	"spec": {
-		"contextNames": ["gr"],
+		"contextNames": ["gr-bootstrap"],
 		"namespace": "kube-system",
 		"injectLabels": true,
 		"applyStrategy": "server",
