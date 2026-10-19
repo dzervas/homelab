@@ -2,7 +2,7 @@ local lab = import 'labsonnet.libsonnet';
 
 {
   affine:
-    lab.new('affine', 'git.vpn.dzerv.art/dzervas/homelab/affine:latest')
+    lab.new('affine', 'ghcr.io/dzervas/affine:latest')
     + lab.withCreateNamespace()
     + lab.withNamespaceLabels({ forgejoCreds: 'enabled' })
     + lab.withImagePullSecrets(['forgejo-cluster-secret'])
