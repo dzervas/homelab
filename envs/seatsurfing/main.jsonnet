@@ -36,7 +36,11 @@ local domain = 'book.synergastir.io';
     })
     // CRYPT_KEY must be exactly 32 chars and never change: it encrypts DB fields
     // INIT_ORG_PASS only seeds the first admin on an empty database
-    + lab.withOpEnvs({ CRYPT_KEY: 'crypt-key', INIT_ORG_PASS: 'password' }, 'seatsurfing')
+    + lab.withOpEnvs({
+      CRYPT_KEY: 'crypt-key',
+      INIT_ORG_PASS: 'password',
+      SMTP_AUTH_PASS: 'resend-api-key',
+    }, 'seatsurfing')
     // Generated with:
     // openssl genrsa -traditional -out jwt.key 2048
     // openssl rsa -in jwt.key -pubout -out jwt.pub
@@ -51,6 +55,15 @@ local domain = 'book.synergastir.io';
 
       JWT_PRIVATE_KEY: '/secret/jwt-private-key',
       JWT_PUBLIC_KEY: '/secret/jwt-public-key',
+
+      // Resend: STARTTLS only, the client has no implicit TLS (util/sendmail.go)
+      // The sender's domain must be verified in Resend
+      SMTP_HOST: 'smtp.resend.com',
+      SMTP_PORT: '587',
+      SMTP_START_TLS: '1',
+      SMTP_AUTH: '1',
+      SMTP_AUTH_USER: 'resend',
+      MAIL_SENDER_ADDRESS: 'no-reply@synergastir.io',
     }),
 
   // Internet for the version check, OIDC, SMTP and CalDAV; in-cluster only Postgres
