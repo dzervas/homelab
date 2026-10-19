@@ -7,7 +7,7 @@ local tenant = import './tenant.libsonnet';
 
 local namespace = 'postgres';
 local externalSecretsNamespace = 'external-secrets';
-local tenantNamespaces = ['affine'];
+local tenantNamespaces = ['affine', 'seatsurfing'];
 local tenantSecretStoreName = 'postgres-tenants';
 
 {
@@ -16,7 +16,7 @@ local tenantSecretStoreName = 'postgres-tenants';
   tenantSecretStore:
     clusterSecretStore.new(tenantSecretStoreName)
     // Only generated-password tenant namespaces may use this credential source.
-    + clusterSecretStore.spec.withConditions([{ namespaces: ['affine'] }])
+    + clusterSecretStore.spec.withConditions([{ namespaces: ['affine', 'seatsurfing'] }])
     + {
       spec+: {
         provider: {
@@ -91,5 +91,6 @@ local tenantSecretStoreName = 'postgres-tenants';
 
     // Password generation is OnChange; restart Affine manually after rotation.
     affine: tenant.new('affine', generatePassword=true),
+    seatsurfing: tenant.new('seatsurfing', generatePassword=true),
   },
 }
