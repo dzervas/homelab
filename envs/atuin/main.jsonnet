@@ -1,7 +1,7 @@
 local timezone = import 'helpers/timezone.libsonnet';
 local lab = import 'labsonnet.libsonnet';
 
-lab.new('atuin', 'ghcr.io/atuinsh/atuin:18.24.0')
+lab.new('atuin', 'ghcr.io/atuinsh/atuin:18.24.2-1')
 + lab.withCreateNamespace()
 + lab.withType('StatefulSet')
 + lab.withArgs(['start'])
