@@ -33,6 +33,11 @@ local helm = tk.helm.new(std.thisFile);
         // Keep the counter ON for v1 volumes so auto-salvage can pick the best replica.
         disableRevisionCounter: '{"v1":"false"}',
       },
+      // The longhorn bucket must exist under rclone's s3: remote before the first backup
+      defaultBackupStore: {
+        backupTarget: 's3://longhorn@us-east-1/',
+        backupTargetCredentialSecret: 'rclone-s3',
+      },
       longhornUI: { replicas: 1 },
       ingress: ingress.hostString('storage.vpn.dzerv.art', {
         'traefik.ingress.kubernetes.io/router.middlewares': 'traefik-magicentry@kubernetescrd',
@@ -54,6 +59,7 @@ local helm = tk.helm.new(std.thisFile);
         // v2DataEngine: true,
         defaultDataPath: '/dev/mapper/mainpool-longhorn',
         defaultDataLocality: 'best-effort',
+        csiAllowedTopologyKeys: 'topology.kubernetes.io/zone',
         nodeDownPodDeletionPolicy: 'delete-both-statefulset-and-deployment-pod',
         // Maybe interrupt mode at some point (needs iommu): https://longhorn.io/docs/1.11.0/v2-data-engine/features/interrupt-mode/
 
@@ -94,6 +100,20 @@ local helm = tk.helm.new(std.thisFile);
     },
   }), 'up|scrape_samples_scraped|longhorn_volume_actual_size_bytes|longhorn_volume_capacity_bytes|longhorn_volume_robustness|longhorn_volume_state|longhorn_volume_read_throughput|longhorn_volume_write_throughput|longhorn_node_status|longhorn_node_count_total|longhorn_node_storage_capacity_bytes|longhorn_node_storage_usage_bytes|longhorn_node_storage_reservation_bytes|longhorn_disk_capacity_bytes|longhorn_disk_usage_bytes|longhorn_disk_reservation_bytes|longhorn_instance_manager_cpu_usage_millicpu|longhorn_instance_manager_memory_usage_bytes'),
 
+  backupCredentials:
+    externalSecret.new('rclone-s3')
+    + externalSecret.metadata.withNamespace($.namespace.metadata.name)
+    + externalSecret.spec.secretStoreRef.withKind('ClusterSecretStore')
+    + externalSecret.spec.secretStoreRef.withName('1password')
+    + externalSecret.spec.withDataFrom([{ extract: { key: 'rclone' } }])
+    + externalSecret.spec.target.template.withMergePolicy('Replace')
+    + externalSecret.spec.target.template.withData({
+      AWS_ACCESS_KEY_ID: 'longhorn',
+      AWS_SECRET_ACCESS_KEY: '{{ index . "s3-longhorn-pass" }}',
+      AWS_ENDPOINTS: 'http://rclone-rc.rclone.svc.cluster.local:9000',
+      VIRTUAL_HOSTED_STYLE: 'false',
+    }),
+
   // Extra StorageClasses. Both pinned to the v1 data engine on purpose: the v2
   // (SPDK) engine has repeatedly wedged this cluster's flaky nodes (one SPDK
   // process per node => a single stuck teardown starves all storage on it).
@@ -107,10 +127,23 @@ local helm = tk.helm.new(std.thisFile);
     + k.storage.v1.storageClass.withProvisioner('driver.longhorn.io')
     + k.storage.v1.storageClass.withReclaimPolicy('Retain')
     + k.storage.v1.storageClass.withAllowVolumeExpansion(true)
-    + k.storage.v1.storageClass.withVolumeBindingMode('Immediate')
+    // Requires Longhorn 1.13+. Recreate this immutable class after upgrading;
+    // existing volumes keep their placement. grnet has only one storage node
+    + k.storage.v1.storageClass.withVolumeBindingMode('WaitForFirstConsumer')
+    + k.storage.v1.storageClass.withAllowedTopologies([
+      {
+        matchLabelExpressions: [{
+          key: 'topology.kubernetes.io/zone',
+          values: ['homelab', 'oracle'],
+        }],
+      },
+    ])
     + k.storage.v1.storageClass.withParameters({
       dataEngine: 'v1',
       numberOfReplicas: '2',
+      volumeTopology: 'zonal',
+      replicaZoneSoftAntiAffinity: 'enabled',
+      replicaSoftAntiAffinity: 'disabled',
       staleReplicaTimeout: '30',
       dataLocality: 'best-effort',
       disableRevisionCounter: 'false',

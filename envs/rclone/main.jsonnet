@@ -28,14 +28,16 @@ local namespace = 'rclone';
     + lab.withType('StatefulSet')
     + lab.withPodAnnotations({ 'descheduler.alpha.kubernetes.io/prefer-no-eviction': 'true' })
     + lab.withVpnHttp(8080, 'webdav.vpn.dzerv.art')
+    + lab.withPort({ name: 's3', port: 9000 })
     + lab.withCommand(['sh', '-c'])
     + lab.withEmptyDir('/runtime')
     + lab.withSecretMount('/secret', 'rclone-secrets-op')
     + lab.withSecretEnv({
       WEBDAV_PIXEL_PASS: { name: 'rclone-secrets-op', key: 'webdav-pixel-pass' },
-      S3_LONGHORN_PASS: { name: 'rclone-secrets-op', key: 's3-longhorn-pass' },
+      S3_LONGHORN_AUTH_KEY: { name: 'rclone-secrets-op', key: 's3-longhorn-auth-key' },
     })
     + lab.withArgs([|||
+      set -eu
       rclone rcd --rc-addr=127.0.0.1:5572 --rc-no-auth --config=/runtime/rclone.conf --cache-dir=/tmp/.rclone --temp-dir=/tmp  --metrics-addr=0.0.0.0:9090 &
       pid=$!
 
@@ -45,9 +47,9 @@ local namespace = 'rclone';
       done
 
       echo "Starting WebDAV..."
-      rclone rc serve/start type=webdav fs=onedrive: addr=:8080 vfs_cache_mode=full user=pixel "pass=$WEBDAV_PIXEL_PASS"
+      rclone rc serve/start type=webdav fs=onedrive: addr=:8080 vfs_cache_mode=off user=pixel "pass=$WEBDAV_PIXEL_PASS"
       echo "Starting S3..."
-      rclone rc serve/start type=s3 fs=s3: addr=:9000 vfs_cache_mode=full user=longhorn "pass=$S3_LONGHORN_PASS"
+      rclone rc serve/start type=s3 fs=s3: addr=:9000 vfs_cache_mode=off "auth_key=$S3_LONGHORN_AUTH_KEY"
       echo "All done! returning control to rclone rcd"
 
       rclone rc core/version
@@ -154,9 +156,25 @@ local namespace = 'rclone';
       namespace: namespace,
     }]),
 
+  s3NetworkPolicy:
+    networkPolicy.new('longhorn-s3')
+    + networkPolicy.spec.podSelector.withMatchLabels({ app: 'rclone-rc' })
+    + networkPolicy.spec.withPolicyTypes(['Ingress'])
+    + networkPolicy.spec.withIngress([{
+      from: [{
+        namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'longhorn-system' } },
+      }],
+      ports: [{ protocol: 'TCP', port: 9000 }],
+    }]),
+
   secret:
     externalSecret.new('rclone-secrets-op')
     + externalSecret.spec.secretStoreRef.withKind('ClusterSecretStore')
     + externalSecret.spec.secretStoreRef.withName('1password')
-    + externalSecret.spec.withDataFrom([{ extract: { key: 'rclone' } }]),
+    + externalSecret.spec.withDataFrom([{ extract: { key: 'rclone' } }])
+    // S3 auth pairs cannot contain commas; CSV-quote the pair to preserve password quotes
+    + externalSecret.spec.target.template.withMergePolicy('Merge')
+    + externalSecret.spec.target.template.withData({
+      's3-longhorn-auth-key': '"longhorn,{{ index . "s3-longhorn-pass" | replace `"` `""` }}"',
+    }),
 }

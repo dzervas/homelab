@@ -62,9 +62,7 @@ requires:
   - chart: traefik/traefik
     version: 41.0.0
   - chart: longhorn/longhorn
-    version: 1.12.0
-  - chart: descheduler/descheduler
-    version: 0.36.0
+    version: 1.13.0
   - chart: cloudnative-pg/cloudnative-pg
     version: 0.29.0
   - chart: nccloud/wireguard-operator
