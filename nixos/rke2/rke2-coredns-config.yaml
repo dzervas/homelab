@@ -10,33 +10,33 @@ spec:
     nodelocal:
       enabled: false
 
+    # Exact names win over the wildcard per DNS wildcard rules, unlike hosts+template
+    # where template always runs first regardless of Corefile order
+    zoneFiles:
+      - filename: vpn.dzerv.art.db
+        domain: vpn.dzerv.art
+        contents: |
+          $ORIGIN vpn.dzerv.art.
+          $TTL 60
+          @        IN SOA ns admin.dzerv.art. 1 7200 3600 1209600 60
+          @        IN NS  ns
+          kube     IN A   10.43.0.1
+          desktop  IN A   10.50.50.4
+          laptop   IN A   10.50.50.5
+          pixel    IN A   10.50.50.6
+          modem    IN A   10.50.50.16
+          hass    IN A    10.50.50.17
+          *        IN A   10.43.0.50
+
     servers:
       - zones:
           - zone: .
             use_tcp: true
         port: 5353
         plugins:
-          - name: hosts
-            configBlock: |-
-              10.50.50.4 desktop.vpn.dzerv.art
-              10.50.50.5 laptop.vpn.dzerv.art
-              10.50.50.6 pixel.vpn.dzerv.art
-              10.50.50.16 modem.dzerv.art
-              10.50.50.17 hass.dzerv.art
-              fallthrough
-          # Use template rather than hosts: template runs first and would otherwise match the VPN wildcard
-          - name: template
-            parameters: IN A kube.vpn.dzerv.art
-            configBlock: |-
-              match ^kube\.vpn\.dzerv\.art\.$
-              answer "{{ .Name }} 60 IN A 10.43.0.1"
-              fallthrough
-          - name: template
-            parameters: IN A vpn.dzerv.art
-            configBlock: |-
-              match ^.+\.vpn\.dzerv\.art\.$
-              answer "{{ .Name }} 60 IN A 10.43.0.50"
-              fallthrough
+          # Only answers vpn.dzerv.art, everything else passes through
+          - name: file
+            parameters: /etc/coredns/vpn.dzerv.art.db vpn.dzerv.art
           - name: forward
             # AdGuard public DNS
             parameters: . tls://94.140.14.14 tls://94.140.15.15
