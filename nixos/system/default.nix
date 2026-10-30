@@ -46,9 +46,17 @@ _: {
     "fs.inotify.max_queued_events" = 32768;
     "fs.inotify.max_user_instances" = 512;
     "fs.inotify.max_user_watches" = 524288;
+
+    # CVE related stuff
+    # https://ubuntu.com/security/CVE-2026-98432
+    "net.mptcp.enabled" = 0;
+    "net.ipv4.tcp_migrate_req" = 0;
   };
   # LVM stuff
-  boot.kernelModules = [ "dm-thin-pool" "dm-snapshot" ];
+  boot.kernelModules = [
+    "dm-thin-pool"
+    "dm-snapshot"
+  ];
 
   time.timeZone = "Europe/Athens";
 

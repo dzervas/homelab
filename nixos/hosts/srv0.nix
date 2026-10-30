@@ -4,13 +4,7 @@
 # port 51821 and back to 51820 got a fresh carrier mapping and fixed it. While on
 # 51821, srv0's own firewall/Cilium path dropped the replies too, since only
 # 51820 is opened. Recheck this if it recurs.
-{
-  config,
-  lib,
-  modulesPath,
-  ...
-}:
-{
+{ config, lib, modulesPath, ... }: {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   boot.initrd.availableKernelModules = [
@@ -84,9 +78,7 @@
           };
         };
 
-        storage = {
-          size = "100%";
-        };
+        storage.size = "100%";
       };
     };
   };

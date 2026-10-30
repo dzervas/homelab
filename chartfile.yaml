@@ -40,6 +40,8 @@ repositories:
     url: oci://ghcr.io/hermeum/charts
   - name: kedacore
     url: https://kedacore.github.io/charts
+  - name: itzg
+    url: https://itzg.github.io/minecraft-server-charts/
 requires:
   - chart: prometheus/prometheus-operator-crds
     version: 30.0.0
@@ -75,4 +77,6 @@ requires:
     version: 0.5.3
   - chart: kedacore/keda
     version: 2.21.0
+  - chart: itzg/minecraft
+    version: 5.3.1
 version: 1
