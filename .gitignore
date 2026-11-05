@@ -19,12 +19,14 @@
 !/.woodpecker/*.yaml
 !/nixos
 !/nixos/flake.lock
+!/nixos/disk
 !/nixos/hosts
+!/nixos/inference
 !/nixos/overlays
 !/nixos/rke2
 !/nixos/system
 !/nixos/rke2/*.yaml
-!/nixos/**.nix
+!/nixos/**/*.nix
 !/envs
 !/envs/*
 !/envs/*/spec.json

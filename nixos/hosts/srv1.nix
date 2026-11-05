@@ -118,4 +118,6 @@ in
       ${pkgs.coreutils}/bin/cp ${configTxt} /boot/config.txt
     ''
   );
+
+  system.stateVersion = "25.05";
 }

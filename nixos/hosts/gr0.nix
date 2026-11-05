@@ -21,4 +21,6 @@
     provider = "grnet";
     isEFI = false; # No EFI partition required in QEMU
   };
+
+  system.stateVersion = "25.05";
 }

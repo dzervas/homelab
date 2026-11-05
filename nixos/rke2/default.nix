@@ -21,6 +21,7 @@ in
     ./kernel.nix
     ./metrics.nix
     ./sysbox.nix
+    ./vpn.nix
   ];
 
   # TODO: Add graceful shutdown like the k3s module

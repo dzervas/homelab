@@ -40,6 +40,11 @@
       };
     };
 
+    # Not part of the cluster: no RKE2 and no wg0 mesh
+    standalone = {
+      llm0.role = "llm";
+    };
+
     inherit (import ./mkMachines.nix { inherit disko nixpkgs; }) mkMachines mkNode;
   in {
     # For a fresh install:
@@ -47,12 +52,12 @@
     # nixos-anywhere --flake .#local0 --target-host root@<host>
     # For a rebuild:
     # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
-    nixosConfigurations = mkMachines machines;
+    nixosConfigurations = mkMachines machines // mkMachines standalone;
 
     # deploy-rs stuff
     deploy.nodes = builtins.mapAttrs (
       name: machine: mkNode self nixpkgs deploy-rs name machine
-    ) machines;
+    ) (machines // standalone);
     checks = builtins.mapAttrs (_system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
 
     packages."x86_64-linux" = let

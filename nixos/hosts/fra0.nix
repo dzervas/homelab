@@ -10,4 +10,6 @@
   disko.devices.disk.root.device = "/dev/sda";
 
   setup.provider = "oracle";
+
+  system.stateVersion = "25.05";
 }

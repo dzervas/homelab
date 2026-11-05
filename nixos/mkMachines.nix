@@ -1,8 +1,9 @@
 { disko, nixpkgs }: rec {
   mkMachine = {
     hostName,
-    hostIndex,
-    hostIP,
+    # Only RKE2 nodes (and their wg0 mesh) need these
+    hostIndex ? null,
+    hostIP ? null,
     machines ? {},
     nodes ? {},
     role ? "agent",
@@ -30,9 +31,12 @@
     modules = [
       { nixpkgs.overlays = [ (import ./overlays) ]; }
       disko.nixosModules.disko
-
-      ./rke2
+    ]
+    ++ nixpkgs.lib.optional (builtins.elem role [ "server" "agent" ]) ./rke2
+    ++ nixpkgs.lib.optional (role == "llm") ./inference
+    ++ [
       ./system
+      ./disk/${role}.nix
       ./hosts/${hostName}.nix
     ];
   };

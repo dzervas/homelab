@@ -2,7 +2,6 @@ _: {
   imports = [
     ./bash.nix
     ./boot.nix
-    ./disk.nix
     ./network.nix
     ./nix.nix
     ./options.nix
@@ -62,7 +61,6 @@ _: {
 
   programs.nix-ld.enable = true;
   hardware.enableAllFirmware = true;
-  system.stateVersion = "25.05";
 
   # Remove some default packages that come with nix
   environment.defaultPackages = [];
