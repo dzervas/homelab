@@ -136,7 +136,7 @@
 
   # maya.py's write_config_ds4 for Maya-XS (v2) on one HIP GPU: the `maya-ds4` engine, the Engram
   # tables and the DSpark drafter indexed into its pack by maya-ds4-pack
-  ds4Dir = "/models/maya/DeepSeek-V4.1-Flash-1017-GGUF";
+  ds4Dir = "/models/maya/DeepSeek-V4.1-Flash";
   deepseek-maya-xs = {
     exe = "${maya}/libexec/maya/maya-ds4";
     args = [

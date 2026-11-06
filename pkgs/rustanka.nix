@@ -4,10 +4,9 @@
   lib,
   rustPlatform,
   stdenv,
-}:
-rustPlatform.buildRustPackage (finalAttrs: {
+}: rustPlatform.buildRustPackage (finalAttrs: {
   pname = "rustanka";
-  version = "0.1.1";
+  version = "0.3.0";
 
   src = fetchFromGitHub {
     owner = "grafana";
@@ -26,7 +25,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
     sed -i '/^name = "rtk"$/{n;s/^version = "0.1.0"/version = "${finalAttrs.version}"/}' Cargo.lock
   '';
 
-  cargoBuildFlags = [ "-p" "rtk" ];
+  cargoBuildFlags = [
+    "-p"
+    "rtk"
+  ];
 
   nativeBuildInputs = [ installShellFiles ];
 

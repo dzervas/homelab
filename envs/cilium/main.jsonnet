@@ -56,6 +56,9 @@ local gateway = import './gateway.libsonnet';
         'enable-host-reachable-services': 'true',
       },
       socketLB: { enabled: true, hostNamespaceOnly: true },
+      // Lets cloud pods reach the home LAN through a home node (see envs/traefik/llm0.libsonnet).
+      // Needs bpf.masquerade and kubeProxyReplacement
+      egressGateway: { enabled: true },
       kubeProxyReplacement: 'true',
 
       // RKE2 exposes its built-in API client load balancer on agents at this

@@ -4,6 +4,7 @@ local helm = tk.helm.new(std.thisFile);
 
 local middleware = import './middleware.libsonnet';
 local anubis = import './anubis.libsonnet';
+local llm0 = import './llm0.libsonnet';
 
 {
   namespace: k.core.v1.namespace.new('traefik'),
@@ -189,4 +190,4 @@ local anubis = import './anubis.libsonnet';
         protocol: 'UDP',
       }],
     }]),
-} + middleware + anubis
+} + middleware + anubis + llm0
