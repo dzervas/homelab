@@ -54,7 +54,7 @@
       # state (~150 MB) plus the KV latents (~12.5 KB a token): ~1.6 GB at 128K, ~13 GB at 1M,
       # written and read back whole on a switch. 512 GB holds ~38 full 1M conversations; the
       # least recently used go first, and the engine never leaves the disk below 8 GB free.
-      STRATA_GLM_SLOT_DIR = slotDir;
+      STRATA_GLM_SLOT_DIR = "${slotDir}/glm";
       STRATA_GLM_SLOTS = "64";
       STRATA_GLM_SLOT_GB = "512";
       # Every hipBLASLt version's table for the arch; the engine picks the one matching its hipBLASLt,
@@ -153,8 +153,10 @@
       # (no --vision off: the engine runs the tower maya-ds4-vision made, indexed into the pack)
       # The setup writes `none` until its calibration measures drafting faster; this box holds the
       # whole model, where drafting pays. `none` frees the drafter's memory if it measures slower.
-      "--dspark"
-      "on"
+      # "--dspark"
+      # "on"
+      "--parallel"
+      "4"
     ];
     cwd = mayaShare;
     tokenizer = "${ds4Dir}/Maya-XS/maya-ds4/tokenizer";
@@ -167,6 +169,21 @@
       top_p = 1.0;
     };
     reasoning_effort = "high";
+
+    env = {
+      MAYA_DS4_SLOTS = "32";
+      MAYA_DS4_SLOT_GB = "512";
+      MAYA_DS4_SLOT_DIR = "${slotDir}/ds4";
+      MAYA_DS4_SLOT_KEEP = "1";
+      MAYA_DS4_SLOT_DAYS = "7";
+
+      MAYA_DS4_EXPERT_MMQ = "1";
+      MAYA_DS4_EXPERT_MMQ_MIN = "1";
+
+      MAYA_DS4_KEEP_THINKING = "1";
+
+      DS4_ROUND_LOG = "/tmp/ds4-rounds.log";
+    };
   };
 
   # hipfire's serve with this box's model folder. Its state (serve.pid, kernel cache, verified-file

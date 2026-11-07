@@ -35,11 +35,47 @@ local config = {
   },
   models: {
     providers: {
-      cliproxyapi: {
-        baseUrl: 'http://cliproxyapi.cliproxyapi.svc:8317/v1',
-        apiKey: 'sk-dummy',
+      llm0: {
+        baseUrl: 'https://llm0.dzerv.art/v1',
+        timeoutSeconds: 600,
+        apiKey: '${LLM0_API_KEY}',
         api: 'openai-completions',
-        models: [{ id: 'gpt-6-luna', name: 'GPT-6 Luna', reasoning: true, input: ['text', 'image'] }],
+        models: [
+          {
+            id: 'deepseek-v4.1-flash',
+            name: 'DeepSeek v4.1 Flash',
+            reasoning: true,
+            input: ['text', 'image'],
+            contextWindow: 1048576,
+            contextTokens: 983040,
+            maxTokens: 65536,
+            compat: {
+              supportsUsageInStreaming: true,
+              supportsReasoningEffort: true,
+              maxTokensField: 'max_tokens',
+              supportsStrictMode: false,
+              thinkingFormat: 'deepseek',
+              supportedReasoningEfforts: ['low', 'medium', 'high', 'xhigh'],
+            },
+          },
+          {
+            id: 'qwen3.8-flash-next',
+            name: 'Qwen 3.8 Flash Next',
+            reasoning: true,
+            input: ['text', 'image'],
+            contextWindow: 262144,
+            contextTokens: 196608,
+            compat: {
+              supportsUsageInStreaming: true,
+              supportsReasoningEffort: true,
+              maxTokensField: 'max_tokens',
+              supportsStrictMode: false,
+              thinkingFormat: 'qwen-chat-template',
+              supportedReasoningEfforts: ['low', 'medium', 'xhigh'],
+              reasoningEffortMap: { high: 'xhigh' },
+            },
+          },
+        ],
       },
     },
   },
@@ -105,15 +141,19 @@ local probe(path) = {
     + lab.withServiceName('openclaw')
     + lab.withPV('/data', { name: 'data', size: '20Gi' })
     + lab.withVpnHttp(18789, domain)
-    + lab.withPodLabels({ 'ai/enable': 'true', 'mcp/enable': 'true' })
+    + lab.withPodLabels({ 'mcp/enable': 'true' })
     + lab.withConfigMapMount('/etc/openclaw-bootstrap', 'openclaw-bootstrap')
     + lab.withArgs(['sh', '-ec', start])
     + lab.withSecretEnv({ OPENCLAW_GATEWAY_TOKEN: { name: authSecretName, key: 'token' } })
     // Reuse the Forgejo bot credentials previously supplied to Hermes' workspace
-    + lab.withExternalSecretEnvs('openclaw-git', { GIT_CREDENTIALS: 'git-credentials' }, {
-      store: '1password',
-      remoteKey: 'hermes-workspace',
-    })
+    + lab.withExternalSecretEnvs(
+      'openclaw-git',
+      {
+        GIT_CREDENTIALS: 'git-credentials',
+        LLM0_API_KEY: 'llm0-api-key',
+      },
+      { store: '1password', remoteKey: 'hermes-workspace' }
+    )
     + std.foldl(
       function(acc, env) acc + lab.withExternalSecretEnvs(mcp.tokens[env][0] + '-op', { [env]: mcp.tokens[env][1] }, {
         store: '1password',
@@ -132,6 +172,9 @@ local probe(path) = {
       PATH: '/data/.npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
       // Keep the image's browser cache visible after moving HOME to the PVC
       PLAYWRIGHT_BROWSERS_PATH: '/home/node/.cache/ms-playwright',
+      // OpenClaw already caches bytecode, but under os.tmpdir(), which is lost on every restart.
+      // It namespaces by version/build and prunes itself (512MiB/7d); the gateway main thread stays uncached upstream
+      NODE_COMPILE_CACHE: '/data/.cache/node-compile-cache',
     })
     + lab.withStartupProbe(probe('startupz') + { periodSeconds: 10, failureThreshold: 60 })
     + lab.withReadinessProbe(probe('readyz'))
@@ -177,6 +220,9 @@ local probe(path) = {
   egress: netpol.egress('openclaw-egress', namespace, labels, {
     dnsNames: ['*'],
     cidrs: [netpol.internet],
+    entities: [
+      { entities: ['remote-node'], ports: [{ port: 443 }] },
+    ],
     endpoints: [
       { namespace: 'cliproxyapi', labels: { 'app.kubernetes.io/name': 'cliproxyapi' }, ports: [{ port: 8317 }] },
       netpol.traefikVpn,  // git.vpn.dzerv.art resolves to Traefik's private VPN address

@@ -5,6 +5,7 @@
   apiKeyClients = [
     "dzervas"
     "pol"
+    "openclaw"
   ];
   apiKeys = map (client: "{env.API_KEY_${lib.toUpper client}}") apiKeyClients;
 in {

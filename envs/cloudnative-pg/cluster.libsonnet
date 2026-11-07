@@ -12,6 +12,11 @@ local cluster = cnpg.postgresql.v1.cluster;
     + cluster.spec.bootstrap.initdb.withDatabase(name)
     + cluster.spec.bootstrap.initdb.withOwner(name)
     + cluster.spec.bootstrap.initdb.withDataChecksums(true)
+    // Cap WAL retained by replication slots (incl. CNPG's HA slots). Without it a
+    // replica that can never catch up pins WAL until the primary's volume fills
+    // (2026-11: shared-1 lost its volume state, its slot filled shared-2's 20Gi).
+    // An over-limit slot is invalidated and the replica must be re-cloned.
+    + cluster.spec.postgresql.withParametersMixin({ max_slot_wal_keep_size: '4GB' })
     + cluster.spec.monitoring.withEnablePodMonitor(true)
     // The operator generates the PodMonitor, so it can't go through
     // metrics-filter.libsonnet. Keep only the cnpg_* metrics; the rest is Go runtime.
