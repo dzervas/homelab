@@ -175,6 +175,8 @@ local probe(path) = {
       // OpenClaw already caches bytecode, but under os.tmpdir(), which is lost on every restart.
       // It namespaces by version/build and prunes itself (512MiB/7d); the gateway main thread stays uncached upstream
       NODE_COMPILE_CACHE: '/data/.cache/node-compile-cache',
+
+      OPENCLAW_NO_RESPAWN: '1',  // gateway restarts stay in-process to avoid killing the pod
     })
     + lab.withStartupProbe(probe('startupz') + { periodSeconds: 10, failureThreshold: 60 })
     + lab.withReadinessProbe(probe('readyz'))
