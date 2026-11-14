@@ -151,6 +151,11 @@ local probe(path) = {
       {
         GIT_CREDENTIALS: 'git-credentials',
         LLM0_API_KEY: 'llm0-api-key',
+        // App-only Graph credentials (Mail.ReadWrite), standard Azure Identity variable names.
+        // The app must be limited to one mailbox with Exchange RBAC for Applications
+        AZURE_TENANT_ID: 'm365-tenant-id',
+        AZURE_CLIENT_ID: 'm365-client-id',
+        AZURE_CLIENT_SECRET: 'm365-client-secret',
       },
       { store: '1password', remoteKey: 'hermes-workspace' }
     )
