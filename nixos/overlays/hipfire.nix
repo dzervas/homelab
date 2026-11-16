@@ -6,20 +6,15 @@
   fetchFromGitHub,
   # Strix Halo / Gorgon Halo; upstream packages precompiled kernels for these, others JIT-compile
   gpuTargets ? [ "gfx1151" ],
-}:
-let
-  version = "0.4.5";
+}: let
+  version = "0.4.7";
   src = fetchFromGitHub {
     owner = "warpfront";
     repo = "hipfire";
     tag = "v${version}";
-    hash = "sha256-j7XXAGQzJ02EIMFEEWyR4WnPMRFPy/WpM84AHDZLSW8=";
+    hash = "sha256-L8LnqgKZ0l/QgNQhuVn0urY7O1rwa/ID0N2tohH2tgI=";
   };
   cargoLockFile = "${src}/Cargo.lock";
 
   kernels = callPackage "${src}/nix/kernels.nix" { inherit src cargoLockFile gpuTargets; };
-in
-callPackage "${src}/nix/package.nix" {
-  inherit src cargoLockFile kernels;
-  rocmSupport = true;
-}
+in callPackage "${src}/nix/package.nix" { inherit src cargoLockFile kernels; rocmSupport = true; }

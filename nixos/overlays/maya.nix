@@ -16,14 +16,14 @@
   gpuTargets ? [ "gfx1151" ],
 }:
 let
-  version = "1.1.61";
+  version = "1.1.65";
   rev = "c4effee67cb95fb4303720919b075fddf04b4e69"; # v1.1.55, for `maya --version`
 
   src = fetchFromGitHub {
     owner = "mw00";
     repo = "project-maya";
     tag = "v${version}";
-    hash = "sha256-+VsLHKrhxgaxyNlg7jZQ0Ermb112YQ8kPKuM79yszI8=";
+    hash = "sha256-5O+BGZCLP/bosTNMch8zy0mW0o4w296I/r03ZG1fu5I=";
   };
 
   # The ggml Maya is built and tested against (third_party/ggml/VERSION.txt); the pack tool reads GGUFs
