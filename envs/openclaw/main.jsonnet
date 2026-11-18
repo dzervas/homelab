@@ -83,6 +83,14 @@ local config = {
     servers: {
       [name]: mcp.config[name] { transport: 'streamable-http', enabled: true }
       for name in std.objectFields(mcp.config)
+    } + {
+      // Acts as the token's n8n user; only workflows enabled for MCP can be run
+      n8n: {
+        url: 'https://auto.vpn.dzerv.art/mcp-server/http',  // via traefikVpn egress
+        headers: { Authorization: 'Bearer ${MCP_N8N_TOKEN}' },
+        transport: 'streamable-http',
+        enabled: true,
+      },
     },
   },
   browser: {
@@ -156,6 +164,8 @@ local probe(path) = {
         AZURE_TENANT_ID: 'm365-tenant-id',
         AZURE_CLIENT_ID: 'm365-client-id',
         AZURE_CLIENT_SECRET: 'm365-client-secret',
+        // n8n Settings > Instance-level MCP > API key
+        MCP_N8N_TOKEN: 'n8n-mcp-token',
       },
       { store: '1password', remoteKey: 'hermes-workspace' }
     )

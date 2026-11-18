@@ -157,10 +157,9 @@
       # "on"
       "--parallel"
       "4"
-
-      "--fast-prefill" # speeds up prefill for short portmpts, 10+%, slightly changes the answers
-      "on"
     ];
+    fast-prefill = "on"; # speeds up prefill for short portmpts, 10+%, slightly changes the answers
+
     cwd = mayaShare;
     tokenizer = "${ds4Dir}/Maya-XS/maya-ds4/tokenizer";
     model_name = "deepseek-v4.1-flash";

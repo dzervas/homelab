@@ -73,6 +73,10 @@ local domain = 'dzerv.art';
 
       N8N_PUBLIC_API_DISABLED: 'false',
 
+      // Instance-level MCP for OpenClaw; workflows are still exposed one by one in the UI
+      N8N_MCP_MANAGED_BY_ENV: 'true',
+      N8N_MCP_ACCESS_ENABLED: 'true',
+
       DB_SQLITE_POOL_SIZE: '10',
       DB_SQLITE_VACUUM_ON_STARTUP: 'true',  // Makes startup take years
     }) + {
