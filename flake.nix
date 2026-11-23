@@ -1,0 +1,81 @@
+{
+  outputs = { self, nixpkgs, deploy-rs, disko, ... }: let
+    machines = {
+      gr0 = {
+        hostIndex = "100";
+        hostIP = "83.212.173.226";
+        publicKey = "IL/4BsJxWB+D+k9tAyz3VaQD4F1J6+C1/FXByrUr9Ak=";
+        provider = "gr";
+        role = "server";
+      };
+      # gr1 =  { hostIndex = "101"; hostIP = "83.212.175.41" ; publicKey = "Owhi+vyqYtFrSs9bOj8qnEsEvOiXD1zME41rLUQ2KV8="; provider = "gr"; };
+      srv0 = {
+        hostIndex = "150";
+        hostIP = "10.13.37.120";
+        publicKey = "KGm/C81/0PyagQN8V4we8hnVvCLg22NKoUM/Nh3htBw=";
+        provider = "homelab";
+      };
+      srv1 = {
+        hostIndex = "151";
+        hostIP = "10.13.37.121";
+        publicKey = "F0VlSG5gHIVwD+nIxxynsip55bEeHuC3IrPwQ9HBoko=";
+        provider = "homelab";
+        system = "aarch64-linux";
+      };
+      fra0 = {
+        hostIndex = "200";
+        hostIP = "152.70.165.139";
+        publicKey = "nJLpWuGE+NQA5k1nSAgTeFMpGbyGuT4ZAfi2OzsKjzY=";
+        provider = "oracle";
+        role = "server";
+        system = "aarch64-linux";
+      };
+      fra1 = {
+        hostIndex = "201";
+        hostIP = "130.162.36.16";
+        publicKey = "gdS1om0jFmLu3omuE+aMwFpW1iMse0wjVEkPgZB67xs=";
+        provider = "oracle";
+        role = "server";
+        system = "aarch64-linux";
+      };
+    };
+
+    # Not part of the cluster: no RKE2 and no wg0 mesh
+    standalone = {
+      llm0.role = "llm";
+    };
+
+    inherit (import ./nixos/mkMachines.nix { inherit disko nixpkgs; }) mkMachines mkNode;
+  in {
+    # For a fresh install:
+    # nixos-anywhere --flake .#local0 --target-host root@<host> --generate-hardware-config nixos-generate-config ./hosts/srv0.nix
+    # nixos-anywhere --flake .#local0 --target-host root@<host>
+    # For a rebuild:
+    # nixos-rebuild switch --flake .#srv0 --target-host root@srv0.lan
+    nixosConfigurations = mkMachines machines // mkMachines standalone;
+
+    # deploy-rs stuff
+    deploy.nodes = builtins.mapAttrs (name: machine: mkNode self nixpkgs deploy-rs name machine) (
+      machines // standalone
+    );
+    checks = builtins.mapAttrs (_system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+
+    packages."x86_64-linux" = let
+      overlay = import ./nixos/overlays;
+      pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    in overlay pkgs pkgs;
+  };
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    deploy-rs.url = "github:serokell/deploy-rs";
+
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+  };
+}

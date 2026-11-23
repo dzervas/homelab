@@ -158,7 +158,9 @@
       "--parallel"
       "4"
     ];
-    fast-prefill = "on"; # speeds up prefill for short portmpts, 10+%, slightly changes the answers
+    # serve/server.py reads only a boolean "fast_prefill" (DS4_YOCO_CONE): +12-14% prefill at 2-8K, slightly
+    # changes the answers
+    fast_prefill = true;
 
     cwd = mayaShare;
     tokenizer = "${ds4Dir}/Maya-XS/maya-ds4/tokenizer";
@@ -185,6 +187,9 @@
       MAYA_DS4_KEEP_THINKING = "1";
 
       DS4_ROUND_LOG = "/tmp/ds4-rounds.log";
+      # The prompt GEMMs' measured hipBLASLt kernels. The default store is the pack's lt-picks.txt, read-only here,
+      # so every engine start measured them again during its first prompts.
+      MAYA_DS4_LT_STORE = "${slotDir}/ds4-lt-picks.txt";
     };
   };
 
